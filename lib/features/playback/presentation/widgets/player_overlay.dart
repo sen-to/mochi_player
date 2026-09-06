@@ -120,20 +120,18 @@ class _SubtitleAvoidanceLayoutDelegate extends SingleChildLayoutDelegate {
 
 /// 播放器顶部信息栏。
 ///
-/// 只负责返回入口、媒体标题和缓存速度，不持有播放状态。
+/// 只负责媒体标题和缓存速度，不持有播放状态。
 class PlayerTopBar extends StatelessWidget {
   final String title;
   final String? secondaryTitle;
   final String cacheSpeed;
   final bool isFullScreen;
-  final VoidCallback onBack;
 
   const PlayerTopBar({
     super.key,
     required this.title,
     required this.cacheSpeed,
     required this.isFullScreen,
-    required this.onBack,
     this.secondaryTitle,
   });
 
@@ -149,12 +147,10 @@ class PlayerTopBar extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.only(left: leftInset, right: AppSpacing.xxl, top: AppSpacing.sm),
+          padding: EdgeInsets.only(left: leftInset, right: AppSpacing.xxl),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _PlayerBackButton(onPressed: onBack),
-              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 9),
@@ -221,34 +217,6 @@ class PlayerTopBar extends StatelessWidget {
 }
 
 const _topBarTextShadows = [Shadow(color: Color(0xB3000000), blurRadius: 8, offset: Offset(0, 1))];
-
-class _PlayerBackButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _PlayerBackButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(AppRadii.control));
-    return SizedBox(
-      key: const ValueKey('player-back-button'),
-      width: 38,
-      height: PlayerOverlayLayout.topButtonHeight,
-      child: AppGlassSurface(
-        borderRadius: radius,
-        color: PlayerOverlayGlass.background,
-        borderColor: PlayerOverlayGlass.border,
-        blur: PlayerOverlayGlass.blur,
-        child: AppClickableArea(
-          onTap: onPressed,
-          borderRadius: radius,
-          hoverColor: const Color(0x1FFFFFFF),
-          child: const Center(child: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 17)),
-        ),
-      ),
-    );
-  }
-}
 
 /// 播放器底部玻璃控制面板。
 ///

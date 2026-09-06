@@ -19,7 +19,9 @@ class WindowControlsController extends ChangeNotifier {
       _isMiniPlayer = enabled;
       notifyListeners();
     }
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) {
+      return;
+    }
     await _nativeChannel.invokeMethod<void>('setNativeWindowButtonsVisible', !enabled);
   }
 }

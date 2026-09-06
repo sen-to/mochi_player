@@ -15,7 +15,6 @@ class PlayerControls extends StatefulWidget {
   final bool isFullScreen;
   final bool isMiniPlayer;
   final bool isMiniPlayerAlwaysOnTop;
-  final VoidCallback? onBack;
   final VoidCallback onToggleFullScreen;
 
   final VoidCallback? onPrevious;
@@ -49,7 +48,6 @@ class PlayerControls extends StatefulWidget {
     required this.isFullScreen,
     this.isMiniPlayer = false,
     this.isMiniPlayerAlwaysOnTop = false,
-    this.onBack,
     required this.onToggleFullScreen,
     this.onPrevious,
     this.onNext,
@@ -103,6 +101,24 @@ class _PlayerControlsState extends State<PlayerControls> {
         if (mounted) setState(() => _rate = v);
       }),
     ]);
+
+    _syncCacheSpeedPolling();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlayerControls oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isVisible != widget.isVisible || oldWidget.isMiniPlayer != widget.isMiniPlayer) {
+      _syncCacheSpeedPolling();
+    }
+  }
+
+  bool get _shouldPollCacheSpeed => widget.isVisible && !widget.isMiniPlayer;
+
+  void _syncCacheSpeedPolling() {
+    _cacheSpeedTimer?.cancel();
+    _cacheSpeedTimer = null;
+    if (!_shouldPollCacheSpeed) return;
 
     unawaited(_updateCacheSpeed());
     _cacheSpeedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -198,7 +214,6 @@ class _PlayerControlsState extends State<PlayerControls> {
                 secondaryTitle: widget.secondaryTitle,
                 cacheSpeed: _cacheSpeed,
                 isFullScreen: widget.isFullScreen,
-                onBack: () => _onTap(widget.onBack ?? () => Navigator.of(context).maybePop()),
               ),
             ),
 
@@ -217,7 +232,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                     const SizedBox(width: 16),
 
                     // 2. 上一集
-                    if (!widget.isMiniPlayer && widget.onPrevious != null) ...[
+                    if (widget.onPrevious != null) ...[
                       PlayerControlButton(
                         onPressed: () => _onTap(widget.onPrevious!),
                         child: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 21),
@@ -252,7 +267,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                     ),
 
                     // 6. 下一集
-                    if (!widget.isMiniPlayer && widget.onNext != null) ...[
+                    if (widget.onNext != null) ...[
                       const SizedBox(width: 4),
                       PlayerControlButton(
                         onPressed: () => _onTap(widget.onNext!),
@@ -281,7 +296,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                       const SizedBox(width: 4),
                     ],
 
-                    if (!widget.isMiniPlayer && widget.onAudioSelected != null && widget.audioTracks.isNotEmpty) ...[
+                    if (widget.onAudioSelected != null && widget.audioTracks.isNotEmpty) ...[
                       _AudioMenuButton(
                         tracks: widget.audioTracks,
                         selectedTrack: widget.selectedAudioTrack,
@@ -307,11 +322,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                     if (widget.onPip != null) ...[
                       PlayerControlButton(
                         onPressed: () => _onTap(widget.onPip!),
-                        child: Icon(
-                          widget.isMiniPlayer ? Icons.open_in_full_rounded : Icons.picture_in_picture_alt_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                        child: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white, size: 18),
                       ),
                       const SizedBox(width: 4),
                     ],

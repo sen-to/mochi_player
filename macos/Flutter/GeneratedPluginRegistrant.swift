@@ -6,6 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import dart_smb2
+import desktop_multi_window
 import file_selector_macos
 import isar_flutter_libs
 import media_kit_libs_macos_video
@@ -19,6 +20,7 @@ import window_manager
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   DartSmb2Plugin.register(with: registry.registrar(forPlugin: "DartSmb2Plugin"))
+  FlutterMultiWindowPlugin.register(with: registry.registrar(forPlugin: "FlutterMultiWindowPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
   IsarFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "IsarFlutterLibsPlugin"))
   MediaKitLibsMacosVideoPlugin.register(with: registry.registrar(forPlugin: "MediaKitLibsMacosVideoPlugin"))

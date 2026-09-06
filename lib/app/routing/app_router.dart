@@ -3,43 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
 import 'package:mochi_player/app/presentation/pages/app_destination_root_page.dart';
 import 'package:mochi_player/app/presentation/pages/app_shell_page.dart';
-import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/pages/library_section_page.dart';
 import 'package:mochi_player/features/library/presentation/pages/media_detail_page.dart';
-import 'package:mochi_player/features/playback/presentation/pages/player_page.dart';
-import 'package:mochi_player/features/playback/presentation/player_route_data.dart';
 
 GoRouter createAppRouter() {
-  final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root-navigator');
   return GoRouter(
-    navigatorKey: rootNavigatorKey,
     initialLocation: AppDestination.home.path,
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => AppShellPage(navigationShell: navigationShell),
         branches: [for (final destination in AppDestination.values) _buildDestinationBranch(destination)],
-      ),
-      GoRoute(
-        path: AppRoutePaths.player,
-        parentNavigatorKey: rootNavigatorKey,
-        pageBuilder: (context, state) {
-          final data = state.extra;
-          if (data is! PlayerRouteData) {
-            return _errorPage(state, '缺少播放页参数');
-          }
-
-          return MaterialPage<void>(
-            key: state.pageKey,
-            child: PlayerPage(
-              videoItem: data.videoItem,
-              target: data.target,
-              contextTitle: data.contextTitle,
-              playlist: data.playlist,
-            ),
-          );
-        },
       ),
     ],
   );

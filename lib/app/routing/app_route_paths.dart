@@ -3,8 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
 
 abstract final class AppRoutePaths {
-  static const player = '/player';
-
   static String destination(AppDestination destination) => destination.path;
 
   static String mediaDetail(BuildContext context) => '${currentDestination(context).path}/media';

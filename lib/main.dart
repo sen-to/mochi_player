@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart';
@@ -12,6 +13,8 @@ import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
+import 'package:mochi_player/features/playback/domain/player_window_request.dart';
+import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +23,12 @@ import 'package:window_manager/window_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+  final currentWindow = await WindowController.fromCurrentEngine();
+  final playerWindowRequest = PlayerWindowRequest.tryDecode(currentWindow.arguments);
+  if (playerWindowRequest != null) {
+    await runPlayerWindow(currentWindow, playerWindowRequest);
+    return;
+  }
   await windowManager.ensureInitialized();
 
   // 初始化数据库
@@ -27,6 +36,13 @@ void main() async {
 
   final appSettingsProvider = AppSettingsProvider();
   await appSettingsProvider.load();
+  final mediaLibraryProvider = MediaLibraryProvider();
+  await PlayerWindow.installMainWindowHandler(
+    currentWindow,
+    onPlaybackStateChanged: (changedMedia) => mediaLibraryProvider.refreshPlaybackState(
+      changedMedia.map((key) => (sourceId: key.sourceId, path: key.path)).toList(growable: false),
+    ),
+  );
   final windowControlsController = WindowControlsController();
 
   final windowOptions = WindowOptions(
@@ -55,7 +71,7 @@ void main() async {
         ChangeNotifierProvider.value(value: windowControlsController),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => FileBrowserProvider()),
-        ChangeNotifierProvider(create: (_) => MediaLibraryProvider()),
+        ChangeNotifierProvider.value(value: mediaLibraryProvider),
         ChangeNotifierProvider(create: (_) => TrendingMediaProvider()),
       ],
       child: MochiPlayerApp(router: createAppRouter()),

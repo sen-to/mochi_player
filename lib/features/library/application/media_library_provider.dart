@@ -78,6 +78,25 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   Future<void> loadFromDatabase() => _syncController.loadFromDatabase();
 
+  /// Refreshes only files whose playback state changed in a separate player
+  /// window. Metadata is unchanged, while watch state and the
+  /// continue-watching order may have changed.
+  Future<void> refreshPlaybackState(Iterable<({String sourceId, String path})> changedMedia) async {
+    var didUpdate = false;
+    for (final key in changedMedia.toSet()) {
+      final latest = await _db.getMediaFile(key.sourceId, key.path);
+      if (latest == null) continue;
+      final index = _catalog.mediaFiles.indexWhere((file) => file.sourceId == key.sourceId && file.path == key.path);
+      if (index < 0) continue;
+      _catalog.mediaFiles[index] = latest;
+      didUpdate = true;
+    }
+    if (!didUpdate) return;
+    _catalog.recountContinueWatching();
+    _catalog.markWatchProgressChanged();
+    notifyListeners();
+  }
+
   Future<void> refreshLibraryMetadata() => _syncController.refreshLibraryMetadata();
 
   Future<MediaSourceScanSummary?> scanMediaSources() => _syncController.scanEnabledMediaSources();

@@ -1,14 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/core/domain/playback/playback_target.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_playback_resolver.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
-import 'package:mochi_player/features/playback/presentation/player_route_data.dart';
+import 'package:mochi_player/features/playback/domain/player_window_request.dart';
+import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
 import 'package:provider/provider.dart';
 
 class PlaybackLauncher {
@@ -92,7 +89,7 @@ class PlaybackLauncher {
     _openPlayer(context, targetFile, contextTitle: showTitle);
   }
 
-  /// 核心播放逻辑：解析媒体地址 -> 跳转 PlayerPage
+  /// 核心播放逻辑：构造可持久化请求 -> 打开或复用独立播放器窗口。
   static void _openPlayer(
     BuildContext context,
     MediaFile file, {
@@ -104,27 +101,24 @@ class PlaybackLauncher {
     AppMessageHandle? loadingBanner;
     final loadingDelay = Timer(const Duration(milliseconds: 180), () {
       if (!context.mounted) return;
-      loadingBanner = AppMessage.loading(loadingMessage ?? '正在获取播放链接…');
+      loadingBanner = AppMessage.loading(loadingMessage ?? '正在打开播放器…');
     });
 
-    PlaybackTarget? target;
     try {
-      target = await StorageSourcePlaybackResolver().resolve(file);
+      final libraryProvider = context.read<MediaLibraryProvider>();
+      final queue = playlist.isNotEmpty ? playlist : libraryProvider.getPlaybackQueue(file);
+      final request = PlayerWindowRequest.fromPlayback(initialMedia: file, queue: queue, contextTitle: contextTitle);
+      await PlayerWindow.openOrReplace(request);
+    } on PlayerWindowLaunchFailed catch (error) {
+      debugPrint('播放器子窗口启动失败: $error');
     } catch (error, stackTrace) {
-      debugPrint('获取播放链接失败: $error\n$stackTrace');
+      debugPrint('打开播放器窗口失败: $error\n$stackTrace');
+      if (context.mounted) {
+        _showError(context, failureMessage ?? '无法打开播放器，请检查媒体源和网络');
+      }
     } finally {
       loadingDelay.cancel();
       loadingBanner?.dismiss();
-    }
-    if (!context.mounted) return;
-
-    if (target != null) {
-      context.push(
-        AppRoutePaths.player,
-        extra: PlayerRouteData(videoItem: file, target: target, contextTitle: contextTitle, playlist: playlist),
-      );
-    } else {
-      _showError(context, failureMessage ?? "获取播放链接失败，请检查网络或服务器");
     }
   }
 

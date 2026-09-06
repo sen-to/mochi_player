@@ -6,7 +6,7 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
 
 void main() {
-  testWidgets('places the back button after macOS window controls', (
+  testWidgets('aligns title with the safe inset after macOS window controls', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(1200, 700));
@@ -20,34 +20,21 @@ void main() {
             secondaryTitle: '第 1 季 · 第 1 集',
             cacheSpeed: '3.2 MB/s',
             isFullScreen: false,
-            onBack: () {},
           ),
         ),
       );
 
-      final backButton = find.byKey(const ValueKey('player-back-button'));
       expect(
-        tester.getTopLeft(backButton).dx,
+        tester.getTopLeft(find.text('进击的巨人')).dx,
         WindowControlsLayout.leadingContentInset,
       );
-      expect(tester.getSize(backButton), const Size(38, 36));
       expect(find.text('进击的巨人'), findsOneWidget);
       expect(find.text('第 1 季 · 第 1 集'), findsOneWidget);
+      expect(find.byKey(const ValueKey('player-back-button')), findsNothing);
 
       final cacheSpeed = find.byKey(const ValueKey('player-cache-speed'));
       expect(tester.getTopRight(cacheSpeed).dx, 1176);
       expect(find.text('3.2 MB/s'), findsOneWidget);
-
-      final glass = tester.widget<AppGlassSurface>(
-        find.descendant(of: backButton, matching: find.byType(AppGlassSurface)),
-      );
-      expect(
-        glass.borderRadius,
-        const BorderRadius.all(Radius.circular(AppRadii.control)),
-      );
-      expect(glass.color, PlayerOverlayGlass.background);
-      expect(glass.borderColor, PlayerOverlayGlass.border);
-      expect(glass.blur, PlayerOverlayGlass.blur);
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       debugDefaultTargetPlatformOverride = null;
@@ -72,31 +59,16 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       _testApp(
-        PlayerTopBar(
-          title: '电影',
-          cacheSpeed: '3.2 MB/s',
-          isFullScreen: true,
-          onBack: () {},
-        ),
+        PlayerTopBar(title: '电影', cacheSpeed: '3.2 MB/s', isFullScreen: true),
       ),
     );
 
-    expect(
-      tester.getTopLeft(find.byKey(const ValueKey('player-back-button'))).dx,
-      AppSpacing.xxl,
-    );
+    expect(tester.getTopLeft(find.text('电影')).dx, AppSpacing.xxl);
   });
 
   testWidgets('hides the cache speed when it is unavailable', (tester) async {
     await tester.pumpWidget(
-      _testApp(
-        PlayerTopBar(
-          title: '电影',
-          cacheSpeed: '',
-          isFullScreen: true,
-          onBack: () {},
-        ),
-      ),
+      _testApp(PlayerTopBar(title: '电影', cacheSpeed: '', isFullScreen: true)),
     );
 
     expect(find.byKey(const ValueKey('player-cache-speed')), findsNothing);

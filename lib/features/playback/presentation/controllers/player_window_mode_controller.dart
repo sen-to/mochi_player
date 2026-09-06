@@ -11,7 +11,6 @@ import 'package:window_manager/window_manager.dart';
 class PlayerWindowModeController extends ChangeNotifier with WindowListener {
   static const Size _miniPlayerSize = Size(480, 300);
   static const Size _miniPlayerMinimumSize = Size(420, 260);
-  static const Size _regularMinimumWindowSize = Size(900, 600);
 
   bool _isFullScreen = false;
   bool _isMiniPlayer = false;
@@ -29,6 +28,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
   Future<void>? _miniAlwaysOnTopTransition;
 
   final WindowControlsController windowControlsController;
+  final Size regularMinimumWindowSize;
 
   bool get isFullScreen => _isFullScreen;
 
@@ -36,7 +36,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
 
   bool get isMiniPlayerAlwaysOnTop => _isMiniPlayerAlwaysOnTop;
 
-  PlayerWindowModeController({required this.windowControlsController}) {
+  PlayerWindowModeController({required this.windowControlsController, required this.regularMinimumWindowSize}) {
     windowManager.addListener(this);
   }
 
@@ -77,13 +77,6 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
 
   Future<void> exitFullScreen() async {
     await _fullScreenTransition;
-    await _exitPlayerFullScreen();
-  }
-
-  Future<void> leavePlayerModes() async {
-    await _fullScreenTransition;
-    await _miniPlayerTransition;
-    await _exitMiniPlayer();
     await _exitPlayerFullScreen();
   }
 
@@ -156,7 +149,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
     if (previousBounds != null) {
       await windowManager.setBounds(previousBounds, animate: true);
     }
-    await windowManager.setMinimumSize(_regularMinimumWindowSize);
+    await windowManager.setMinimumSize(regularMinimumWindowSize);
     if (_windowWasMaximizedBeforeMiniPlayer) {
       await windowManager.maximize();
     }

@@ -1,7 +1,7 @@
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
 import 'package:mochi_player/features/library/application/scrape_plan.dart';
 

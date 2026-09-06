@@ -9,20 +9,25 @@ import 'package:mochi_player/core/domain/media/media_type.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
+import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
+import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_mode_controller.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 class PlayerPage extends StatefulWidget {
   final MediaFile videoItem;
   final PlaybackTarget target;
   final String? contextTitle;
   final List<MediaFile> playlist;
+  final PlaybackMediaStore mediaStore;
+  final PlayerWindowCloseCoordinator closeCoordinator;
+  final Size regularMinimumWindowSize;
 
   const PlayerPage({
     super.key,
@@ -30,6 +35,9 @@ class PlayerPage extends StatefulWidget {
     required this.target,
     this.contextTitle,
     this.playlist = const [],
+    required this.mediaStore,
+    required this.closeCoordinator,
+    required this.regularMinimumWindowSize,
   });
 
   @override
@@ -70,22 +78,21 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   void initState() {
     super.initState();
-    final libraryProvider = context.read<MediaLibraryProvider>();
     _playbackSettings = context.read<AppSettingsProvider>().settings;
-    final queueItems = widget.playlist.isNotEmpty
-        ? widget.playlist
-        : libraryProvider.getPlaybackQueue(widget.videoItem);
+    final queueItems = widget.playlist.isNotEmpty ? widget.playlist : [widget.videoItem];
 
     _playbackController = PlayerPlaybackController(
-      libraryProvider: libraryProvider,
+      mediaStore: widget.mediaStore,
       settings: _playbackSettings,
       initialItem: widget.videoItem,
       queueItems: queueItems,
       initialTarget: widget.target,
       onPlaybackActivity: _startHideControlsTimer,
     )..addListener(_handlePlaybackChanged);
+    widget.closeCoordinator.registerProgressFlusher(_playbackController.flushProgress);
     _windowModeController = PlayerWindowModeController(
       windowControlsController: context.read<WindowControlsController>(),
+      regularMinimumWindowSize: widget.regularMinimumWindowSize,
     )..addListener(_handleWindowModeChanged);
 
     unawaited(_playbackController.initialize());
@@ -183,16 +190,12 @@ class _PlayerPageState extends State<PlayerPage> {
     return KeyEventResult.handled;
   }
 
-  Future<void> _handleBackPressed() async {
-    await _windowModeController.leavePlayerModes();
-    if (mounted) Navigator.of(context).maybePop();
-  }
-
   @override
   void dispose() {
     _isDisposed = true;
     _hideControlsTimer?.cancel();
     _playbackController.removeListener(_handlePlaybackChanged);
+    widget.closeCoordinator.unregisterProgressFlusher();
     _playbackController.dispose();
     _windowModeController.removeListener(_handleWindowModeChanged);
     unawaited(_windowModeController.restoreWindow().whenComplete(_windowModeController.dispose));
@@ -228,11 +231,7 @@ class _PlayerPageState extends State<PlayerPage> {
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    setState(() => _isControlsVisible = !_isControlsVisible);
-                    if (_isControlsVisible) _startHideControlsTimer();
-                    FocusScope.of(context).requestFocus(_focusNode);
-                  },
+                  onPanStart: (_) => unawaited(windowManager.startDragging()),
                   onDoubleTap: _windowModeController.toggleFullScreen,
                   child: const ColoredBox(color: Colors.transparent),
                 ),
@@ -299,7 +298,6 @@ class _PlayerPageState extends State<PlayerPage> {
                 isFullScreen: _windowModeController.isFullScreen,
                 isMiniPlayer: _windowModeController.isMiniPlayer,
                 isMiniPlayerAlwaysOnTop: _windowModeController.isMiniPlayerAlwaysOnTop,
-                onBack: () => unawaited(_handleBackPressed()),
                 onToggleFullScreen: _windowModeController.toggleFullScreen,
                 onPrevious: _playbackController.hasPrevious
                     ? () => unawaited(_playbackController.playQueueOffset(-1))

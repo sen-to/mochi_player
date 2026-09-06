@@ -1,5 +1,6 @@
 import Cocoa
 import FlutterMacOS
+import desktop_multi_window
 
 class MainFlutterWindow: NSWindow {
   private static let windowButtonOffset = NSPoint(x: 12, y: -10)
@@ -17,6 +18,10 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
+      RegisterGeneratedPlugins(registry: controller)
+      Self.installChildWindowControls(for: controller)
+    }
 
     let channel = FlutterMethodChannel(
       name: "mochi_player/window_controls",
@@ -183,6 +188,60 @@ class MainFlutterWindow: NSWindow {
   private func updateNativeWindowButtonVisibility() {
     for buttonType in nativeWindowButtonTypes {
       standardWindowButton(buttonType)?.isHidden = !nativeWindowButtonsVisible
+    }
+  }
+
+  /// Child Flutter engines belong to their own NSWindow, so they cannot use
+  /// the main window's channel handler. They only need to hide the standard
+  /// controls while the compact player is active; their normal titlebar
+  /// placement remains under AppKit's control.
+  private static func installChildWindowControls(
+    for controller: FlutterViewController
+  ) {
+    DispatchQueue.main.async {
+      guard let window = controller.view.window else {
+        return
+      }
+
+      let channel = FlutterMethodChannel(
+        name: "mochi_player/window_controls",
+        binaryMessenger: controller.engine.binaryMessenger
+      )
+      channel.setMethodCallHandler { [weak window] call, result in
+        guard let window else {
+          result(nil)
+          return
+        }
+
+        switch call.method {
+        case "setNativeWindowButtonsVisible":
+          guard let visible = call.arguments as? Bool else {
+            result(
+              FlutterError(
+                code: "invalid_arguments",
+                message: "Expected a Boolean visibility value.",
+                details: nil
+              )
+            )
+            return
+          }
+          for buttonType in [
+            NSWindow.ButtonType.closeButton,
+            .miniaturizeButton,
+            .zoomButton
+          ] {
+            window.standardWindowButton(buttonType)?.isHidden = !visible
+          }
+          result(nil)
+        case "closePlayerWindow":
+          result(nil)
+          DispatchQueue.main.async {
+            window.close()
+          }
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
     }
   }
 }

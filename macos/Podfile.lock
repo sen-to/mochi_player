@@ -1,6 +1,8 @@
 PODS:
   - dart_smb2 (0.1.2):
     - FlutterMacOS
+  - desktop_multi_window (0.0.1):
+    - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
@@ -27,6 +29,7 @@ PODS:
 
 DEPENDENCIES:
   - dart_smb2 (from `Flutter/ephemeral/.symlinks/plugins/dart_smb2/macos`)
+  - desktop_multi_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
@@ -42,6 +45,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   dart_smb2:
     :path: Flutter/ephemeral/.symlinks/plugins/dart_smb2/macos
+  desktop_multi_window:
+    :path: Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos
   file_selector_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   FlutterMacOS:
@@ -67,6 +72,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   dart_smb2: c596120ffb6d7767cb1322d478ba726a3155d97e
+  desktop_multi_window: ea8bb43f17f12cf60220d6ebd6b249dcd82e8279
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   isar_flutter_libs: a65381780401f81ad6bf3f2e7cd0de5698fb98c4

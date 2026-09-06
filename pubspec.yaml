@@ -55,6 +55,7 @@ dependencies:
   dart_smb2: ^0.1.2
   flutter_svg: ^2.3.0
   file_selector: ^1.1.0
+  desktop_multi_window: ^0.3.1
 
 dev_dependencies:
   flutter_test:

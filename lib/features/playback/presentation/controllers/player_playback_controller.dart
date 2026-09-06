@@ -6,8 +6,8 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/playback/application/external_subtitle_track.dart';
+import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';
 import 'package:mochi_player/features/playback/infrastructure/libmpv_log_buffer.dart';
@@ -22,7 +22,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   static const Duration localBufferingIndicatorDelay = Duration(milliseconds: 350);
 
   PlayerPlaybackController({
-    required MediaLibraryProvider libraryProvider,
+    required PlaybackMediaStore mediaStore,
     required AppSettings settings,
     required MediaFile initialItem,
     required List<MediaFile> queueItems,
@@ -30,7 +30,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     this.onPlaybackActivity,
   }) : _settings = settings,
        _session = PlaybackSessionController(
-         libraryProvider: libraryProvider,
+         mediaStore: mediaStore,
          initialItem: initialItem,
          queueItems: queueItems,
          initialTarget: initialTarget,
@@ -63,6 +63,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   Timer? _resumeNoticeTimer;
   bool _isDisposed = false;
   bool _hasRestoredPosition = false;
+  bool _hasFlushedProgress = false;
   bool _didAutoSelectSubtitle = false;
   bool _isBuffering = false;
   bool _isBufferingIndicatorVisible = false;
@@ -325,7 +326,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     if (!_canUsePlayer(generation)) return;
     final resumePosition = PlaybackResumePolicy.positionFor(currentItem, hasRestoredPosition: _hasRestoredPosition);
 
-    debugPrint('正在播放媒体地址: ${LibmpvLogBuffer.sanitize(_session.currentTarget.url)}');
+    debugPrint('正在打开媒体播放目标：${_safeTargetDescription(_session.currentTarget.url)}');
     await _applyPlayerSettings(generation);
     if (!_canUsePlayer(generation)) return;
     await _applySubtitleStyleMode(generation);
@@ -353,6 +354,17 @@ class PlayerPlaybackController extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  static String _safeTargetDescription(String url) {
+    final scheme = Uri.tryParse(url)?.scheme.toLowerCase();
+    return switch (scheme) {
+      'file' => '本地文件',
+      'http' || 'https' => 'HTTP 流',
+      'smb' => 'SMB 流',
+      final value when value != null && value.isNotEmpty => '$value 播放目标',
+      _ => '未知播放目标',
+    };
   }
 
   Future<void> _applyPlayerSettings([int? generation]) async {
@@ -443,6 +455,15 @@ class PlayerPlaybackController extends ChangeNotifier {
     }
   }
 
+  /// Persists the latest player snapshot before a window is closed.
+  Future<void> flushProgress() async {
+    if (_hasFlushedProgress) return;
+    // Set the latch before awaiting I/O so disposal cannot schedule a second
+    // forced write while this final snapshot is still being persisted.
+    _hasFlushedProgress = true;
+    await _saveProgress(force: true);
+  }
+
   Future<void> _handlePlaybackCompleted() async {
     await _saveProgress(force: true);
     if (!_isDisposed && hasNext) await playQueueOffset(1);
@@ -476,6 +497,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   void _resetMediaState() {
     _setBuffering(false);
     _hasRestoredPosition = false;
+    _hasFlushedProgress = false;
     _didAutoSelectSubtitle = false;
     _showResumeNotice = false;
     _resumePositionLabel = null;
@@ -611,7 +633,9 @@ class PlayerPlaybackController extends ChangeNotifier {
   void dispose() {
     _isDisposed = true;
     _nextMediaOpenGeneration();
-    unawaited(_saveProgress(force: true, allowDisposed: true));
+    if (!_hasFlushedProgress) {
+      unawaited(_saveProgress(force: true, allowDisposed: true));
+    }
     _progressSaveTimer?.cancel();
     _bufferingIndicatorTimer?.cancel();
     _resumeNoticeTimer?.cancel();

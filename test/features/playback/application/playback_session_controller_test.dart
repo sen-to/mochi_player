@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
+import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 
 MediaFile _file(int id, String path) => MediaFile(
   id: id,
@@ -13,14 +13,20 @@ MediaFile _file(int id, String path) => MediaFile(
   addedAt: DateTime(2026),
 );
 
-class _FakeLibraryProvider extends MediaLibraryProvider {
-  _FakeLibraryProvider({this.failProgressWrites = false});
+class _FakePlaybackMediaStore implements PlaybackMediaStore {
+  _FakePlaybackMediaStore({this.failProgressWrites = false});
 
   final bool failProgressWrites;
   final progressWrites = <int>[];
 
   @override
-  Future<MediaFile?> getLatestMediaFile(MediaFile file) async => file;
+  Iterable<PlaybackMediaKey> get changedMedia => const [];
+
+  @override
+  Future<MediaFile?> readMediaFile({
+    required String sourceId,
+    required String path,
+  }) async => _file(1, path);
 
   @override
   Future<void> updateProgress(
@@ -46,12 +52,12 @@ void main() {
   test(
     'saves current progress before resolving and committing a queue move',
     () async {
-      final library = _FakeLibraryProvider();
+      final library = _FakePlaybackMediaStore();
       final first = _file(1, '/media/one.mkv');
       final second = _file(2, '/media/two.mkv');
       final events = <String>[];
       final session = PlaybackSessionController(
-        libraryProvider: library,
+        mediaStore: library,
         initialItem: first,
         queueItems: [first, second],
         initialTarget: const PlaybackTarget(url: 'https://example.test/one'),
@@ -74,11 +80,11 @@ void main() {
   test(
     'keeps the current item when a target link cannot be resolved',
     () async {
-      final library = _FakeLibraryProvider();
+      final library = _FakePlaybackMediaStore();
       final first = _file(1, '/media/one.mkv');
       final second = _file(2, '/media/two.mkv');
       final session = PlaybackSessionController(
-        libraryProvider: library,
+        mediaStore: library,
         initialItem: first,
         queueItems: [first, second],
         initialTarget: const PlaybackTarget(url: 'https://example.test/one'),
@@ -94,11 +100,11 @@ void main() {
   );
 
   test('continues switching when progress persistence fails', () async {
-    final library = _FakeLibraryProvider(failProgressWrites: true);
+    final library = _FakePlaybackMediaStore(failProgressWrites: true);
     final first = _file(1, '/media/one.mkv');
     final second = _file(2, '/media/two.mkv');
     final session = PlaybackSessionController(
-      libraryProvider: library,
+      mediaStore: library,
       initialItem: first,
       queueItems: [first, second],
       initialTarget: const PlaybackTarget(url: 'https://example.test/one'),

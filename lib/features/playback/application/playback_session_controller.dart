@@ -2,7 +2,7 @@ import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_playback_resolver.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
+import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/playback_progress_writer.dart';
 import 'package:mochi_player/features/playback/domain/playback_queue.dart';
 
@@ -13,18 +13,18 @@ import 'package:mochi_player/features/playback/domain/playback_queue.dart';
 /// actual open/seek commands to media_kit.
 class PlaybackSessionController {
   PlaybackSessionController({
-    required MediaLibraryProvider libraryProvider,
+    required PlaybackMediaStore mediaStore,
     required MediaFile initialItem,
     required List<MediaFile> queueItems,
     required PlaybackTarget initialTarget,
     PlaybackTargetResolver? resolver,
-  }) : _libraryProvider = libraryProvider,
+  }) : _mediaStore = mediaStore,
        _resolver = resolver ?? StorageSourcePlaybackResolver(),
        _queue = PlaybackQueue(initialItem: initialItem, items: queueItems),
        _currentTarget = initialTarget,
-       _progressWriter = PlaybackProgressWriter(libraryProvider.updateProgress);
+       _progressWriter = PlaybackProgressWriter(mediaStore.updateProgress);
 
-  final MediaLibraryProvider _libraryProvider;
+  final PlaybackMediaStore _mediaStore;
   final PlaybackTargetResolver _resolver;
   final PlaybackQueue _queue;
   final PlaybackProgressWriter _progressWriter;
@@ -44,7 +44,7 @@ class PlaybackSessionController {
 
   Future<void> refreshCurrentItem() async {
     final itemAtRequest = currentItem;
-    final latestItem = await _libraryProvider.getLatestMediaFile(itemAtRequest);
+    final latestItem = await _mediaStore.readMediaFile(sourceId: itemAtRequest.sourceId, path: itemAtRequest.path);
     if (latestItem != null && _isCurrent(itemAtRequest)) {
       _queue.replaceCurrent(latestItem);
     }
