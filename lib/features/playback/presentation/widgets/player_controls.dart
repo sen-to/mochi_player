@@ -656,7 +656,13 @@ class _VideoSeekBarState extends State<_VideoSeekBar> {
     _previewPosition = Duration(milliseconds: value.round());
     _previewOffset = renderBox.localToGlobal(Offset(_trackHorizontalInset + usableWidth * fraction, 0));
 
-    _previewOverlay ??= OverlayEntry(
+    final existingOverlay = _previewOverlay;
+    if (existingOverlay != null) {
+      existingOverlay.markNeedsBuild();
+      return;
+    }
+
+    final overlay = OverlayEntry(
       builder: (context) => Positioned(
         left: (_previewOffset ?? Offset.zero).dx,
         top: (_previewOffset ?? Offset.zero).dy - _previewVerticalOffset,
@@ -668,11 +674,11 @@ class _VideoSeekBarState extends State<_VideoSeekBar> {
         ),
       ),
     );
-    if (!_previewOverlay!.mounted) {
-      Overlay.of(context, rootOverlay: true).insert(_previewOverlay!);
-    } else {
-      _previewOverlay!.markNeedsBuild();
-    }
+    // OverlayEntry.mounted becomes true on a later frame. Use ownership of
+    // the entry as the synchronous insertion guard: repeated pointer events
+    // in that frame must rebuild the same entry, never insert it twice.
+    _previewOverlay = overlay;
+    Overlay.of(context, rootOverlay: true).insert(overlay);
   }
 
   void _hidePreview() {
