@@ -8,7 +8,10 @@ class _SidebarMetrics {
   const _SidebarMetrics._();
 
   static const width = 224.0;
-  static const topDragAreaHeight = 60.0;
+
+  // Windows caption buttons live on the far right; this remains a compact,
+  // platform-neutral drag strip rather than a faux left-side title bar.
+  static const topDragAreaHeight = 40.0;
   static const horizontalInset = 16.0;
   static const sectionGap = 16.0;
   static const itemHeight = 36.0;
@@ -40,12 +43,12 @@ class Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 顶部拖动区域为 macOS 原生按钮和 Windows 自绘按钮留出空间。
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onPanStart: (_) => windowManager.startDragging(),
-            child: const SizedBox(height: _SidebarMetrics.topDragAreaHeight, width: double.infinity),
-          ),
+          if (theme.platform != TargetPlatform.windows)
+            GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onPanStart: (_) => windowManager.startDragging(),
+              child: const SizedBox(height: _SidebarMetrics.topDragAreaHeight, width: double.infinity),
+            ),
 
           _buildSectionTitle("媒体库", context),
           _buildGroup([AppDestination.home, AppDestination.movies, AppDestination.series]),

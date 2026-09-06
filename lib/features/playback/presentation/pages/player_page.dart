@@ -231,7 +231,9 @@ class _PlayerPageState extends State<PlayerPage> {
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onPanStart: (_) => unawaited(windowManager.startDragging()),
+                  onPanStart: Theme.of(context).platform == TargetPlatform.windows
+                      ? null
+                      : (_) => unawaited(windowManager.startDragging()),
                   onDoubleTap: _windowModeController.toggleFullScreen,
                   child: const ColoredBox(color: Colors.transparent),
                 ),

@@ -41,16 +41,13 @@ void main() {
     }
   });
 
-  test('uses the same leading content inset on Windows and macOS', () {
+  test('uses the regular page inset on Windows', () {
     expect(
       PlayerOverlayLayout.topLeftInset(
         platform: TargetPlatform.windows,
         isFullScreen: false,
       ),
-      PlayerOverlayLayout.topLeftInset(
-        platform: TargetPlatform.macOS,
-        isFullScreen: false,
-      ),
+      AppSpacing.xxl,
     );
   });
 

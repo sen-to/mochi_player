@@ -4,11 +4,9 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart';
-import 'package:mochi_player/app/presentation/widgets/windows_window_buttons.dart';
 import 'package:mochi_player/app/routing/app_router.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
-import 'package:mochi_player/core/platform/window_controls_layout.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
@@ -52,7 +50,7 @@ void main() async {
     title: 'Mochi Player',
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
+    titleBarStyle: Platform.isWindows ? TitleBarStyle.normal : TitleBarStyle.hidden,
     windowButtonVisibility: Platform.isMacOS,
   );
 
@@ -87,7 +85,6 @@ class MochiPlayerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final windowControlsController = context.watch<WindowControlsController>();
 
     return MaterialApp.router(
       routerConfig: router,
@@ -102,13 +99,7 @@ class MochiPlayerApp extends StatelessWidget {
       darkTheme: AppTheme.darkThemeFor(themeProvider.accentColor.color),
 
       builder: (context, child) {
-        return Stack(
-          children: [
-            Positioned.fill(child: child ?? const SizedBox.shrink()),
-            if (WindowsWindowButtons.isSupported && !windowControlsController.isMiniPlayer)
-              const Positioned(top: 0, left: WindowControlsLayout.leadingInset, child: WindowsWindowButtons()),
-          ],
-        );
+        return child ?? const SizedBox.shrink();
       },
     );
   }

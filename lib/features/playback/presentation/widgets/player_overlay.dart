@@ -18,11 +18,12 @@ class PlayerOverlayLayout {
     return (windowWidth * 0.58).clamp(560.0, 1040.0).toDouble();
   }
 
-  /// 为左上角的系统窗口按钮预留空间。
+  /// Reserves platform title-bar controls without crowding playback metadata.
   static double topLeftInset({required TargetPlatform platform, required bool isFullScreen}) {
     if (isFullScreen) return AppSpacing.xxl;
     return switch (platform) {
-      TargetPlatform.macOS || TargetPlatform.windows => WindowControlsLayout.leadingContentInset,
+      TargetPlatform.macOS => WindowControlsLayout.leadingContentInset,
+      TargetPlatform.windows => AppSpacing.xxl,
       _ => AppSpacing.xxl,
     };
   }

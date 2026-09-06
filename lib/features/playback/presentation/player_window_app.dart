@@ -4,13 +4,11 @@ import 'dart:io';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mochi_player/app/presentation/widgets/windows_window_buttons.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_playback_resolver.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
-import 'package:mochi_player/core/platform/window_controls_layout.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
@@ -214,7 +212,7 @@ Future<void> runPlayerWindow(WindowController controller, PlayerWindowRequest re
     center: true,
     title: 'Mochi Player',
     backgroundColor: Colors.black,
-    titleBarStyle: TitleBarStyle.hidden,
+    titleBarStyle: Platform.isWindows ? TitleBarStyle.normal : TitleBarStyle.hidden,
     windowButtonVisibility: Platform.isMacOS,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -502,8 +500,6 @@ class _PlayerWindowHome extends StatelessWidget {
                 )
               : _PlayerWindowLaunchFailure(bootstrap: bootstrap, onCloseRequested: onCloseRequested),
         ),
-        if (WindowsWindowButtons.isSupported && !context.watch<WindowControlsController>().isMiniPlayer)
-          const Positioned(top: 0, left: WindowControlsLayout.leadingInset, child: WindowsWindowButtons()),
       ],
     );
   }

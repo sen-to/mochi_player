@@ -43,7 +43,7 @@ class AppHeader extends StatelessWidget {
         opacity: clampedVisibility,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onPanStart: (_) => windowManager.startDragging(),
+          onPanStart: theme.platform == TargetPlatform.windows ? null : (_) => windowManager.startDragging(),
           child: ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),

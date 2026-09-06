@@ -30,7 +30,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"Mochi Player", origin, size)) {
     return EXIT_FAILURE;
   }
-  window.SetQuitOnClose(true);
+  // desktop_multi_window owns child windows on the same Win32 message loop.
+  // Letting any window close post WM_QUIT stops dispatching messages for the
+  // still-visible main window, which makes it appear frozen after the player
+  // window is closed.
+  window.SetQuitOnClose(false);
 
   ::MSG msg;
   while (::GetMessage(&msg, nullptr, 0, 0)) {

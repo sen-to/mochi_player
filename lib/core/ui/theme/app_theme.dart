@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 
@@ -9,6 +10,7 @@ class AppTheme {
     brightness: Brightness.light,
     useMaterial3: true,
     primaryColor: accentColor,
+    fontFamily: _platformFontFamily,
     colorScheme: ColorScheme.fromSeed(
       seedColor: accentColor,
       brightness: Brightness.light,
@@ -54,6 +56,7 @@ class AppTheme {
     brightness: Brightness.dark,
     useMaterial3: true,
     primaryColor: accentColor,
+    fontFamily: _platformFontFamily,
     colorScheme: ColorScheme.fromSeed(
       seedColor: accentColor,
       brightness: Brightness.dark,
@@ -94,4 +97,9 @@ class AppTheme {
       ),
     ],
   );
+
+  static String? get _platformFontFamily => switch (defaultTargetPlatform) {
+    TargetPlatform.windows => 'Microsoft YaHei UI',
+    _ => null,
+  };
 }
