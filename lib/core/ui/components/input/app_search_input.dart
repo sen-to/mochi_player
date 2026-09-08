@@ -73,7 +73,9 @@ class _AppSearchInputState extends State<AppSearchInput> {
   }
 
   bool _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent || !TickerMode.of(context)) return false;
+    if (event is! KeyDownEvent || !TickerMode.valuesOf(context).enabled) {
+      return false;
+    }
     if (!(ModalRoute.of(context)?.isCurrent ?? true)) return false;
 
     if (event.logicalKey == LogicalKeyboardKey.keyK &&

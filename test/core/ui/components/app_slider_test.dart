@@ -28,6 +28,8 @@ void main() {
   testWidgets('uses one native-painted tooltip for hover and drag', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
+
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -49,7 +51,8 @@ void main() {
     );
 
     expect(tester.widget<Slider>(find.byType(Slider)).label, '39%');
-    expect(tester.getSemantics(find.byType(Slider)).value, '39%');
+    expect(tester.getSemantics(find.bySemanticsLabel('39%')).value, '39%');
+    semantics.dispose();
 
     final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await mouse.addPointer(location: Offset.zero);

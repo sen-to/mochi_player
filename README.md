@@ -68,31 +68,42 @@ TMDB Key 由用户自行申请和管理，请不要将自己的 Key 提交到仓
 
 ## 🛠️ 从源码运行
 
-克隆本仓库后，安装 Flutter SDK；构建 macOS 版本还需要 Xcode。
+本项目通过 FVM 固定使用 Flutter 3.47.2（见 [`.fvmrc`](.fvmrc)）。构建 macOS 版本还需要 Xcode。
+
+首次运行前安装 FVM 并下载项目指定的 Flutter SDK：
 
 ```bash
-flutter pub get
-flutter run -d macos
+dart pub global activate fvm
+fvm install
+```
+
+随后统一通过 `fvm flutter` 执行 Flutter 命令：
+
+```bash
+fvm flutter pub get
+fvm flutter run -d macos
 ```
 
 运行 Windows 版本：
 
 ```bash
-flutter run -d windows
+fvm flutter run -d windows
 ```
 
 构建 macOS Debug 应用：
 
 ```bash
-flutter build macos --debug
+fvm flutter build macos --debug
 ```
+
+macOS 当前使用 CocoaPods 管理原生插件。首次在 macOS 构建前执行 `fvm flutter config --no-enable-swift-package-manager`，避免启用实验性的 Swift Package Manager；部分上游插件尚未支持 SPM，Flutter 仍可能显示兼容性提示，但不影响当前 CocoaPods 构建。
 
 提交代码前请执行：
 
 ```bash
-dart format lib test
-flutter analyze
-flutter test
+fvm dart format lib test
+fvm flutter analyze
+fvm flutter test
 ```
 
 ## 🔒 数据与隐私

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -50,7 +51,7 @@ class _MediaDetailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final tvShow = viewModel.tvShow;
     return CustomScrollView(
-      cacheExtent: 320,
+      scrollCacheExtent: const ScrollCacheExtent.pixels(320),
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: AppHeader.height)),
         SliverToBoxAdapter(child: MediaDetailHeader(viewModel: viewModel)),

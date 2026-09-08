@@ -7,6 +7,14 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
+analyzer:
+  exclude:
+    - build/**
+    - windows/**
+    - macos/**
+    # Isar 3 emits compatibility helpers that Flutter 3.47's analyzer marks
+    # experimental. They are generated from the hand-written entity models.
+    - lib/core/infrastructure/database/entities/*.g.dart
 include: package:flutter_lints/flutter.yaml
 
 linter:
