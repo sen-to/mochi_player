@@ -48,22 +48,14 @@ jobs:
       - name: Build Windows release
         run: flutter build windows --release
 
-      - name: Package Windows release
-        shell: pwsh
-        run: |
-          $releaseDirectory = "build/windows/x64/runner/Release"
-          if (-not (Test-Path $releaseDirectory)) {
-            throw "Windows release directory was not generated: $releaseDirectory"
-          }
-          Compress-Archive `
-            -Path "$releaseDirectory/*" `
-            -DestinationPath "mochi-player-windows-x64.zip" `
-            -Force
-
       - name: Upload Windows application
         uses: actions/upload-artifact@v7
         with:
           name: mochi-player-windows-x64
-          path: mochi-player-windows-x64.zip
+          # upload-artifact packages this directory into a single zip, whose
+          # root holds the executable, DLLs and data/ folder. Zipping it here
+          # as well produced a zip nested inside the artifact's own zip.
+          # A missing or empty release directory still fails the job.
+          path: build/windows/x64/runner/Release/
           if-no-files-found: error
           retention-days: 14
