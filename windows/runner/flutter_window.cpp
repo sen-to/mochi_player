@@ -17,6 +17,14 @@ bool FlutterWindow::OnCreate() {
 
   RECT frame = GetClientArea();
 
+  // Run the main window's UI isolate on its own thread, matching the child
+  // engines created by desktop_multi_window. With the default policy the UI
+  // isolate shares the Win32 message-loop thread; synchronous Win32 calls from
+  // window_manager / desktop_multi_window then block that thread while it also
+  // needs to keep dispatching window messages, freezing the main window after a
+  // child window is opened or activated.
+  project_.set_ui_thread_policy(flutter::UIThreadPolicy::RunOnSeparateThread);
+
   // The size here must match the window dimensions to avoid unnecessary surface
   // creation / destruction in the startup path.
   flutter_controller_ = std::make_unique<flutter::FlutterViewController>(

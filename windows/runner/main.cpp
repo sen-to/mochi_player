@@ -30,10 +30,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"Mochi Player", origin, size)) {
     return EXIT_FAILURE;
   }
-  // desktop_multi_window owns child windows on the same Win32 message loop.
-  // Letting any window close post WM_QUIT stops dispatching messages for the
-  // still-visible main window, which makes it appear frozen after the player
-  // window is closed.
+  // Suppress the WM_QUIT that this window's own WM_DESTROY would otherwise
+  // post. desktop_multi_window hosts child windows on this same Win32 message
+  // loop, so tearing the loop down here would leave a still-open player window
+  // without message dispatch. This flag only governs this window: the plugin's
+  // child windows already default to the same value, and the plugin posts
+  // WM_QUIT itself from MultiWindowManager::RemoveWindow once the last
+  // registered window is gone, so the process still exits normally.
   window.SetQuitOnClose(false);
 
   ::MSG msg;
