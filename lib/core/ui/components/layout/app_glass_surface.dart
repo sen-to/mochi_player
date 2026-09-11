@@ -27,6 +27,10 @@ class AppGlassSurface extends StatelessWidget {
       borderRadius: borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        // A zero-radius blur is visually a no-op, but the backdrop filter still
+        // costs a layer and a backdrop read on every frame. Disabling it skips
+        // that work while keeping the element tree stable.
+        enabled: blur > 0,
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: color,

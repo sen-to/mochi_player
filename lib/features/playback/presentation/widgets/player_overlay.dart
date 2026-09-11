@@ -219,6 +219,32 @@ class PlayerTopBar extends StatelessWidget {
 
 const _topBarTextShadows = [Shadow(color: Color(0xB3000000), blurRadius: 8, offset: Offset(0, 1))];
 
+/// 按可见度构建播放器玻璃材质。
+///
+/// 不能用 [Opacity] 淡入玻璃：[BackdropFilter] 一旦被透明度层包住就拿不到
+/// 背景（透明度层给它的是空缓冲），模糊会在整段过渡里消失、直到最后一帧才
+/// 一次性到位。改为渐入模糊半径（连同底色与描边透明度），过渡才是连续的。
+/// 只有 [child] 用 [Opacity] 淡入——它画在模糊结果之上，位于滤镜内部，不受
+/// 该限制影响。
+Widget _playerGlass({
+  Key? key,
+  required double visibility,
+  required BorderRadius borderRadius,
+  EdgeInsetsGeometry? padding,
+  required Widget child,
+}) {
+  final t = visibility.clamp(0.0, 1.0);
+  return AppGlassSurface(
+    key: key,
+    borderRadius: borderRadius,
+    blur: PlayerOverlayGlass.blur * t,
+    color: PlayerOverlayGlass.background.withValues(alpha: PlayerOverlayGlass.background.a * t),
+    borderColor: PlayerOverlayGlass.border.withValues(alpha: PlayerOverlayGlass.border.a * t),
+    padding: padding,
+    child: Opacity(opacity: t, child: child),
+  );
+}
+
 /// 播放器底部玻璃控制面板。
 ///
 /// 进度与具体按钮由上层注入，因此播放器状态和视觉容器保持解耦。
@@ -227,7 +253,16 @@ class PlayerBottomControlBar extends StatefulWidget {
   final Widget controls;
   final ValueChanged<Rect>? onBoundsChanged;
 
-  const PlayerBottomControlBar({super.key, required this.progress, required this.controls, this.onBoundsChanged});
+  /// 玻璃材质的渐入进度，0 表示完全隐藏、1 表示完全显示。
+  final double visibility;
+
+  const PlayerBottomControlBar({
+    super.key,
+    required this.progress,
+    required this.controls,
+    this.onBoundsChanged,
+    this.visibility = 1.0,
+  });
 
   @override
   State<PlayerBottomControlBar> createState() => _PlayerBottomControlBarState();
@@ -284,12 +319,10 @@ class _PlayerBottomControlBarState extends State<PlayerBottomControlBar> {
               width: panelWidth,
               child: SizedBox(
                 key: _panelKey,
-                child: AppGlassSurface(
+                child: _playerGlass(
                   key: const ValueKey('player-bottom-control-bar'),
+                  visibility: widget.visibility,
                   borderRadius: const BorderRadius.all(Radius.circular(AppRadii.large)),
-                  color: PlayerOverlayGlass.background,
-                  borderColor: PlayerOverlayGlass.border,
-                  blur: PlayerOverlayGlass.blur,
                   child: Stack(
                     children: [
                       Positioned.fill(
@@ -338,6 +371,9 @@ class PlayerMiniControls extends StatelessWidget {
   final VoidCallback onToggleAlwaysOnTop;
   final VoidCallback onRestoreWindow;
 
+  /// 玻璃材质的渐入进度，0 表示完全隐藏、1 表示完全显示。
+  final double visibility;
+
   const PlayerMiniControls({
     super.key,
     required this.isPlaying,
@@ -345,16 +381,15 @@ class PlayerMiniControls extends StatelessWidget {
     required this.onPlayPause,
     required this.onToggleAlwaysOnTop,
     required this.onRestoreWindow,
+    this.visibility = 1.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AppGlassSurface(
+    return _playerGlass(
       key: const ValueKey('player-mini-controls'),
+      visibility: visibility,
       borderRadius: const BorderRadius.all(Radius.circular(AppRadii.full)),
-      color: PlayerOverlayGlass.background,
-      borderColor: PlayerOverlayGlass.border,
-      blur: PlayerOverlayGlass.blur,
       padding: const EdgeInsets.all(3),
       child: Row(
         mainAxisSize: MainAxisSize.min,

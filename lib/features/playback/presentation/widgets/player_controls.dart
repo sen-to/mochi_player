@@ -175,12 +175,18 @@ class _PlayerControlsState extends State<PlayerControls> {
     );
   }
 
-  Widget _withVisibility(Widget child) {
-    return AnimatedOpacity(
-      opacity: widget.isVisible ? 1 : 0,
+  /// 驱动 0→1 的可见度，并把当前值交给控制层。
+  ///
+  /// 这里不能用 [AnimatedOpacity]：底部面板与 mini 播放器是玻璃材质，被透明度
+  /// 层包住时 [BackdropFilter] 拿不到背景，模糊会在过渡期间消失、最后一帧才
+  /// 跳到终态。它们改为自行渐入模糊半径（见 `_playerGlass`），其余内容则在滤镜
+  /// 内部用透明度淡入。
+  Widget _withVisibility(Widget Function(double t) builder) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: widget.isVisible ? 1 : 0),
       duration: PlayerOverlayLayout.visibilityDuration,
       curve: Curves.easeInOut,
-      child: IgnorePointer(ignoring: !widget.isVisible, child: child),
+      builder: (context, t, _) => IgnorePointer(ignoring: !widget.isVisible, child: builder(t)),
     );
   }
 
@@ -188,9 +194,10 @@ class _PlayerControlsState extends State<PlayerControls> {
   Widget build(BuildContext context) {
     if (widget.isMiniPlayer) {
       return _withVisibility(
-        _trackControlPointer(
+        (t) => _trackControlPointer(
           Center(
             child: PlayerMiniControls(
+              visibility: t,
               isPlaying: _isPlaying,
               isAlwaysOnTop: widget.isMiniPlayerAlwaysOnTop,
               onPlayPause: () => _onTap(widget.player.playOrPause),
@@ -203,181 +210,182 @@ class _PlayerControlsState extends State<PlayerControls> {
     }
 
     final showVolumeSlider = MediaQuery.sizeOf(context).width > 1000;
+    // Hoisted out of the visibility builder so that the per-frame fade does not
+    // rebuild them.
+    final topBar = PlayerTopBar(
+      title: widget.title,
+      secondaryTitle: widget.secondaryTitle,
+      cacheSpeed: _cacheSpeed,
+      isFullScreen: widget.isFullScreen,
+    );
+    final progress = _VideoSeekBar(player: widget.player);
+    final controls = Row(
+      children: [
+        // Keep the content aligned with the Slider track instead
+        // of its wider touch target.
+        const SizedBox(width: AppSpacing.md),
+
+        // 1. 当前进度优先放在左侧，紧接着才是播放控制。
+        _DurationLabel(player: widget.player),
+        const SizedBox(width: 16),
+
+        // 2. 上一集
+        if (widget.onPrevious != null) ...[
+          PlayerControlButton(
+            onPressed: () => _onTap(widget.onPrevious!),
+            child: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 21),
+          ),
+          const SizedBox(width: 4),
+        ],
+
+        // 3. 快退
+        PlayerControlButton(
+          onPressed: () => _onTap(() => widget.player.seek(widget.player.state.position - const Duration(seconds: 10))),
+          child: const Icon(Icons.replay_10_rounded, color: Colors.white, size: 21),
+        ),
+        const SizedBox(width: 4),
+
+        // 4. 播放/暂停 (统一大小，但保留图标视觉差异)
+        PlayerControlButton(
+          onPressed: () => _onTap(widget.player.playOrPause),
+          child: Icon(_isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 26),
+        ),
+        const SizedBox(width: 4),
+
+        // 5. 快进
+        PlayerControlButton(
+          onPressed: () => _onTap(() => widget.player.seek(widget.player.state.position + const Duration(seconds: 10))),
+          child: const Icon(Icons.forward_10_rounded, color: Colors.white, size: 21),
+        ),
+
+        // 6. 下一集
+        if (widget.onNext != null) ...[
+          const SizedBox(width: 4),
+          PlayerControlButton(
+            onPressed: () => _onTap(widget.onNext!),
+            child: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 21),
+          ),
+        ],
+        const Spacer(),
+
+        // 右侧功能区
+        if (widget.onSubtitleSelected != null && widget.subtitleTracks.isNotEmpty) ...[
+          _SubtitleMenuButton(
+            tracks: widget.subtitleTracks,
+            selectedTrack: widget.selectedSubtitleTrack,
+            onExternalSubtitleRequested: widget.onExternalSubtitleRequested,
+            overrideEmbeddedStyle: widget.overrideEmbeddedSubtitleStyle,
+            onSelected: (track) {
+              widget.onInteraction?.call();
+              widget.onSubtitleSelected?.call(track);
+            },
+            onStyleOverrideChanged: (value) {
+              widget.onInteraction?.call();
+              widget.onSubtitleStyleOverrideChanged?.call(value);
+            },
+            onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
+          ),
+          const SizedBox(width: 4),
+        ],
+
+        if (widget.onAudioSelected != null && widget.audioTracks.isNotEmpty) ...[
+          _AudioMenuButton(
+            tracks: widget.audioTracks,
+            selectedTrack: widget.selectedAudioTrack,
+            onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
+            onSelected: (track) {
+              widget.onInteraction?.call();
+              widget.onAudioSelected?.call(track);
+            },
+          ),
+          const SizedBox(width: 4),
+        ],
+
+        _RateMenuButton(
+          rate: _rate,
+          onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
+          onSelected: (rate) {
+            widget.onInteraction?.call();
+            widget.player.setRate(rate);
+          },
+        ),
+        const SizedBox(width: 4),
+
+        if (widget.onPip != null) ...[
+          PlayerControlButton(
+            onPressed: () => _onTap(widget.onPip!),
+            child: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 4),
+        ],
+
+        // 音量
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PlayerControlButton(
+              onPressed: () => _onTap(() {
+                final newVol = _volume > 0 ? 0.0 : 100.0;
+                widget.player.setVolume(newVol);
+              }),
+              child: Icon(
+                _volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+            if (showVolumeSlider)
+              SizedBox(
+                width: 72,
+                height: 16,
+                child: SliderTheme(
+                  data: SliderThemeData(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
+                    activeTrackColor: Colors.white,
+                    inactiveTrackColor: Colors.white24,
+                    thumbColor: Colors.white,
+                    trackShape: const RectangularSliderTrackShape(),
+                  ),
+                  child: Slider(
+                    value: _volume.clamp(0.0, 100.0),
+                    min: 0.0,
+                    max: 100.0,
+                    onChanged: widget.player.setVolume,
+                  ),
+                ),
+              ),
+          ],
+        ),
+
+        const SizedBox(width: 4),
+        PlayerControlButton(
+          onPressed: () => _onTap(widget.onToggleFullScreen),
+          child: Icon(
+            widget.isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+            color: Colors.white,
+            size: 21,
+          ),
+        ),
+      ],
+    );
+
     return _withVisibility(
-      _trackControlPointer(
+      (t) => _trackControlPointer(
         Stack(
           children: [
             Align(
               alignment: Alignment.topCenter,
-              child: PlayerTopBar(
-                title: widget.title,
-                secondaryTitle: widget.secondaryTitle,
-                cacheSpeed: _cacheSpeed,
-                isFullScreen: widget.isFullScreen,
-              ),
+              child: Opacity(opacity: t, child: topBar),
             ),
 
             Positioned.fill(
               child: PlayerBottomControlBar(
+                visibility: t,
                 onBoundsChanged: widget.onControlBarBoundsChanged,
-                progress: _VideoSeekBar(player: widget.player),
-                controls: Row(
-                  children: [
-                    // Keep the content aligned with the Slider track instead
-                    // of its wider touch target.
-                    const SizedBox(width: AppSpacing.md),
-
-                    // 1. 当前进度优先放在左侧，紧接着才是播放控制。
-                    _DurationLabel(player: widget.player),
-                    const SizedBox(width: 16),
-
-                    // 2. 上一集
-                    if (widget.onPrevious != null) ...[
-                      PlayerControlButton(
-                        onPressed: () => _onTap(widget.onPrevious!),
-                        child: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 21),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-
-                    // 3. 快退
-                    PlayerControlButton(
-                      onPressed: () =>
-                          _onTap(() => widget.player.seek(widget.player.state.position - const Duration(seconds: 10))),
-                      child: const Icon(Icons.replay_10_rounded, color: Colors.white, size: 21),
-                    ),
-                    const SizedBox(width: 4),
-
-                    // 4. 播放/暂停 (统一大小，但保留图标视觉差异)
-                    PlayerControlButton(
-                      onPressed: () => _onTap(widget.player.playOrPause),
-                      child: Icon(
-                        _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-
-                    // 5. 快进
-                    PlayerControlButton(
-                      onPressed: () =>
-                          _onTap(() => widget.player.seek(widget.player.state.position + const Duration(seconds: 10))),
-                      child: const Icon(Icons.forward_10_rounded, color: Colors.white, size: 21),
-                    ),
-
-                    // 6. 下一集
-                    if (widget.onNext != null) ...[
-                      const SizedBox(width: 4),
-                      PlayerControlButton(
-                        onPressed: () => _onTap(widget.onNext!),
-                        child: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 21),
-                      ),
-                    ],
-                    const Spacer(),
-
-                    // 右侧功能区
-                    if (widget.onSubtitleSelected != null && widget.subtitleTracks.isNotEmpty) ...[
-                      _SubtitleMenuButton(
-                        tracks: widget.subtitleTracks,
-                        selectedTrack: widget.selectedSubtitleTrack,
-                        onExternalSubtitleRequested: widget.onExternalSubtitleRequested,
-                        overrideEmbeddedStyle: widget.overrideEmbeddedSubtitleStyle,
-                        onSelected: (track) {
-                          widget.onInteraction?.call();
-                          widget.onSubtitleSelected?.call(track);
-                        },
-                        onStyleOverrideChanged: (value) {
-                          widget.onInteraction?.call();
-                          widget.onSubtitleStyleOverrideChanged?.call(value);
-                        },
-                        onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-
-                    if (widget.onAudioSelected != null && widget.audioTracks.isNotEmpty) ...[
-                      _AudioMenuButton(
-                        tracks: widget.audioTracks,
-                        selectedTrack: widget.selectedAudioTrack,
-                        onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
-                        onSelected: (track) {
-                          widget.onInteraction?.call();
-                          widget.onAudioSelected?.call(track);
-                        },
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-
-                    _RateMenuButton(
-                      rate: _rate,
-                      onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
-                      onSelected: (rate) {
-                        widget.onInteraction?.call();
-                        widget.player.setRate(rate);
-                      },
-                    ),
-                    const SizedBox(width: 4),
-
-                    if (widget.onPip != null) ...[
-                      PlayerControlButton(
-                        onPressed: () => _onTap(widget.onPip!),
-                        child: const Icon(Icons.picture_in_picture_alt_rounded, color: Colors.white, size: 18),
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-
-                    // 音量
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        PlayerControlButton(
-                          onPressed: () => _onTap(() {
-                            final newVol = _volume > 0 ? 0.0 : 100.0;
-                            widget.player.setVolume(newVol);
-                          }),
-                          child: Icon(
-                            _volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                        if (showVolumeSlider)
-                          SizedBox(
-                            width: 72,
-                            height: 16,
-                            child: SliderTheme(
-                              data: SliderThemeData(
-                                trackHeight: 2,
-                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
-                                activeTrackColor: Colors.white,
-                                inactiveTrackColor: Colors.white24,
-                                thumbColor: Colors.white,
-                                trackShape: const RectangularSliderTrackShape(),
-                              ),
-                              child: Slider(
-                                value: _volume.clamp(0.0, 100.0),
-                                min: 0.0,
-                                max: 100.0,
-                                onChanged: widget.player.setVolume,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(width: 4),
-                    PlayerControlButton(
-                      onPressed: () => _onTap(widget.onToggleFullScreen),
-                      child: Icon(
-                        widget.isFullScreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-                        color: Colors.white,
-                        size: 21,
-                      ),
-                    ),
-                  ],
-                ),
+                progress: progress,
+                controls: controls,
               ),
             ),
           ],
