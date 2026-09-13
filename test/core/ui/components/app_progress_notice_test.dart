@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('removes inherited text decoration in overlay contexts', (
-    tester,
-  ) async {
+  testWidgets('removes inherited text decoration in overlay contexts', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -18,28 +16,15 @@ void main() {
 
     final mergedStyle = tester
         .widget<DefaultTextStyle>(
-          find
-              .descendant(
-                of: find.byType(AppProgressNotice),
-                matching: find.byType(DefaultTextStyle),
-              )
-              .last,
+          find.descendant(of: find.byType(AppProgressNotice), matching: find.byType(DefaultTextStyle)).last,
         )
         .style;
 
     expect(mergedStyle.decoration, TextDecoration.none);
-    expect(
-      find.descendant(
-        of: find.byType(AppProgressNotice),
-        matching: find.byType(Align),
-      ),
-      findsNothing,
-    );
+    expect(find.descendant(of: find.byType(AppProgressNotice), matching: find.byType(Align)), findsNothing);
   });
 
-  testWidgets('uses only the linear indicator when progress is measurable', (
-    tester,
-  ) async {
+  testWidgets('uses only the linear indicator when progress is measurable', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,

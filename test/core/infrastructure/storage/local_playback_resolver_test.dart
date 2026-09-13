@@ -27,10 +27,7 @@ void main() {
       ),
     );
 
-    expect(
-      target?.url,
-      File('/Users/test/Movies/Drama/Example.mkv').uri.toString(),
-    );
+    expect(target?.url, File('/Users/test/Movies/Drama/Example.mkv').uri.toString());
     expect(target?.httpHeaders, isEmpty);
   });
 }

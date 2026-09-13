@@ -27,10 +27,7 @@ void main() {
     });
 
     test('normalizes a path before it is used as a loaded-file key', () {
-      expect(
-        ExternalSubtitleTrack.normalizePath('/media/films/../Movie.srt'),
-        path.normalize('/media/Movie.srt'),
-      );
+      expect(ExternalSubtitleTrack.normalizePath('/media/films/../Movie.srt'), path.normalize('/media/Movie.srt'));
     });
   });
 }

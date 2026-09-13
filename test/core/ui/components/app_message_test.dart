@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('stacks repeated messages and dismisses each independently', (
-    tester,
-  ) async {
+  testWidgets('stacks repeated messages and dismisses each independently', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
@@ -13,14 +11,8 @@ void main() {
       ),
     );
 
-    AppMessage.error(
-      'WebDAV 连接失败',
-      duration: const Duration(seconds: 1),
-    );
-    AppMessage.error(
-      'WebDAV 连接失败',
-      duration: const Duration(seconds: 2),
-    );
+    AppMessage.error('WebDAV 连接失败', duration: const Duration(seconds: 1));
+    AppMessage.error('WebDAV 连接失败', duration: const Duration(seconds: 2));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 140));
 
@@ -35,9 +27,7 @@ void main() {
     expect(find.text('WebDAV 连接失败'), findsNothing);
   });
 
-  testWidgets('keeps loading visible until its handle is dismissed', (
-    tester,
-  ) async {
+  testWidgets('keeps loading visible until its handle is dismissed', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
@@ -55,9 +45,7 @@ void main() {
     expect(find.text('正在获取播放链接…'), findsNothing);
   });
 
-  testWidgets('slides the complete message into view without clipping it', (
-    tester,
-  ) async {
+  testWidgets('slides the complete message into view without clipping it', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
@@ -70,47 +58,27 @@ void main() {
     await tester.pump();
 
     final item = find.byKey(const ValueKey(0));
-    final transform = find.descendant(
-      of: item,
-      matching: find.byType(Transform),
-    );
+    final transform = find.descendant(of: item, matching: find.byType(Transform));
     final initialHeight = tester.getSize(item).height;
-    final initialOffset = tester
-        .widget<Transform>(transform)
-        .transform
-        .getTranslation()
-        .y;
+    final initialOffset = tester.widget<Transform>(transform).transform.getTranslation().y;
 
     await tester.pump(const Duration(milliseconds: 70));
     final animatedHeight = tester.getSize(item).height;
-    final animatedOffset = tester
-        .widget<Transform>(transform)
-        .transform
-        .getTranslation()
-        .y;
+    final animatedOffset = tester.widget<Transform>(transform).transform.getTranslation().y;
 
     await tester.pump(const Duration(milliseconds: 70));
     final settledHeight = tester.getSize(item).height;
-    final settledOffset = tester
-        .widget<Transform>(transform)
-        .transform
-        .getTranslation()
-        .y;
+    final settledOffset = tester.widget<Transform>(transform).transform.getTranslation().y;
 
     expect(animatedHeight, initialHeight);
     expect(settledHeight, initialHeight);
     expect(initialOffset, lessThan(animatedOffset));
     expect(animatedOffset, lessThan(settledOffset));
     expect(settledOffset, 0);
-    expect(
-      find.descendant(of: item, matching: find.byType(ClipRect)),
-      findsNothing,
-    );
+    expect(find.descendant(of: item, matching: find.byType(ClipRect)), findsNothing);
   });
 
-  testWidgets('collapses a dismissed item while the queue closes its gap', (
-    tester,
-  ) async {
+  testWidgets('collapses a dismissed item while the queue closes its gap', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,

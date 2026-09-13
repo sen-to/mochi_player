@@ -4,9 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('changes by the configured step and respects bounds', (
-    tester,
-  ) async {
+  testWidgets('changes by the configured step and respects bounds', (tester) async {
     var value = 10;
     late StateSetter updateHost;
 
@@ -43,10 +41,7 @@ void main() {
 
     updateHost(() => value = 20);
     await tester.pump();
-    final incrementButton = find.descendant(
-      of: find.byTooltip('增加'),
-      matching: find.byType(AppClickableArea),
-    );
+    final incrementButton = find.descendant(of: find.byTooltip('增加'), matching: find.byType(AppClickableArea));
     expect(tester.widget<AppClickableArea>(incrementButton).onTap, isNull);
     expect(find.byType(ClipRRect), findsOneWidget);
   });

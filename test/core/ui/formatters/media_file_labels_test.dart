@@ -29,9 +29,6 @@ void main() {
       'eac3 • 5.1 • MKV • 1.00 GB • 从 00:25 继续',
     );
     expect(MediaFileLabels.playableVersionTitle(file), '4K BluRay');
-    expect(
-      MediaFileLabels.playableVersionDetails(file),
-      'HEVC HDR10 · EAC3 5.1 · MKV · 1.00 GB',
-    );
+    expect(MediaFileLabels.playableVersionDetails(file), 'HEVC HDR10 · EAC3 5.1 · MKV · 1.00 GB');
   });
 }

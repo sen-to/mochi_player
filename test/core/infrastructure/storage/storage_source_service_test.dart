@@ -13,10 +13,7 @@ void main() {
       type: StorageSourceType.webDav,
       endpoint: 'https://nas.example.com/dav',
     );
-    const sourceCredentials = StorageCredentials(
-      username: 'mochi',
-      password: 'secret',
-    );
+    const sourceCredentials = StorageCredentials(username: 'mochi', password: 'secret');
 
     await service.save(source, credentials: sourceCredentials);
 
@@ -36,10 +33,7 @@ void main() {
 
     await service.save(
       source,
-      credentials: const StorageCredentials(
-        username: 'mochi',
-        password: 'secret',
-      ),
+      credentials: const StorageCredentials(username: 'mochi', password: 'secret'),
     );
     final deleted = await service.delete(source.id);
 
@@ -66,21 +60,16 @@ class _MemorySourceRepository implements StorageSourceRepository {
   }
 
   @override
-  Future<List<StorageSource>> getAll() async =>
-      _sources.values.toList(growable: false);
+  Future<List<StorageSource>> getAll() async => _sources.values.toList(growable: false);
 
   @override
   Future<StorageSource?> getById(String sourceId) async => _sources[sourceId];
 
   @override
-  Future<StorageCredentials?> readCredentials(String sourceId) async =>
-      _credentials[sourceId];
+  Future<StorageCredentials?> readCredentials(String sourceId) async => _credentials[sourceId];
 
   @override
-  Future<void> save(
-    StorageSource source, {
-    StorageCredentials? credentials,
-  }) async {
+  Future<void> save(StorageSource source, {StorageCredentials? credentials}) async {
     _sources[source.id] = source;
     if (credentials != null) _credentials[source.id] = credentials;
   }

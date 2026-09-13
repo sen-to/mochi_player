@@ -20,17 +20,9 @@ void _usesOneCompleteCleanedTitleWithYearThenWithoutYear() {
   );
 
   _expectEquals(plan.attempts.length, 2, 'attempt count');
-  _expectEquals(
-    plan.attempts.first.query,
-    '大话西游之仙履奇缘 A Chinese Odyssey Part II Cinderella',
-    'cleaned complete title',
-  );
+  _expectEquals(plan.attempts.first.query, '大话西游之仙履奇缘 A Chinese Odyssey Part II Cinderella', 'cleaned complete title');
   _expectEquals(plan.attempts.first.year, 1995, 'first attempt year');
-  _expectEquals(
-    plan.attempts.last.query,
-    plan.attempts.first.query,
-    'fallback title',
-  );
+  _expectEquals(plan.attempts.last.query, plan.attempts.first.query, 'fallback title');
   _expectEquals(plan.attempts.last.year, null, 'fallback year');
 }
 
@@ -48,9 +40,7 @@ void _doesNotRetryWithoutYearWhenNoYearWasParsed() {
 }
 
 void _keepsMoonAndItsYearInTheFirstSearchAttempt() {
-  final parsed = FilenameParser.parse(
-    fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv',
-  );
+  final parsed = FilenameParser.parse(fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv');
   final plan = const ScrapePlanFactory().createTitleSearchPlan(
     ScrapeCandidate.fromMediaFile(
       MediaFileEntity()

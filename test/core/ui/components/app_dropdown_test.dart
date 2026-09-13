@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
@@ -17,11 +17,7 @@ void main() {
               tooltip: '操作',
               onSelected: (value) => selected = value,
               options: const [AppDropdownOption(value: 'open', label: '打开')],
-              trigger: const SizedBox(
-                width: 36,
-                height: 34,
-                child: Icon(AppIcons.more),
-              ),
+              trigger: const SizedBox(width: 36, height: 34, child: Icon(AppIcons.more)),
             ),
           ),
         ),
@@ -44,9 +40,7 @@ void main() {
     expect(find.byType(MenuOptionRow), findsNothing);
   });
 
-  testWidgets('stays open when the pointer moves from trigger to an option', (
-    tester,
-  ) async {
+  testWidgets('stays open when the pointer moves from trigger to an option', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -84,9 +78,7 @@ void main() {
     await mouse.removePointer();
   });
 
-  testWidgets('can align an action menu to the trigger trailing edge', (
-    tester,
-  ) async {
+  testWidgets('can align an action menu to the trigger trailing edge', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -97,11 +89,7 @@ void main() {
               menuAlignment: AppDropdownMenuAlignment.end,
               onSelected: (_) {},
               options: const [AppDropdownOption(value: 'copy', label: '复制路径')],
-              trigger: const SizedBox(
-                width: 38,
-                height: 34,
-                child: Icon(AppIcons.more),
-              ),
+              trigger: const SizedBox(width: 38, height: 34, child: Icon(AppIcons.more)),
             ),
           ),
         ),

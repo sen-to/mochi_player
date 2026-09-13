@@ -4,31 +4,24 @@ import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test(
-    'persists drafts without applying network runtime configuration',
-    () async {
-      SharedPreferences.setMockInitialValues({});
-      final provider = AppSettingsProvider();
-      await provider.load();
+  test('persists drafts without applying network runtime configuration', () async {
+    SharedPreferences.setMockInitialValues({});
+    final provider = AppSettingsProvider();
+    await provider.load();
 
-      await _save(provider, tmdbApiKey: 'draft-key');
+    await _save(provider, tmdbApiKey: 'draft-key');
 
-      expect(provider.tmdbApiKey, 'draft-key');
-      expect(provider.appliedRuntimeSettings?.tmdbApiKey, isEmpty);
+    expect(provider.tmdbApiKey, 'draft-key');
+    expect(provider.appliedRuntimeSettings?.tmdbApiKey, isEmpty);
 
-      await _save(provider, tmdbApiKey: 'committed-key', applyRuntime: true);
+    await _save(provider, tmdbApiKey: 'committed-key', applyRuntime: true);
 
-      expect(provider.tmdbApiKey, 'committed-key');
-      expect(provider.appliedRuntimeSettings?.tmdbApiKey, 'committed-key');
-    },
-  );
+    expect(provider.tmdbApiKey, 'committed-key');
+    expect(provider.appliedRuntimeSettings?.tmdbApiKey, 'committed-key');
+  });
 }
 
-Future<void> _save(
-  AppSettingsProvider provider, {
-  required String tmdbApiKey,
-  bool applyRuntime = false,
-}) {
+Future<void> _save(AppSettingsProvider provider, {required String tmdbApiKey, bool applyRuntime = false}) {
   return provider.saveSettings(
     tmdbApiKey: tmdbApiKey,
     tmdbApiBaseUrl: AppSettings.defaultTmdbApiBaseUrl,

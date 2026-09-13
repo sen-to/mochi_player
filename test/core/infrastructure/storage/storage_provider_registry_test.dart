@@ -24,10 +24,7 @@ void main() {
   test('rejects unsupported storage source types', () {
     final registry = StorageProviderRegistry(const []);
 
-    expect(
-      () => registry.providerFor(StorageSourceType.smb),
-      throwsA(isA<UnsupportedError>()),
-    );
+    expect(() => registry.providerFor(StorageSourceType.smb), throwsA(isA<UnsupportedError>()));
   });
 }
 
@@ -38,10 +35,7 @@ class _FakeStorageProvider implements StorageProvider {
   StorageSourceType get type => StorageSourceType.webDav;
 
   @override
-  Future<StorageConnection> connect(
-    StorageSource source,
-    StorageCredentials? credentials,
-  ) async => connection;
+  Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async => connection;
 }
 
 class _FakeStorageConnection implements StorageConnection {

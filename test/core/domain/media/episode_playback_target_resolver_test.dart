@@ -44,21 +44,13 @@ void main() {
   });
 
   test('omits a show that has never been played from continue watching', () {
-    final target = EpisodePlaybackTargetResolver.resolveForContinueWatching([
-      _episode(1),
-      _episode(2),
-    ]);
+    final target = EpisodePlaybackTargetResolver.resolveForContinueWatching([_episode(1), _episode(2)]);
 
     expect(target, isNull);
   });
 }
 
-MediaFile _episode(
-  int episode, {
-  int season = 1,
-  WatchStatus status = WatchStatus.notStarted,
-  int? watchedMinute,
-}) {
+MediaFile _episode(int episode, {int season = 1, WatchStatus status = WatchStatus.notStarted, int? watchedMinute}) {
   return MediaFile(
     id: season * 100 + episode,
     path: '/show/s${season}e$episode.mkv',
@@ -72,9 +64,7 @@ MediaFile _episode(
     duration: 60 * 60 * 1000,
     position: status == WatchStatus.completed ? 60 * 60 * 1000 : 10 * 60 * 1000,
     watchStatus: status,
-    lastWatchedAt: watchedMinute == null
-        ? null
-        : DateTime(2026, 8, 1, 12, watchedMinute),
+    lastWatchedAt: watchedMinute == null ? null : DateTime(2026, 8, 1, 12, watchedMinute),
     addedAt: DateTime(2026, 8, 1),
   );
 }

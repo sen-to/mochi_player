@@ -4,18 +4,9 @@ import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 void main() {
   group('MediaFileKindResolver', () {
     test('distinguishes directories, videos, and unsupported files', () {
-      expect(
-        MediaFileKindResolver.resolve('Movies', isDirectory: true),
-        MediaFileKind.directory,
-      );
-      expect(
-        MediaFileKindResolver.resolve('movie.4K.MKV'),
-        MediaFileKind.video,
-      );
-      expect(
-        MediaFileKindResolver.resolve('soundtrack.flac'),
-        MediaFileKind.other,
-      );
+      expect(MediaFileKindResolver.resolve('Movies', isDirectory: true), MediaFileKind.directory);
+      expect(MediaFileKindResolver.resolve('movie.4K.MKV'), MediaFileKind.video);
+      expect(MediaFileKindResolver.resolve('soundtrack.flac'), MediaFileKind.other);
       expect(MediaFileKindResolver.resolve('readme.txt'), MediaFileKind.other);
     });
 

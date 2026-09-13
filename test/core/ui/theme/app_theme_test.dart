@@ -8,8 +8,7 @@ void main() {
     expect(AppTheme.lightTheme.colorScheme.primary, AppColors.primaryLight);
     expect(AppTheme.darkTheme.colorScheme.primary, AppColors.primaryDark);
 
-    final lightColors = AppTheme.lightTheme
-        .extension<AppColorSchemeExtension>()!;
+    final lightColors = AppTheme.lightTheme.extension<AppColorSchemeExtension>()!;
     final darkColors = AppTheme.darkTheme.extension<AppColorSchemeExtension>()!;
     expect(lightColors.selectedSurface, const Color(0xFFECEAF4));
     expect(darkColors.selectedSurface, const Color(0xFF35323F));
@@ -17,16 +16,13 @@ void main() {
     expect(darkColors.controlSurface, const Color(0x0EFFFFFF));
   });
 
-  test(
-    'derives the theme primary and selection surface from the accent color',
-    () {
-      const accent = Color(0xFF43B649);
+  test('derives the theme primary and selection surface from the accent color', () {
+    const accent = Color(0xFF43B649);
 
-      final theme = AppTheme.lightThemeFor(accent);
-      final colors = theme.extension<AppColorSchemeExtension>()!;
+    final theme = AppTheme.lightThemeFor(accent);
+    final colors = theme.extension<AppColorSchemeExtension>()!;
 
-      expect(theme.colorScheme.primary, accent);
-      expect(colors.selectedSurface, isNot(const Color(0xFFECEAF4)));
-    },
-  );
+    expect(theme.colorScheme.primary, accent);
+    expect(colors.selectedSurface, isNot(const Color(0xFFECEAF4)));
+  });
 }

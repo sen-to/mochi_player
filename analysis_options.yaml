@@ -33,5 +33,10 @@ linter:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
+# 代码统一使用 120 列。声明在这里后，`dart format` 与各编辑器都会自动采用，
+# 无需再传 --line-length；否则会按默认的 80 列把整个仓库重排。
+formatter:
+  page_width: 120
+
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

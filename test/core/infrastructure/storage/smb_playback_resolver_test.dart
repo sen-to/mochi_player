@@ -19,16 +19,11 @@ void main() {
       credentials: StorageCredentials(username: 'mochi', password: 'secret'),
     ).resolve(_file);
 
-    expect(
-      target?.url,
-      'smb://mochi:secret@192.168.1.20/Media/Movies/Drama/Example.mkv',
-    );
+    expect(target?.url, 'smb://mochi:secret@192.168.1.20/Media/Movies/Drama/Example.mkv');
   });
 
   test('omits SMB credentials when the source is anonymous', () async {
-    final target = await const SmbPlaybackResolver(
-      source: source,
-    ).resolve(_file);
+    final target = await const SmbPlaybackResolver(source: source).resolve(_file);
 
     expect(target?.url, 'smb://192.168.1.20/Media/Movies/Drama/Example.mkv');
   });

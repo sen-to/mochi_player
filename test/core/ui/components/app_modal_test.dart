@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('shows the default footer and returns the confirmed result', (
-    tester,
-  ) async {
+  testWidgets('shows the default footer and returns the confirmed result', (tester) async {
     bool? result;
 
     await tester.pumpWidget(
@@ -15,11 +13,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () async {
-                result = await AppModal.confirm(
-                  context: context,
-                  title: '清空媒体库？',
-                  message: '此操作不可撤销。',
-                );
+                result = await AppModal.confirm(context: context, title: '清空媒体库？', message: '此操作不可撤销。');
               },
               child: const Text('打开'),
             ),
@@ -48,12 +42,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () async {
-                await AppModal.show(
-                  context: context,
-                  title: '处理中',
-                  content: const Text('请稍候'),
-                  showFooter: false,
-                );
+                await AppModal.show(context: context, title: '处理中', content: const Text('请稍候'), showFooter: false);
               },
               child: const Text('打开'),
             ),

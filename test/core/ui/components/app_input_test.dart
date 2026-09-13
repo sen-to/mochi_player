@@ -8,19 +8,14 @@ import 'package:mochi_player/core/ui/components/input/internal/app_text_context_
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
 
 void main() {
-  testWidgets('uses a subtle neutral surface when disabled in dark mode', (
-    tester,
-  ) async {
+  testWidgets('uses a subtle neutral surface when disabled in dark mode', (tester) async {
     final controller = TextEditingController(text: 'http://127.0.0.1:7897');
 
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
         home: Scaffold(
-          body: SizedBox(
-            width: 320,
-            child: AppInput(controller: controller, enabled: false),
-          ),
+          body: SizedBox(width: 320, child: AppInput(controller: controller, enabled: false)),
         ),
       ),
     );
@@ -28,24 +23,12 @@ void main() {
 
     final context = tester.element(find.byType(AppInput));
     final surfaces = tester
-        .widgetList<DecoratedBox>(
-          find.descendant(
-            of: find.byType(AppInput),
-            matching: find.byType(DecoratedBox),
-          ),
-        )
+        .widgetList<DecoratedBox>(find.descendant(of: find.byType(AppInput), matching: find.byType(DecoratedBox)))
         .map((box) => box.decoration)
         .whereType<BoxDecoration>();
-    expect(
-      surfaces.any(
-        (surface) => surface.color == AppColors.subtleSurface(context),
-      ),
-      isTrue,
-    );
+    expect(surfaces.any((surface) => surface.color == AppColors.subtleSurface(context)), isTrue);
 
-    final textField = tester.widget<CupertinoTextField>(
-      find.byType(CupertinoTextField),
-    );
+    final textField = tester.widget<CupertinoTextField>(find.byType(CupertinoTextField));
     expect(textField.decoration?.color, Colors.transparent);
     expect(textField.style?.color, AppColors.textSecondary(context));
 
@@ -53,9 +36,7 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('releases focus and selection highlight when disabled', (
-    tester,
-  ) async {
+  testWidgets('releases focus and selection highlight when disabled', (tester) async {
     final controller = TextEditingController(text: 'http://127.0.0.1:7897');
     final focusNode = FocusNode();
     var enabled = true;
@@ -70,11 +51,7 @@ void main() {
               updateHost = setState;
               return SizedBox(
                 width: 320,
-                child: AppInput(
-                  controller: controller,
-                  focusNode: focusNode,
-                  enabled: enabled,
-                ),
+                child: AppInput(controller: controller, focusNode: focusNode, enabled: enabled),
               );
             },
           ),
@@ -83,10 +60,7 @@ void main() {
     );
 
     focusNode.requestFocus();
-    controller.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: controller.text.length,
-    );
+    controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
     await tester.pump();
     expect(focusNode.hasFocus, isTrue);
 
@@ -120,9 +94,7 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('reports a committed edit when focus leaves the field', (
-    tester,
-  ) async {
+  testWidgets('reports a committed edit when focus leaves the field', (tester) async {
     final controller = TextEditingController();
     final focusNode = FocusNode();
     var focusLostCount = 0;
@@ -131,11 +103,7 @@ void main() {
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: Scaffold(
-          body: AppInput(
-            controller: controller,
-            focusNode: focusNode,
-            onFocusLost: () => focusLostCount++,
-          ),
+          body: AppInput(controller: controller, focusNode: focusNode, onFocusLost: () => focusLostCount++),
         ),
       ),
     );
@@ -163,10 +131,7 @@ void main() {
       ),
     );
 
-    final mouse = await tester.createGesture(
-      kind: PointerDeviceKind.mouse,
-      buttons: kSecondaryMouseButton,
-    );
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse, buttons: kSecondaryMouseButton);
     final inputCenter = tester.getCenter(find.byType(CupertinoTextField));
     await mouse.addPointer(location: inputCenter);
     await mouse.down(inputCenter);
@@ -177,27 +142,11 @@ void main() {
     expect(find.byType(MenuPanel), findsOneWidget);
     expect(find.byType(MenuOptionRow), findsWidgets);
     final labels = tester
-        .widgetList<Text>(
-          find.descendant(
-            of: find.byType(AppTextContextMenu),
-            matching: find.byType(Text),
-          ),
-        )
+        .widgetList<Text>(find.descendant(of: find.byType(AppTextContextMenu), matching: find.byType(Text)))
         .map((text) => text.data)
         .whereType<String>()
         .toList();
-    const localizedLabels = {
-      '剪切',
-      '复制',
-      '粘贴',
-      '全选',
-      '删除',
-      '查询',
-      '网页搜索',
-      '分享',
-      '实况文本',
-      '操作',
-    };
+    const localizedLabels = {'剪切', '复制', '粘贴', '全选', '删除', '查询', '网页搜索', '分享', '实况文本', '操作'};
     expect(labels, isNotEmpty);
     expect(labels.every(localizedLabels.contains), isTrue);
 
@@ -219,24 +168,17 @@ void main() {
     controller.dispose();
   });
 
-  testWidgets('password context menu always exposes paste and select all', (
-    tester,
-  ) async {
+  testWidgets('password context menu always exposes paste and select all', (tester) async {
     final controller = TextEditingController(text: 'secret');
 
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
-        home: Scaffold(
-          body: AppInput(controller: controller, obscureText: true),
-        ),
+        home: Scaffold(body: AppInput(controller: controller, obscureText: true)),
       ),
     );
 
-    final mouse = await tester.createGesture(
-      kind: PointerDeviceKind.mouse,
-      buttons: kSecondaryMouseButton,
-    );
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse, buttons: kSecondaryMouseButton);
     final inputCenter = tester.getCenter(find.byType(CupertinoTextField));
     await mouse.addPointer(location: inputCenter);
     await mouse.down(inputCenter);
@@ -269,9 +211,7 @@ void main() {
     expect(find.byIcon(CupertinoIcons.search), findsOneWidget);
     expect(tester.getSize(find.byType(AppSearchInput)).width, 280);
 
-    final textField = tester.widget<CupertinoTextField>(
-      find.byType(CupertinoTextField),
-    );
+    final textField = tester.widget<CupertinoTextField>(find.byType(CupertinoTextField));
     expect(textField.textAlignVertical, TextAlignVertical.center);
     expect(textField.padding, const EdgeInsets.only(top: 4));
     expect(textField.style?.height, 1);
@@ -284,9 +224,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
-        home: const Scaffold(
-          body: SizedBox(width: 240, child: AppSearchInput()),
-        ),
+        home: const Scaffold(body: SizedBox(width: 240, child: AppSearchInput())),
       ),
     );
 
@@ -301,9 +239,7 @@ void main() {
     await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
   });
 
-  testWidgets('places a suffix inside the standard input boundary', (
-    tester,
-  ) async {
+  testWidgets('places a suffix inside the standard input boundary', (tester) async {
     final controller = TextEditingController();
 
     await tester.pumpWidget(
@@ -314,11 +250,7 @@ void main() {
             width: 240,
             child: AppInput(
               controller: controller,
-              suffix: const SizedBox(
-                key: ValueKey('input_suffix'),
-                width: 22,
-                height: 22,
-              ),
+              suffix: const SizedBox(key: ValueKey('input_suffix'), width: 22, height: 22),
             ),
           ),
         ),
@@ -326,9 +258,7 @@ void main() {
     );
 
     final inputRect = tester.getRect(find.byType(AppInput));
-    final suffixRect = tester.getRect(
-      find.byKey(const ValueKey('input_suffix')),
-    );
+    final suffixRect = tester.getRect(find.byKey(const ValueKey('input_suffix')));
     expect(suffixRect.right, lessThanOrEqualTo(inputRect.right));
     expect(suffixRect.center.dy, inputRect.center.dy);
 

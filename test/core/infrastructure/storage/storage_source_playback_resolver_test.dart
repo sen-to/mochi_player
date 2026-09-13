@@ -16,10 +16,7 @@ void main() {
     final resolver = StorageSourcePlaybackResolver(
       repository: _FakeSourceRepository(
         source: source,
-        credentials: const StorageCredentials(
-          username: 'admin',
-          password: 'secret',
-        ),
+        credentials: const StorageCredentials(username: 'admin', password: 'secret'),
       ),
     );
 
@@ -30,9 +27,7 @@ void main() {
   });
 
   test('does not resolve a file without a configured source', () async {
-    final resolver = StorageSourcePlaybackResolver(
-      repository: _FakeSourceRepository(),
-    );
+    final resolver = StorageSourcePlaybackResolver(repository: _FakeSourceRepository());
 
     final target = await resolver.resolve(_file(sourceId: 'missing-source'));
 
@@ -41,9 +36,7 @@ void main() {
 
   test('does not resolve a file from a disabled source', () async {
     final resolver = StorageSourcePlaybackResolver(
-      repository: _FakeSourceRepository(
-        source: source.copyWith(enabled: false),
-      ),
+      repository: _FakeSourceRepository(source: source.copyWith(enabled: false)),
     );
 
     expect(await resolver.resolve(_file(sourceId: source.id)), isNull);
@@ -72,20 +65,14 @@ class _FakeSourceRepository implements StorageSourceRepository {
   Future<int?> deleteWithMedia(String sourceId) async => null;
 
   @override
-  Future<List<StorageSource>> getAll() async =>
-      source == null ? const [] : [source!];
+  Future<List<StorageSource>> getAll() async => source == null ? const [] : [source!];
 
   @override
-  Future<StorageSource?> getById(String sourceId) async =>
-      source?.id == sourceId ? source : null;
+  Future<StorageSource?> getById(String sourceId) async => source?.id == sourceId ? source : null;
 
   @override
-  Future<StorageCredentials?> readCredentials(String sourceId) async =>
-      source?.id == sourceId ? credentials : null;
+  Future<StorageCredentials?> readCredentials(String sourceId) async => source?.id == sourceId ? credentials : null;
 
   @override
-  Future<void> save(
-    StorageSource source, {
-    StorageCredentials? credentials,
-  }) async {}
+  Future<void> save(StorageSource source, {StorageCredentials? credentials}) async {}
 }

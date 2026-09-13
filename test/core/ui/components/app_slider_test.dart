@@ -4,30 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('translates the public step API into discrete positions', (
-    tester,
-  ) async {
+  testWidgets('translates the public step API into discrete positions', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
-        home: Scaffold(
-          body: AppSlider(
-            value: 20,
-            min: 0,
-            max: 100,
-            step: 5,
-            onChanged: (_) {},
-          ),
-        ),
+        home: Scaffold(body: AppSlider(value: 20, min: 0, max: 100, step: 5, onChanged: (_) {})),
       ),
     );
 
     expect(tester.widget<Slider>(find.byType(Slider)).divisions, 20);
   });
 
-  testWidgets('uses one native-painted tooltip for hover and drag', (
-    tester,
-  ) async {
+  testWidgets('uses one native-painted tooltip for hover and drag', (tester) async {
     final semantics = tester.ensureSemantics();
 
     await tester.pumpWidget(
@@ -60,10 +48,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 120));
 
     final sliderTheme = tester.widget<SliderTheme>(find.byType(SliderTheme));
-    expect(
-      sliderTheme.data.overlayShape!.getPreferredSize(true, false),
-      const Size.square(32),
-    );
+    expect(sliderTheme.data.overlayShape!.getPreferredSize(true, false), const Size.square(32));
     expect(sliderTheme.data.showValueIndicator, ShowValueIndicator.never);
     expect(tester.takeException(), isNull);
 
@@ -77,9 +62,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('updates a visible tooltip after the slider value changes', (
-    tester,
-  ) async {
+  testWidgets('updates a visible tooltip after the slider value changes', (tester) async {
     var value = 39.0;
     late StateSetter update;
 
@@ -93,12 +76,7 @@ void main() {
               return Center(
                 child: SizedBox(
                   width: 300,
-                  child: AppSlider(
-                    value: value,
-                    min: 0,
-                    max: 100,
-                    onChanged: (_) {},
-                  ),
+                  child: AppSlider(value: value, min: 0, max: 100, onChanged: (_) {}),
                 ),
               );
             },
@@ -123,9 +101,7 @@ void main() {
     await mouse.removePointer();
   });
 
-  testWidgets('updates its visual value in the same drag frame', (
-    tester,
-  ) async {
+  testWidgets('updates its visual value in the same drag frame', (tester) async {
     double? reportedValue;
     var value = 20.0;
 
@@ -172,17 +148,9 @@ void main() {
   });
 }
 
-Offset _thumbPosition(
-  WidgetTester tester, {
-  required double value,
-  double min = 0,
-  double max = 100,
-}) {
+Offset _thumbPosition(WidgetTester tester, {required double value, double min = 0, double max = 100}) {
   final rect = tester.getRect(find.byType(AppSlider));
   const inset = 9.0;
   final progress = (value - min) / (max - min);
-  return Offset(
-    rect.left + inset + (rect.width - inset * 2) * progress,
-    rect.center.dy,
-  );
+  return Offset(rect.left + inset + (rect.width - inset * 2) * progress, rect.center.dy);
 }

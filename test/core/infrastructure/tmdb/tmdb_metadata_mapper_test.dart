@@ -29,10 +29,7 @@ void main() {
     expect(result.season.numberOfEpisodes, 1);
     expect(result.episodes.single.tmdbId, '42_s1e1');
     expect(result.episodes.single.title, 'Pilot');
-    expect(
-      result.episodes.single.stillUrl,
-      'https://image.tmdb.org/t/p/w1280/episode.jpg',
-    );
+    expect(result.episodes.single.stillUrl, 'https://image.tmdb.org/t/p/w1280/episode.jpg');
   });
 
   test('maps movie details and selects the preferred logo language', () {

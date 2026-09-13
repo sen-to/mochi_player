@@ -25,38 +25,23 @@ void main() {
     );
 
     final container = tester.widget<Container>(
-      find.descendant(
-        of: find.byType(AppButton),
-        matching: find.byType(Container),
-      ),
+      find.descendant(of: find.byType(AppButton), matching: find.byType(Container)),
     );
     final decoration = container.decoration! as BoxDecoration;
     expect(decoration.color, Colors.black.withAlpha(76));
-    expect(
-      (decoration.border! as Border).top.color,
-      Colors.white.withAlpha(58),
-    );
+    expect((decoration.border! as Border).top.color, Colors.white.withAlpha(58));
     expect(tester.widget<Icon>(find.byIcon(Icons.favorite)).color, accent);
-    expect(
-      tester.widget<Text>(find.text('已收藏')).style?.color,
-      Colors.white.withAlpha(235),
-    );
+    expect(tester.widget<Text>(find.text('已收藏')).style?.color, Colors.white.withAlpha(235));
   });
 
-  testWidgets('supports an icon-only button through the same API', (
-    tester,
-  ) async {
+  testWidgets('supports an icon-only button through the same API', (tester) async {
     var pressed = false;
 
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: Scaffold(
-          body: AppButton.icon(
-            onPressed: () => pressed = true,
-            icon: Icons.visibility_outlined,
-            tooltip: '显示',
-          ),
+          body: AppButton.icon(onPressed: () => pressed = true, icon: Icons.visibility_outlined, tooltip: '显示'),
         ),
       ),
     );
@@ -74,11 +59,7 @@ void main() {
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: Scaffold(
-          body: AppButton(
-            onPressed: () => pressed++,
-            label: '确定',
-            size: AppButtonSize.compact,
-          ),
+          body: AppButton(onPressed: () => pressed++, label: '确定', size: AppButtonSize.compact),
         ),
       ),
     );

@@ -27,9 +27,7 @@ void main() {
   });
 
   test('removes credentials from SMB media URLs', () {
-    final sanitized = LibmpvLogBuffer.sanitize(
-      'Opening smb://mochi:secret@nas.local/Media/Example.mkv',
-    );
+    final sanitized = LibmpvLogBuffer.sanitize('Opening smb://mochi:secret@nas.local/Media/Example.mkv');
 
     expect(sanitized, contains('smb://%3Credacted%3E@nas.local'));
     expect(sanitized, isNot(contains('secret')));

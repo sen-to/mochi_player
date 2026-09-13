@@ -12,20 +12,13 @@ void main() {
     genres: ['恐怖'],
     cast: [Artist(name: 'Tobin Bell', character: 'Jigsaw')],
   );
-  const titan = TVShow(
-    tmdbId: '2',
-    title: '进击的巨人',
-    originalTitle: 'Attack on Titan',
-    releaseYear: 2013,
-  );
+  const titan = TVShow(tmdbId: '2', title: '进击的巨人', originalTitle: 'Attack on Titan', releaseYear: 2013);
 
   test('matches localized and original titles only', () {
     final items = <LibraryItem>[saw, titan];
 
     expect(LibrarySearchMatcher.libraryItems(items, '电锯'), [saw]);
-    expect(LibrarySearchMatcher.libraryItems(items, 'attack on titan'), [
-      titan,
-    ]);
+    expect(LibrarySearchMatcher.libraryItems(items, 'attack on titan'), [titan]);
     expect(LibrarySearchMatcher.libraryItems(items, '2006'), isEmpty);
     expect(LibrarySearchMatcher.libraryItems(items, '恐怖'), isEmpty);
     expect(LibrarySearchMatcher.libraryItems(items, 'Tobin Bell'), isEmpty);
@@ -33,10 +26,7 @@ void main() {
 
   test('ranks exact title before a contained title', () {
     const exact = Movie(tmdbId: '3', title: 'Saw');
-    final results = LibrarySearchMatcher.libraryItems<LibraryItem>([
-      saw,
-      exact,
-    ], 'Saw');
+    final results = LibrarySearchMatcher.libraryItems<LibraryItem>([saw, exact], 'Saw');
 
     expect(results, [exact, saw]);
   });
@@ -50,11 +40,7 @@ void main() {
       size: 1,
       addedAt: DateTime(2026),
     );
-    final card = MediaCardViewData(
-      file: file,
-      libraryItem: saw,
-      title: saw.title,
-    );
+    final card = MediaCardViewData(file: file, libraryItem: saw, title: saw.title);
 
     expect(LibrarySearchMatcher.mediaCards([card], '电锯惊魂3'), [card]);
     expect(LibrarySearchMatcher.mediaCards([card], 'Remux'), isEmpty);

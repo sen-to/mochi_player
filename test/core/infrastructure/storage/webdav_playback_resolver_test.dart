@@ -21,35 +21,22 @@ void main() {
     rootPath: '/Media',
   );
 
-  test(
-    'builds a WebDAV playback URL and Basic authentication header',
-    () async {
-      final resolver = WebDavPlaybackResolver(
-        source: source,
-        credentials: const StorageCredentials(
-          username: 'user',
-          password: 'pass',
-        ),
-      );
+  test('builds a WebDAV playback URL and Basic authentication header', () async {
+    final resolver = WebDavPlaybackResolver(
+      source: source,
+      credentials: const StorageCredentials(username: 'user', password: 'pass'),
+    );
 
-      final target = await resolver.resolve(
-        _file(sourceId: source.id, path: '/Movies/Example.mkv'),
-      );
+    final target = await resolver.resolve(_file(sourceId: source.id, path: '/Movies/Example.mkv'));
 
-      expect(
-        target?.url,
-        'https://nas.example.com/webdav/Media/Movies/Example.mkv',
-      );
-      expect(target?.httpHeaders, {'Authorization': 'Basic dXNlcjpwYXNz'});
-    },
-  );
+    expect(target?.url, 'https://nas.example.com/webdav/Media/Movies/Example.mkv');
+    expect(target?.httpHeaders, {'Authorization': 'Basic dXNlcjpwYXNz'});
+  });
 
   test('does not resolve a file belonging to another source', () async {
     final resolver = WebDavPlaybackResolver(source: source);
 
-    final target = await resolver.resolve(
-      _file(sourceId: 'another-source', path: '/Movies/Example.mkv'),
-    );
+    final target = await resolver.resolve(_file(sourceId: 'another-source', path: '/Movies/Example.mkv'));
 
     expect(target, isNull);
   });

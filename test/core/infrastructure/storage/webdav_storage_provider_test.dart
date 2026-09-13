@@ -4,30 +4,25 @@ import 'package:mochi_player/core/infrastructure/storage/webdav_storage_provider
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {
-  test(
-    'uses the configured WebDAV root without adding an implicit path prefix',
-    () async {
-      final client = _FakeWebDavClient([
-        webdav.File(name: 'Movies', isDir: true),
-      ]);
-      final connection = WebDavStorageConnection(
-        source: const StorageSource(
-          id: 'nas',
-          name: '家庭 NAS',
-          type: StorageSourceType.webDav,
-          endpoint: 'https://nas.example.com/webdav',
-          rootPath: '/Media',
-        ),
-        client: client,
-      );
+  test('uses the configured WebDAV root without adding an implicit path prefix', () async {
+    final client = _FakeWebDavClient([webdav.File(name: 'Movies', isDir: true)]);
+    final connection = WebDavStorageConnection(
+      source: const StorageSource(
+        id: 'nas',
+        name: '家庭 NAS',
+        type: StorageSourceType.webDav,
+        endpoint: 'https://nas.example.com/webdav',
+        rootPath: '/Media',
+      ),
+      client: client,
+    );
 
-      final entries = await connection.readDirectory('/movies');
+    final entries = await connection.readDirectory('/movies');
 
-      expect(client.requestedPaths, ['/Media/movies']);
-      expect(entries.single.name, 'Movies');
-      expect(entries.single.isDirectory, isTrue);
-    },
-  );
+    expect(client.requestedPaths, ['/Media/movies']);
+    expect(entries.single.name, 'Movies');
+    expect(entries.single.isDirectory, isTrue);
+  });
 
   test('tests the source-relative root directory', () async {
     final client = _FakeWebDavClient(const []);

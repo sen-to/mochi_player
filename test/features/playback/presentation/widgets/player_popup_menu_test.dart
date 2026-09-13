@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_popup_menu.dart';
 
@@ -17,11 +16,7 @@ void main() {
           menuBuilder: (context, close) => PlayerPopupMenuPanel(
             title: '字幕',
             children: [
-              PlayerPopupMenuItem(
-                label: '自动',
-                selected: true,
-                onPressed: close,
-              ),
+              PlayerPopupMenuItem(label: '自动', selected: true, onPressed: close),
               const PlayerPopupMenuDivider(),
               PlayerPopupMenuSwitchItem(
                 title: '使用 Mochi 字幕样式',
@@ -31,11 +26,7 @@ void main() {
               ),
             ],
           ),
-          child: const SizedBox(
-            key: ValueKey('menu-trigger'),
-            width: 34,
-            height: 34,
-          ),
+          child: const SizedBox(key: ValueKey('menu-trigger'), width: 34, height: 34),
         ),
       ),
     );
@@ -48,24 +39,13 @@ void main() {
     expect(find.text('使用 Mochi 字幕样式'), findsOneWidget);
     expect(find.byType(PopupMenuButton), findsNothing);
 
-    final panel = tester.widget<ClipRRect>(
-      find.byKey(const ValueKey('player-popup-menu-panel')),
-    );
-    expect(
-      panel.borderRadius,
-      BorderRadius.circular(PlayerPopupMenuMetrics.panelRadius),
-    );
+    final panel = tester.widget<ClipRRect>(find.byKey(const ValueKey('player-popup-menu-panel')));
+    expect(panel.borderRadius, BorderRadius.circular(PlayerPopupMenuMetrics.panelRadius));
     expect(find.byKey(const ValueKey('player-popup-menu-pointer')), findsOne);
 
     expect(
-      tester
-          .getBottomRight(
-            find.byKey(const ValueKey('player-popup-menu-pointer')),
-          )
-          .dy,
-      lessThan(
-        tester.getTopLeft(find.byKey(const ValueKey('menu-trigger'))).dy,
-      ),
+      tester.getBottomRight(find.byKey(const ValueKey('player-popup-menu-pointer'))).dy,
+      lessThan(tester.getTopLeft(find.byKey(const ValueKey('menu-trigger'))).dy),
     );
   });
 
@@ -89,11 +69,7 @@ void main() {
               ),
             ],
           ),
-          child: const SizedBox(
-            key: ValueKey('menu-trigger'),
-            width: 34,
-            height: 34,
-          ),
+          child: const SizedBox(key: ValueKey('menu-trigger'), width: 34, height: 34),
         ),
       ),
     );
@@ -108,15 +84,12 @@ void main() {
     expect(find.text('播放速度'), findsNothing);
   });
 
-  testWidgets('starts a short fade immediately when blank space is clicked', (
-    tester,
-  ) async {
+  testWidgets('starts a short fade immediately when blank space is clicked', (tester) async {
     await tester.pumpWidget(
       _testApp(
         PlayerPopupMenuButton(
           menuWidth: 160,
-          menuBuilder: (context, close) =>
-              const PlayerPopupMenuPanel(title: '播放速度', children: []),
+          menuBuilder: (context, close) => const PlayerPopupMenuPanel(title: '播放速度', children: []),
           child: const SizedBox(width: 34, height: 34),
         ),
       ),
@@ -131,9 +104,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 16));
 
-    final opacity = tester.widget<FadeTransition>(
-      find.byKey(const ValueKey('player-popup-menu-fade')),
-    );
+    final opacity = tester.widget<FadeTransition>(find.byKey(const ValueKey('player-popup-menu-fade')));
     expect(opacity.opacity.value, lessThan(1));
 
     await pointer.up();
@@ -141,9 +112,7 @@ void main() {
     expect(find.text('播放速度'), findsNothing);
   });
 
-  testWidgets('rebuilds an open menu when its switch value changes', (
-    tester,
-  ) async {
+  testWidgets('rebuilds an open menu when its switch value changes', (tester) async {
     var value = false;
     await tester.pumpWidget(
       _testApp(
@@ -171,19 +140,13 @@ void main() {
 
     await tester.tap(find.byType(PlayerPopupMenuButton));
     await tester.pumpAndSettle();
-    expect(
-      tester.widget<CupertinoSwitch>(find.byType(CupertinoSwitch)).value,
-      isFalse,
-    );
+    expect(tester.widget<CupertinoSwitch>(find.byType(CupertinoSwitch)).value, isFalse);
 
     await tester.tap(find.text('使用 Mochi 字幕样式'));
     await tester.pumpAndSettle();
 
     expect(value, isTrue);
-    expect(
-      tester.widget<CupertinoSwitch>(find.byType(CupertinoSwitch)).value,
-      isTrue,
-    );
+    expect(tester.widget<CupertinoSwitch>(find.byType(CupertinoSwitch)).value, isTrue);
   });
 }
 

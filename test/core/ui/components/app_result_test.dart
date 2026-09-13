@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('renders configured status content and a custom icon', (
-    tester,
-  ) async {
+  testWidgets('renders configured status content and a custom icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -22,20 +20,13 @@ void main() {
     expect(find.text('请尝试其他关键词'), findsOneWidget);
     expect(find.byIcon(Icons.search_off_rounded), findsOneWidget);
     final context = tester.element(find.byType(AppResult));
-    final customIconTheme = IconTheme.of(
-      tester.element(find.byIcon(Icons.search_off_rounded)),
-    );
+    final customIconTheme = IconTheme.of(tester.element(find.byIcon(Icons.search_off_rounded)));
     expect(customIconTheme.size, 32);
     expect(customIconTheme.color, AppColors.textSecondary(context));
-    expect(
-      _resultIconBackgrounds(tester),
-      contains(AppColors.controlSurface(context)),
-    );
+    expect(_resultIconBackgrounds(tester), contains(AppColors.controlSurface(context)));
   });
 
-  testWidgets('uses the status appearance and renders the operation area', (
-    tester,
-  ) async {
+  testWidgets('uses the status appearance and renders the operation area', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -53,15 +44,10 @@ void main() {
     expect(find.text('重试'), findsOneWidget);
     expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     final context = tester.element(find.byType(AppResult));
-    expect(
-      _resultIconBackgrounds(tester),
-      contains(AppColors.controlSurface(context)),
-    );
+    expect(_resultIconBackgrounds(tester), contains(AppColors.controlSurface(context)));
   });
 
-  testWidgets('uses the neutral background for an empty-state icon', (
-    tester,
-  ) async {
+  testWidgets('uses the neutral background for an empty-state icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -70,15 +56,10 @@ void main() {
     );
 
     final context = tester.element(find.byType(AppResult));
-    expect(
-      _resultIconBackgrounds(tester),
-      contains(AppColors.controlSurface(context)),
-    );
+    expect(_resultIconBackgrounds(tester), contains(AppColors.controlSurface(context)));
   });
 
-  testWidgets('uses the shared control background for an info-state icon', (
-    tester,
-  ) async {
+  testWidgets('uses the shared control background for an info-state icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
@@ -87,10 +68,7 @@ void main() {
     );
 
     final context = tester.element(find.byType(AppResult));
-    expect(
-      _resultIconBackgrounds(tester),
-      contains(AppColors.controlSurface(context)),
-    );
+    expect(_resultIconBackgrounds(tester), contains(AppColors.controlSurface(context)));
   });
 }
 

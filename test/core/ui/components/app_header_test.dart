@@ -21,20 +21,14 @@ void main() {
     expect(backCount, 1);
   });
 
-  testWidgets('regular header composes caller-owned trailing content', (
-    tester,
-  ) async {
+  testWidgets('regular header composes caller-owned trailing content', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.lightTheme,
         home: const Scaffold(
           body: AppHeader(
             title: '文件浏览',
-            trailing: SizedBox(
-              key: ValueKey('header-trailing'),
-              width: 300,
-              child: AppSearchInput(),
-            ),
+            trailing: SizedBox(key: ValueKey('header-trailing'), width: 300, child: AppSearchInput()),
           ),
         ),
       ),

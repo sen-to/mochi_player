@@ -18,20 +18,11 @@ void main() {
       connect: (location, credentials) async {
         expect(location.host, '192.168.1.20');
         expect(location.share, 'Media');
-        expect(
-          credentials,
-          const StorageCredentials(username: 'mochi', password: 'secret'),
-        );
+        expect(credentials, const StorageCredentials(username: 'mochi', password: 'secret'));
         return _FakeClient((path) async {
           requestedPath = path;
           return [
-            SmbDirectoryEntry(
-              name: '电影',
-              isDirectory: true,
-              isFile: false,
-              size: 0,
-              modifiedAt: DateTime(2026),
-            ),
+            SmbDirectoryEntry(name: '电影', isDirectory: true, isFile: false, size: 0, modifiedAt: DateTime(2026)),
             SmbDirectoryEntry(
               name: 'movie.mkv',
               isDirectory: false,
@@ -44,10 +35,7 @@ void main() {
       },
     );
 
-    final connection = await provider.connect(
-      source,
-      const StorageCredentials(username: 'mochi', password: 'secret'),
-    );
+    final connection = await provider.connect(source, const StorageCredentials(username: 'mochi', password: 'secret'));
     final entries = await connection.readDirectory('/');
 
     expect(requestedPath, '电影');

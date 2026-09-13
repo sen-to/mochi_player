@@ -4,9 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 
 void main() {
-  testWidgets('scrolls its content by a viewport-relative distance', (
-    tester,
-  ) async {
+  testWidgets('scrolls its content by a viewport-relative distance', (tester) async {
     final controller = ScrollController();
     addTearDown(controller.dispose);
 

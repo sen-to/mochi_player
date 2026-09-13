@@ -16,16 +16,8 @@ void main() {
                 value: 2,
                 options: const [
                   AppSegmentedOption(value: 0, label: '浅色'),
-                  AppSegmentedOption(
-                    value: 1,
-                    label: '深色',
-                    icon: Icons.dark_mode,
-                  ),
-                  AppSegmentedOption(
-                    value: 2,
-                    label: '跟随系统',
-                    icon: Icons.computer,
-                  ),
+                  AppSegmentedOption(value: 1, label: '深色', icon: Icons.dark_mode),
+                  AppSegmentedOption(value: 2, label: '跟随系统', icon: Icons.computer),
                 ],
                 onChanged: (_) {},
               ),
@@ -35,10 +27,7 @@ void main() {
       ),
     );
 
-    final areas = find.descendant(
-      of: find.byType(AppSegmentedControl<int>),
-      matching: find.byType(AppClickableArea),
-    );
+    final areas = find.descendant(of: find.byType(AppSegmentedControl<int>), matching: find.byType(AppClickableArea));
 
     expect(areas, findsNWidgets(3));
     for (final element in areas.evaluate()) {
@@ -95,10 +84,7 @@ void main() {
     );
 
     final areas = tester.widgetList<AppClickableArea>(
-      find.descendant(
-        of: find.byType(AppSegmentedControl<int>),
-        matching: find.byType(AppClickableArea),
-      ),
+      find.descendant(of: find.byType(AppSegmentedControl<int>), matching: find.byType(AppClickableArea)),
     );
     expect(areas.every((area) => area.onTap == null), isTrue);
   });
@@ -123,18 +109,13 @@ void main() {
 
     final context = tester.element(find.byType(AppSegmentedControl<int>));
     final areas = tester.widgetList<AppClickableArea>(
-      find.descendant(
-        of: find.byType(AppSegmentedControl<int>),
-        matching: find.byType(AppClickableArea),
-      ),
+      find.descendant(of: find.byType(AppSegmentedControl<int>), matching: find.byType(AppClickableArea)),
     );
     expect(areas.first.backgroundColor, AppColors.hoverSurface(context));
     expect(areas.last.backgroundColor, Colors.transparent);
   });
 
-  testWidgets('icon options keep labels for tooltip and semantics', (
-    tester,
-  ) async {
+  testWidgets('icon options keep labels for tooltip and semantics', (tester) async {
     final semantics = tester.ensureSemantics();
     var value = 0;
 
@@ -147,16 +128,8 @@ void main() {
             child: AppSegmentedControl<int>(
               value: value,
               options: const [
-                AppSegmentedOption.icon(
-                  value: 0,
-                  label: '列表视图',
-                  icon: Icons.view_list_outlined,
-                ),
-                AppSegmentedOption.icon(
-                  value: 1,
-                  label: '网格视图',
-                  icon: Icons.grid_view_outlined,
-                ),
+                AppSegmentedOption.icon(value: 0, label: '列表视图', icon: Icons.view_list_outlined),
+                AppSegmentedOption.icon(value: 1, label: '网格视图', icon: Icons.grid_view_outlined),
               ],
               onChanged: (nextValue) => value = nextValue,
             ),

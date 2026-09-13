@@ -5,9 +5,7 @@ import 'package:mochi_player/app/presentation/widgets/sidebar.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
 
 void main() {
-  testWidgets('selects destinations by identity instead of numeric indexes', (
-    tester,
-  ) async {
+  testWidgets('selects destinations by identity instead of numeric indexes', (tester) async {
     var selectedDestination = AppDestination.home;
 
     await tester.pumpWidget(

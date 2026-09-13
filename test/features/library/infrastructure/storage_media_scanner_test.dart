@@ -7,27 +7,10 @@ void main() {
     final scanner = StorageMediaScanner(
       _FakeConnection({
         '/': const [
-          StorageEntry(
-            name: 'Movies',
-            isDirectory: true,
-            size: 0,
-            modifiedAt: null,
-          ),
-          StorageEntry(
-            name: 'notes.txt',
-            isDirectory: false,
-            size: 12,
-            modifiedAt: null,
-          ),
+          StorageEntry(name: 'Movies', isDirectory: true, size: 0, modifiedAt: null),
+          StorageEntry(name: 'notes.txt', isDirectory: false, size: 12, modifiedAt: null),
         ],
-        '/Movies/': const [
-          StorageEntry(
-            name: 'Example.mkv',
-            isDirectory: false,
-            size: 2048,
-            modifiedAt: null,
-          ),
-        ],
+        '/Movies/': const [StorageEntry(name: 'Example.mkv', isDirectory: false, size: 2048, modifiedAt: null)],
       }),
     );
 
@@ -41,9 +24,7 @@ void main() {
   });
 
   test('marks partial scans as read errors', () async {
-    final scanner = StorageMediaScanner(
-      _FakeConnection({'/': const []}, failingPath: '/'),
-    );
+    final scanner = StorageMediaScanner(_FakeConnection({'/': const []}, failingPath: '/'));
 
     expect(await scanner.scan().toList(), isEmpty);
     expect(scanner.hadReadError, isTrue);

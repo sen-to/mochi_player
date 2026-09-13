@@ -33,18 +33,11 @@ void main() {
   test('does not allow paths outside the selected directory', () async {
     final connection = await _provider().connect(_source(directory), null);
 
-    expect(
-      () => connection.readDirectory('/../'),
-      throwsA(isA<ArgumentError>()),
-    );
+    expect(() => connection.readDirectory('/../'), throwsA(isA<ArgumentError>()));
   });
 }
 
-StorageSource _source(Directory directory) => StorageSource(
-  id: 'local-media',
-  name: '本地媒体',
-  type: StorageSourceType.local,
-  endpoint: directory.path,
-);
+StorageSource _source(Directory directory) =>
+    StorageSource(id: 'local-media', name: '本地媒体', type: StorageSourceType.local, endpoint: directory.path);
 
 LocalStorageProvider _provider() => LocalStorageProvider();

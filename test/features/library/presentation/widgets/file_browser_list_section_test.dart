@@ -6,9 +6,7 @@ import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_list.dart';
 
 void main() {
-  testWidgets('handles transient layout heights smaller than the summary', (
-    tester,
-  ) async {
+  testWidgets('handles transient layout heights smaller than the summary', (tester) async {
     final item = FileBrowserEntry(
       path: '/movie.mkv',
       name: 'movie.mkv',
@@ -30,9 +28,7 @@ void main() {
               totalItemCount: 1,
               isFiltered: false,
               onItemTap: (_) {},
-              scrollStorageKey: const PageStorageKey<String>(
-                'test-file-browser-list',
-              ),
+              scrollStorageKey: const PageStorageKey<String>('test-file-browser-list'),
             ),
           ),
         ),
@@ -54,9 +50,7 @@ void main() {
               totalItemCount: 1,
               isFiltered: false,
               onItemTap: (_) {},
-              scrollStorageKey: const PageStorageKey<String>(
-                'test-file-browser-list',
-              ),
+              scrollStorageKey: const PageStorageKey<String>('test-file-browser-list'),
             ),
           ),
         ),

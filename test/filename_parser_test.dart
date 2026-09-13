@@ -14,10 +14,7 @@ void main() {
 }
 
 void _removesSingleLetterPrefixBeforeChineseTitle() {
-  final result = FilenameParser.parse(
-    fileName: 'E01.mkv',
-    filePath: '/资源/R人生切割术/S01/E01.mkv',
-  );
+  final result = FilenameParser.parse(fileName: 'E01.mkv', filePath: '/资源/R人生切割术/S01/E01.mkv');
 
   _expectEquals(result.title, '人生切割术', 'path title');
   _expectEquals(result.season, 1, 'season');
@@ -25,14 +22,8 @@ void _removesSingleLetterPrefixBeforeChineseTitle() {
 }
 
 void _doesNotTreatTechnicalSuffixAsEpisodeNumber() {
-  for (final fileName in [
-    '离职.Severance.S01E04.1080p.H265.mp4',
-    '离职.Severance.S01E04.1080p.H265-官方中字.mp4',
-  ]) {
-    final result = FilenameParser.parse(
-      fileName: fileName,
-      filePath: '/资源/R人生切割术/S01/$fileName',
-    );
+  for (final fileName in ['离职.Severance.S01E04.1080p.H265.mp4', '离职.Severance.S01E04.1080p.H265-官方中字.mp4']) {
+    final result = FilenameParser.parse(fileName: fileName, filePath: '/资源/R人生切割术/S01/$fileName');
 
     _expectEquals(result.title, '离职 Severance', 'title');
     _expectEquals(result.season, 1, 'season');
@@ -41,18 +32,14 @@ void _doesNotTreatTechnicalSuffixAsEpisodeNumber() {
 }
 
 void _decodesHtmlEntitiesInTitles() {
-  final result = FilenameParser.parse(
-    fileName: 'Top224.国王的演讲.The.King&#39;s.Speech.2010.Bluray.1080p.mkv',
-  );
+  final result = FilenameParser.parse(fileName: 'Top224.国王的演讲.The.King&#39;s.Speech.2010.Bluray.1080p.mkv');
 
   _expectEquals(result.title, "国王的演讲 The King's Speech", 'title');
   _expectEquals(result.year, 2010, 'year');
 }
 
 void _removesRankingPrefixFromParsedTitle() {
-  final result = FilenameParser.parse(
-    fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv',
-  );
+  final result = FilenameParser.parse(fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv');
 
   _expectEquals(result.title, '月球 Moon', 'title');
   _expectEquals(result.year, 2009, 'year');
@@ -96,14 +83,7 @@ void _parsesCommonEpisodeFilenames() {
 
 void _usesSeasonFolders() {
   final cases = [
-    _ExpectedParse(
-      '1.mp4',
-      path: '/media/进击的巨人/第一季/1.mp4',
-      title: '进击的巨人',
-      season: 1,
-      episode: 1,
-      container: 'mp4',
-    ),
+    _ExpectedParse('1.mp4', path: '/media/进击的巨人/第一季/1.mp4', title: '进击的巨人', season: 1, episode: 1, container: 'mp4'),
     _ExpectedParse(
       '第3集.mkv',
       path: '/media/进击的巨人/第十二季/第3集.mkv',
@@ -123,19 +103,13 @@ void _usesSeasonFolders() {
   ];
 
   for (final testCase in cases) {
-    final result = FilenameParser.parse(
-      fileName: testCase.fileName,
-      filePath: testCase.path,
-    );
+    final result = FilenameParser.parse(fileName: testCase.fileName, filePath: testCase.path);
     _expectParse(result, testCase);
   }
 }
 
 void _infersSeasonOneForEpisodeOnlyFiles() {
-  final result = FilenameParser.parse(
-    fileName: '01.mp4',
-    filePath: '/media/进击的巨人/01.mp4',
-  );
+  final result = FilenameParser.parse(fileName: '01.mp4', filePath: '/media/进击的巨人/01.mp4');
 
   _expectEquals(result.title, '进击的巨人', 'title');
   _expectEquals(result.season, 1, 'season');
@@ -147,10 +121,7 @@ void _usesParentTitleForTaggedEpisodeOnlyFiles() {
   for (var episode = 1; episode <= 6; episode++) {
     final episodeLabel = episode.toString().padLeft(2, '0');
     final fileName = '【tvzongheba】E$episodeLabel.mkv';
-    final result = FilenameParser.parse(
-      fileName: fileName,
-      filePath: '/dav/quark/来自：分享/街头餐厅斗士/$fileName',
-    );
+    final result = FilenameParser.parse(fileName: fileName, filePath: '/dav/quark/来自：分享/街头餐厅斗士/$fileName');
 
     _expectEquals(result.title, '街头餐厅斗士', 'title');
     _expectEquals(result.season, 1, 'season');
@@ -160,10 +131,7 @@ void _usesParentTitleForTaggedEpisodeOnlyFiles() {
 }
 
 void _usesMovieFolderTitleAndYear() {
-  final result = FilenameParser.parse(
-    fileName: 'movie.mkv',
-    filePath: '/media/Movies/Inception (2010)/movie.mkv',
-  );
+  final result = FilenameParser.parse(fileName: 'movie.mkv', filePath: '/media/Movies/Inception (2010)/movie.mkv');
 
   _expectEquals(result.title, 'Inception', 'title');
   _expectEquals(result.year, 2010, 'year');
@@ -172,8 +140,7 @@ void _usesMovieFolderTitleAndYear() {
 
 void _parsesShortMovieTitlesWithTechnicalTags() {
   final result = FilenameParser.parse(
-    fileName:
-        'Saw.2004.2160p.BluRay.REMUX.DV.HDR.HEVC.DTS-HD.MA.TrueHD.7.1.Atmos.mkv',
+    fileName: 'Saw.2004.2160p.BluRay.REMUX.DV.HDR.HEVC.DTS-HD.MA.TrueHD.7.1.Atmos.mkv',
     filePath:
         '/quark/来自：分享/电锯惊魂系列/电锯惊魂1 4K原盘REMUX 杜比视界 内封字幕/Saw.2004.2160p.BluRay.REMUX.DV.HDR.HEVC.DTS-HD.MA.TrueHD.7.1.Atmos.mkv',
   );
@@ -190,11 +157,7 @@ void _expectParse(ParsedMediaFilename result, _ExpectedParse expected) {
   _expectEquals(result.year, expected.year, 'year');
   _expectEquals(result.season, expected.season, 'season');
   _expectEquals(result.episode, expected.episode, 'episode');
-  _expectEquals(
-    result.isEpisode,
-    expected.season != null || expected.episode != null,
-    'isEpisode',
-  );
+  _expectEquals(result.isEpisode, expected.season != null || expected.episode != null, 'isEpisode');
   _expectEquals(result.container, expected.container, 'container');
   _expectEquals(result.height, expected.height, 'height');
 }

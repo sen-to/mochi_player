@@ -25,9 +25,7 @@ void main() {
     );
   }
 
-  testWidgets('uses its design-system height and its parent width', (
-    tester,
-  ) async {
+  testWidgets('uses its design-system height and its parent width', (tester) async {
     await tester.pumpWidget(buildSelect(onChanged: (_) {}));
 
     expect(tester.getSize(find.byType(AppSelect<int>)), const Size(92, 32));
@@ -35,9 +33,7 @@ void main() {
 
   testWidgets('reports a selection on the next frame', (tester) async {
     int? selected;
-    await tester.pumpWidget(
-      buildSelect(onChanged: (value) => selected = value),
-    );
+    await tester.pumpWidget(buildSelect(onChanged: (value) => selected = value));
 
     await tester.tap(find.text('第一项'));
     await tester.pumpAndSettle();

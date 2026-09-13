@@ -13,12 +13,7 @@ void main() {
   });
 
   test('formats clock, compact, episode, and season labels', () {
-    expect(
-      MediaFormat.clockDuration(
-        const Duration(hours: 1, minutes: 2, seconds: 3),
-      ),
-      '1:02:03',
-    );
+    expect(MediaFormat.clockDuration(const Duration(hours: 1, minutes: 2, seconds: 3)), '1:02:03');
     expect(MediaFormat.compactDuration(const Duration(minutes: 42)), '42m');
     expect(MediaFormat.episodeLabel(_episode()), '第 2 季 第 7 集');
     expect(MediaFormat.seasonCount(1), '1 季');
