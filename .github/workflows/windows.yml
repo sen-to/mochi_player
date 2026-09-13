@@ -26,11 +26,21 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Read the Flutter version from .fvmrc
+        id: fvmrc
+        shell: pwsh
+        run: |
+          $version = (Get-Content .fvmrc -Raw | ConvertFrom-Json).flutter
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Could not read the Flutter version from .fvmrc"
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          # Keep CI aligned with the SDK selected by FVM in .fvmrc.
-          flutter-version: 3.47.2
+          # Single source of truth: the version pinned by FVM in .fvmrc.
+          flutter-version: ${{ steps.fvmrc.outputs.version }}
           cache: true
 
       - name: Show Flutter environment
