@@ -22,6 +22,8 @@ migrate_working_dir/
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
 #.vscode/
+# Ignore this machine-specific workspace setting; shared launch/tasks can still be committed.
+.vscode/settings.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
