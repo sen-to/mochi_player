@@ -27,7 +27,7 @@
 
 1. 窗口的创建、激活、关闭、尺寸与置顶，**必须**经由统一的窗口服务门面（约定的接口名 `WindowService`，配套 `WindowHandle`），业务代码不得直接调用 `desktop_multi_window` 的 API。
 2. **媒体库数据库只允许主窗口写入**。播放器窗口不得直接写库；播放进度通过主窗口与播放器窗口之间已有的通道回传，由主窗口落库。
-3. 跨窗口契约**必须**保持「只传 `sourceId + path`」，不得把 URL、请求头或凭据放进窗口参数（现有 [player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart) 已满足此约束，继续保持）。
+3. 跨窗口契约携带 `sourceId + path`；临时文件浏览项可附带文件名、大小等最小回退元数据，让未入库文件也能播放。不得把已解析 URL、请求头、凭据或活动中的 provider 实例放进窗口参数。
 4. 播放器窗口的 UI 与窗口模式（独立窗口 / mini / 全屏 / 置顶）**不得**依赖引擎数量假设，以便在单引擎多视图下复用。
 
 迁移目标：官方 Desktop Windowing API 达到可用门槛后，先迁移播放器窗口，媒体库主窗口最后迁移。

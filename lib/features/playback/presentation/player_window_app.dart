@@ -381,10 +381,11 @@ class _PlayerWindowBootstrap {
         await effectiveAppSettingsProvider.load();
       }
 
-      final initialMedia = await effectiveMediaStore.readMediaFile(
+      final persistedInitialMedia = await effectiveMediaStore.readMediaFile(
         sourceId: request.initialMedia.sourceId,
         path: request.initialMedia.path,
       );
+      final initialMedia = persistedInitialMedia ?? request.initialMedia.toFallbackMediaFile();
       if (initialMedia == null) {
         return _PlayerWindowBootstrap._(
           request: request,
@@ -398,7 +399,9 @@ class _PlayerWindowBootstrap {
       }
       final queue = (await Future.wait(
         request.queue.map(
-          (reference) => effectiveMediaStore.readMediaFile(sourceId: reference.sourceId, path: reference.path),
+          (reference) async =>
+              await effectiveMediaStore.readMediaFile(sourceId: reference.sourceId, path: reference.path) ??
+              reference.toFallbackMediaFile(),
         ),
       )).whereType<MediaFile>().toList(growable: false);
       final target = await StorageSourcePlaybackResolver().resolve(initialMedia);
@@ -408,7 +411,9 @@ class _PlayerWindowBootstrap {
         mediaStore: effectiveMediaStore,
         windowControlsController: effectiveWindowControlsController,
         databaseStatus: '已初始化',
-        mediaStatus: '已从目录重新读取：${initialMedia.fileName}',
+        mediaStatus: persistedInitialMedia == null
+            ? '已从播放请求读取：${initialMedia.fileName}'
+            : '已从目录重新读取：${initialMedia.fileName}',
         targetStatus: target == null ? '解析失败' : '已在子窗口解析',
         initialMedia: initialMedia,
         queue: queue,

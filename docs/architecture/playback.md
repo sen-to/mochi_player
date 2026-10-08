@@ -8,13 +8,18 @@ sequenceDiagram
   participant MW as 播放器窗口（独立引擎）
   participant DB as 数据库
   participant MPV as media_kit / libmpv
-  UI->>MW: 创建窗口 + PlayerWindowRequest(sourceId, path, 队列)
-  MW->>DB: 初始化数据库并读取 MediaFile
+  UI->>MW: 创建窗口 + PlayerWindowRequest(sourceId, path, 临时文件快照, 队列)
+  MW->>DB: 初始化数据库并查找 MediaFile
+  alt 媒体已入库
+    DB-->>MW: MediaFile
+  else 媒体未入库
+    MW->>MW: 使用请求中的最小文件信息快照
+  end
   MW->>MW: StorageSourcePlaybackResolver 解析播放目标
   MW->>MPV: 打开 Media(url, headers, start)
   MW->>UI: player.ready
   loop 每 10 秒或位移超过 5 秒
-    MW->>DB: 写入播放进度
+    MW->>DB: 媒体已入库时写入播放进度
   end
   MW->>UI: player.closed（回传变更的媒体键）
   UI->>UI: 刷新媒体库状态
@@ -24,8 +29,9 @@ sequenceDiagram
 
 - 入口：`PlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[playback_launcher.dart](../../lib/features/playback/presentation/playback_launcher.dart)）。
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
-- 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，**版本化**，跨引擎只传 `sourceId + path` 等引用信息，**不含 URL 与凭据**。
+- 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，**版本化**，携带 `sourceId + path`；临时文件浏览项额外携带文件名、大小等最小回退信息，**不含 URL 与凭据**。
 - 窗口创建后由 [main.dart](../../lib/main.dart) 的入口分支识别并走 `runPlayerWindow`；播放器窗口自己初始化数据库与设置（[player_window_app.dart:369-391](../../lib/features/playback/presentation/player_window_app.dart#L369-L391)）。
+- 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
 ## 播放目标解析
 

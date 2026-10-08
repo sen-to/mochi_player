@@ -3,19 +3,20 @@ import 'dart:convert';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:uuid/uuid.dart';
 
-/// A serializable reference to a media file stored in the local catalog.
+/// A serializable reference to a media file.
 ///
-/// A player window must re-read this reference from its own database
-/// connection. It intentionally never carries resolved URLs, credentials, or
-/// live provider instances across Flutter engines.
+/// A player window prefers the persisted catalog row, but can use the optional
+/// metadata snapshot for a temporary file-browser selection. It never carries
+/// resolved URLs, credentials, or live provider instances across Flutter engines.
 class PlayerWindowMediaRef {
-  const PlayerWindowMediaRef({required this.sourceId, required this.path});
+  const PlayerWindowMediaRef({required this.sourceId, required this.path, this.fallbackFile});
 
   final String sourceId;
   final String path;
+  final MediaFile? fallbackFile;
 
   factory PlayerWindowMediaRef.fromMediaFile(MediaFile file) =>
-      PlayerWindowMediaRef(sourceId: file.sourceId, path: file.path);
+      PlayerWindowMediaRef(sourceId: file.sourceId, path: file.path, fallbackFile: file.id < 0 ? file : null);
 
   factory PlayerWindowMediaRef.fromJson(Map<String, Object?> json) {
     final sourceId = json['sourceId'];
@@ -23,10 +24,65 @@ class PlayerWindowMediaRef {
     if (sourceId is! String || sourceId.isEmpty || path is! String || path.isEmpty) {
       throw const FormatException('A player-window media reference requires sourceId and path.');
     }
-    return PlayerWindowMediaRef(sourceId: sourceId, path: path);
+    return PlayerWindowMediaRef(
+      sourceId: sourceId,
+      path: path,
+      fallbackFile: _decodeFallbackFile(json['fallbackFile'], sourceId: sourceId, path: path),
+    );
   }
 
-  Map<String, Object> toJson() => {'sourceId': sourceId, 'path': path};
+  MediaFile? toFallbackMediaFile() {
+    final file = fallbackFile;
+    if (file == null) return null;
+    return MediaFile(
+      id: -1,
+      sourceId: sourceId,
+      path: path,
+      fileName: file.fileName,
+      parsedTitle: file.parsedTitle,
+      size: file.size,
+      container: file.container,
+      addedAt: file.addedAt,
+    );
+  }
+
+  Map<String, Object> toJson() => {
+    'sourceId': sourceId,
+    'path': path,
+    if (fallbackFile case final file?)
+      'fallbackFile': {
+        'fileName': file.fileName,
+        'parsedTitle': file.parsedTitle,
+        'size': file.size,
+        if (file.container != null) 'container': file.container,
+        'addedAt': file.addedAt.toIso8601String(),
+      },
+  };
+
+  static MediaFile? _decodeFallbackFile(Object? value, {required String sourceId, required String path}) {
+    if (value is! Map) return null;
+    final json = Map<String, Object?>.from(value);
+    final fileName = json['fileName'];
+    final parsedTitle = json['parsedTitle'];
+    final rawSize = json['size'];
+    final addedAt = json['addedAt'];
+    if (fileName is! String || parsedTitle is! String || rawSize is! num || addedAt is! String) {
+      return null;
+    }
+
+    final parsedAddedAt = DateTime.tryParse(addedAt);
+    if (parsedAddedAt == null) return null;
+    return MediaFile(
+      id: -1,
+      sourceId: sourceId,
+      path: path,
+      fileName: fileName,
+      parsedTitle: parsedTitle,
+      size: rawSize.toInt(),
+      container: json['container'] is String ? json['container'] as String : null,
+      addedAt: parsedAddedAt,
+    );
+  }
 
   @override
   bool operator ==(Object other) => other is PlayerWindowMediaRef && other.sourceId == sourceId && other.path == path;
