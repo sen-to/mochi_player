@@ -20,21 +20,21 @@
 
 Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器。连接本地目录、WebDAV 或 SMB 网络共享后，它会扫描并整理视频，使用 TMDB 补全海报、简介、评分、演员和剧集信息，再以首页、海报墙与详情页重新呈现你的收藏。
 
-从挑选影片到继续观看，一切都围绕舒服地看完一部作品：直接播放本地、WebDAV 与 SMB 媒体，记忆播放进度，并支持多版本文件、音轨与字幕选择。Mochi 先专注把个人媒体库的核心体验做好，再逐步加入更具个性的功能。
+从挑选影片到继续观看，一切都围绕舒服地看完一部作品：直接播放本地与 WebDAV 媒体，记忆播放进度，并支持多版本文件、音轨与字幕选择。SMB 媒体源可以扫描和浏览，直链播放兼容性仍在验证。Mochi 先专注把个人媒体库的核心体验做好，再逐步加入更具个性的功能。
 
 ## 🖼️ 界面预览
 
-![首页](docs/images/home.png)
+![首页](docs/images/screenshots/home.png)
 
 | 电影 | 媒体详情 |
 | --- | --- |
-| ![电影库](docs/images/movies.png) | ![媒体详情](docs/images/detail.png) |
+| ![电影库](docs/images/screenshots/movies.png) | ![媒体详情](docs/images/screenshots/detail.png) |
 
 | 文件浏览 | 播放 |
 | --- | --- |
-| ![文件浏览](docs/images/file-browser.png) | ![播放](docs/images/playback.png) |
+| ![文件浏览](docs/images/screenshots/file-browser.png) | ![播放](docs/images/screenshots/playback.png) |
 
-![设置](docs/images/settings.png)
+![设置](docs/images/screenshots/settings.png)
 
 ## ✨ 功能
 
@@ -48,7 +48,7 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 
 **播放**
 
-- ▶️ 播放本地文件，以及 WebDAV / SMB 直链
+- ▶️ 播放本地文件与 WebDAV 媒体；SMB 媒体源可扫描和浏览，直链播放兼容性验证中
 - 🪟 播放器可开在独立窗口；也可收成小窗（mini 播放器），并支持置顶
 - ⏱️ 记忆播放进度，支持多版本文件、音轨与内嵌 / 外挂字幕
 - 🔠 可用 Mochi 字幕样式覆盖字幕文件自带的字体与颜色
@@ -164,11 +164,7 @@ fvm flutter run -d windows
 fvm flutter build macos --debug
 ```
 
-macOS 使用 CocoaPods 管理原生插件（`macos/Podfile`）。Flutter 3.47 默认开启 Swift Package Manager，而本项目尚未迁移到 SPM，因此在 macOS 上首次构建前建议先关闭它：
-
-```bash
-fvm flutter config --no-enable-swift-package-manager
-```
+macOS 原生插件目前由 CocoaPods 管理。由于本项目尚未完成 SPM 迁移，`pubspec.yaml` 已将 Swift Package Manager 仅对本项目关闭，不需要修改 Flutter 的全局配置。该设置是过渡措施：Flutter [官方说明](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers)指出 CocoaPods registry 将于 2026-12-02 转为只读，请在此之前确认插件的 SPM 兼容性并安排迁移，细节见[构建指南](docs/guides/build-macos.md#前置)。
 
 提交代码前请执行：
 
@@ -214,12 +210,15 @@ windows/ macos/ 各平台 runner
 
 - 应用界面当前仅提供简体中文，更多语言将陆续加入。
 - TMDB 匹配依赖文件命名质量，少数作品可能需要后续手动处理。
+- SMB 媒体源可扫描和浏览；当前播放实现会尝试把 `smb://` 地址交给 libmpv，但捆绑版本是否支持打开和 seek 尚未验证。无法播放时，可先在系统中挂载共享，再按本地目录添加。
 - 关闭媒体库主窗口后，播放器窗口会继续播放，应用进程保持运行，直到播放器窗口也关闭。
 - Windows 上打开播放器窗口后，媒体库主窗口可能出现鼠标与键盘无响应（界面渲染仍在继续），关闭播放器窗口也不会恢复。该问题已定位到当前多窗口实现所依赖的「同进程多 Flutter 引擎」，属于 Windows 平台层缺陷，正在评估替代方案。
 
 ## 🤝 参与贡献
 
 欢迎通过 Issue 反馈问题、提出功能建议，或提交 Pull Request。提交前请确保格式化、静态检查和测试均通过。
+
+架构说明、平台构建与测试指南、技术决策记录见[开发者文档](docs/README.md)。
 
 ## 🙏 致谢
 
