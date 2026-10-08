@@ -87,4 +87,5 @@ flowchart TD
 | 数据访问是全表加载 + 内存重算 | 大库性能与刷新粒度问题 | [0003](../decisions/0003-persistence-migration.md) |
 | mpv 专有参数散落在业务代码 | 引擎抽象泄漏，替代方案难以评估 | [0002](../decisions/0002-playback-engine.md) |
 | SMB 直链依赖预编译产物是否含某协议 | 功能可用性不可控 | [0005](../decisions/0005-smb-playback-path.md) |
+| 媒体服务器包含目录浏览、播放协商与服务端会话，不能由文件系统源抽象完整表达 | 需独立的服务端接入与播放生命周期 | [0006](../decisions/0006-media-server-integration.md) |
 | 无本地化工具链，文案硬编码 | Material 系统文案为英文 | [0004](../decisions/0004-i18n-l10n.md) |
