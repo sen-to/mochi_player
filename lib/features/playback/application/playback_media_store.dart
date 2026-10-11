@@ -1,6 +1,5 @@
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/media_entity_mapper.dart';
 
 /// The small persistent surface a player session needs from the media library.
 ///
@@ -50,15 +49,15 @@ class DatabasePlaybackMediaStore implements PlaybackMediaStore {
 
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async {
-    final entity = await _database.getMediaFile(sourceId, path);
-    return entity == null ? null : MediaEntityMapper.toMediaFile(entity);
+    final row = await _database.getMediaFile(sourceId, path);
+    return row;
   }
 
   @override
   Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {
-    final entity = await _database.getMediaFile(file.sourceId, file.path);
-    if (entity == null) return;
-    await _database.updateProgress(entity, position, duration: duration);
+    final row = await _database.getMediaFile(file.sourceId, file.path);
+    if (row == null) return;
+    await _database.updateProgress(row, position, duration: duration);
     _changedMedia.add(PlaybackMediaKey(sourceId: file.sourceId, path: file.path));
   }
 }

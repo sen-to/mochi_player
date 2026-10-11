@@ -1,3 +1,4 @@
+import 'package:mochi_player/core/domain/media/library_search_text.dart';
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 
@@ -15,7 +16,7 @@ abstract final class LibrarySearchMatcher {
   }
 
   static List<T> _rank<T>(Iterable<T> items, String query, int Function(T item, String normalizedQuery) score) {
-    final normalizedQuery = _normalize(query);
+    final normalizedQuery = normalizeLibrarySearchText(query);
     final values = items.toList();
     if (normalizedQuery.isEmpty) return values;
 
@@ -45,7 +46,7 @@ abstract final class LibrarySearchMatcher {
   }
 
   static int _textScore(String? value, String query, {required int exact}) {
-    final normalizedValue = _normalize(value ?? '');
+    final normalizedValue = normalizeLibrarySearchText(value ?? '');
     if (normalizedValue.isEmpty) return 0;
     if (normalizedValue == query) return exact;
     if (normalizedValue.startsWith(query)) return exact - 20;
@@ -53,9 +54,6 @@ abstract final class LibrarySearchMatcher {
 
     return 0;
   }
-
-  static String _normalize(String value) =>
-      value.toLowerCase().replaceAll(RegExp(r'[\s\u3000._\-:：，。/\\\(\)\[\]【】]+'), '').trim();
 
   static int _max(int a, int b) => a > b ? a : b;
 }

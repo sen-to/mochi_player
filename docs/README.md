@@ -12,7 +12,7 @@
 | --- | --- | --- | --- |
 | [0001](decisions/0001-multi-window-strategy.md) | 多窗口策略：保留多窗口，把「引擎」从架构中摘除，目标迁移到官方单引擎多视图 | Accepted | 2026-10-05 |
 | [0002](decisions/0002-playback-engine.md) | 播放引擎：继续使用 libmpv（经 media_kit），收敛 mpv 交互门面 | Accepted | 2026-10-05 |
-| [0003](decisions/0003-persistence-migration.md) | 持久化：Isar 3 迁往 drift + SQLite | Proposed | 2026-10-05 |
+| [0003](decisions/0003-persistence-migration.md) | 持久化：Isar 3 迁往 drift + SQLite | Accepted | 2026-10-11 |
 | [0004](decisions/0004-i18n-l10n.md) | 国际化与本地化：官方 gen-l10n + ARB（`app_en.arb` 模板 / `app_zh.arb` 译文） | Accepted | 2026-10-05 |
 | [0005](decisions/0005-smb-playback-path.md) | SMB 播放路径：不依赖 libmpv 的 `smb://`，改为本地 HTTP 回源 | Proposed | 2026-10-05 |
 | [0006](decisions/0006-media-server-integration.md) | 媒体服务器接入：以 Emby 为首个适配器，独立于文件系统媒体源 | Accepted | 2026-10-08 |
@@ -26,7 +26,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | [architecture/overview.md](architecture/overview.md) | 分层与依赖方向、启动流程、核心抽象、已知架构问题 |
-| [architecture/data-model.md](architecture/data-model.md) | 存储分工、Isar 表与索引、领域模型映射、进度推导、设置键 |
+| [architecture/data-model.md](architecture/data-model.md) | 存储分工、SQLite 表与索引、领域模型映射、进度推导、设置键 |
 | [architecture/media-pipeline.md](architecture/media-pipeline.md) | 扫描 → 文件名解析 → TMDB 刮削 → 索引与展示 |
 | [architecture/playback.md](architecture/playback.md) | 播放链路、跨窗口协议、窗口模式、字幕、进度写入 |
 

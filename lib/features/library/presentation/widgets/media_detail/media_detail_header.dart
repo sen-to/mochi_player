@@ -1,15 +1,14 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/presentation/view_models/media_detail_view_model.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/favorite_button.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_rating_tag.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
-import 'package:provider/provider.dart';
 
 const double _detailReadableWidth = 820;
 
@@ -186,15 +185,15 @@ class _PrimaryActionArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.select<MediaLibraryProvider, int>((provider) => provider.watchProgressRevision);
-
-    return _ActionRow(viewModel: viewModel, action: _resolvePrimaryAction(context));
+    return LibraryQuery<List<MediaFile>>(
+      queryKey: viewModel.tmdbId,
+      query: (r) => r.watchVersions(viewModel.tmdbId),
+      initialData: const [],
+      builder: (context, files) => _ActionRow(viewModel: viewModel, action: _resolvePrimaryAction(context, files)),
+    );
   }
 
-  _PrimaryPlayAction _resolvePrimaryAction(BuildContext context) {
-    final provider = context.read<MediaLibraryProvider>();
-    final files = provider.getVersions(viewModel.tmdbId);
-
+  _PrimaryPlayAction _resolvePrimaryAction(BuildContext context, List<MediaFile> files) {
     if (viewModel.isTVShow) {
       final target = EpisodePlaybackTargetResolver.resolveForShowPlayback(files);
       if (target == null) {

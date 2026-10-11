@@ -53,4 +53,23 @@ class TVShow implements LibraryItem {
     this.numberOfEpisodes,
     this.seasons = const [],
   });
+  TVShow withSeasons(List<Season> seasons) => TVShow(
+    tmdbId: tmdbId,
+    title: title,
+    originalTitle: originalTitle,
+    releaseYear: releaseYear,
+    firstAirDate: firstAirDate,
+    posterUrl: posterUrl,
+    backdropUrl: backdropUrl,
+    logoUrl: logoUrl,
+    overview: overview,
+    certification: certification,
+    rating: rating,
+    genres: genres,
+    cast: cast,
+    status: status,
+    numberOfSeasons: numberOfSeasons,
+    numberOfEpisodes: numberOfEpisodes,
+    seasons: List.unmodifiable(seasons),
+  );
 }

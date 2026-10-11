@@ -1,4 +1,4 @@
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
 import 'package:mochi_player/features/library/application/scrape_plan.dart';
 import 'package:mochi_player/features/library/infrastructure/filename_parser.dart';
@@ -12,10 +12,16 @@ void main() {
 void _usesOneCompleteCleanedTitleWithYearThenWithoutYear() {
   final plan = const ScrapePlanFactory().createTitleSearchPlan(
     ScrapeCandidate.fromMediaFile(
-      MediaFileEntity()
-        ..mediaType = StoredMediaType.movie
-        ..parsedTitle = '大话西游之仙履奇缘 A Chinese Odyssey Part II Cinderella'
-        ..parsedYear = 1995,
+      MediaFile(
+        mediaType: MediaType.movie,
+        parsedTitle: '大话西游之仙履奇缘 A Chinese Odyssey Part II Cinderella',
+        parsedYear: 1995,
+        id: 0,
+        sourceId: '',
+        path: '',
+        fileName: '',
+        addedAt: DateTime.now(),
+      ),
     ),
   );
 
@@ -29,9 +35,15 @@ void _usesOneCompleteCleanedTitleWithYearThenWithoutYear() {
 void _doesNotRetryWithoutYearWhenNoYearWasParsed() {
   final plan = const ScrapePlanFactory().createTitleSearchPlan(
     ScrapeCandidate.fromMediaFile(
-      MediaFileEntity()
-        ..mediaType = StoredMediaType.movie
-        ..parsedTitle = 'Departures',
+      MediaFile(
+        mediaType: MediaType.movie,
+        parsedTitle: 'Departures',
+        id: 0,
+        sourceId: '',
+        path: '',
+        fileName: '',
+        addedAt: DateTime.now(),
+      ),
     ),
   );
 
@@ -43,10 +55,16 @@ void _keepsMoonAndItsYearInTheFirstSearchAttempt() {
   final parsed = FilenameParser.parse(fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv');
   final plan = const ScrapePlanFactory().createTitleSearchPlan(
     ScrapeCandidate.fromMediaFile(
-      MediaFileEntity()
-        ..mediaType = StoredMediaType.movie
-        ..parsedTitle = parsed.title
-        ..parsedYear = parsed.year,
+      MediaFile(
+        mediaType: MediaType.movie,
+        parsedTitle: parsed.title,
+        parsedYear: parsed.year,
+        id: 0,
+        sourceId: '',
+        path: '',
+        fileName: '',
+        addedAt: DateTime.now(),
+      ),
     ),
   );
 

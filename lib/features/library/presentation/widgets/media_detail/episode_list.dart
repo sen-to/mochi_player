@@ -1,12 +1,11 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
-import 'package:provider/provider.dart';
 
 class EpisodeList extends StatefulWidget {
   final TVShow tvShow;
@@ -37,10 +36,14 @@ class _EpisodeListState extends State<EpisodeList> {
   }
 
   void _prepareSeasons() {
+    final selectedNumber = _selectedSeason?.seasonNumber;
     _sortedSeasons = List.from(widget.tvShow.seasons)..sort((a, b) => a.seasonNumber.compareTo(b.seasonNumber));
 
     if (_sortedSeasons.isNotEmpty) {
-      _selectedSeason = _sortedSeasons.first;
+      _selectedSeason = _sortedSeasons.firstWhere(
+        (season) => season.seasonNumber == selectedNumber,
+        orElse: () => _sortedSeasons.first,
+      );
       _sortedEpisodes = _sortedEpisodesFor(_selectedSeason!);
     } else {
       _selectedSeason = null;
@@ -48,8 +51,7 @@ class _EpisodeListState extends State<EpisodeList> {
     }
   }
 
-  Map<String, MediaFile> _buildMediaFileIndex() {
-    final mediaFiles = context.read<MediaLibraryProvider>().mediaFiles;
+  Map<String, MediaFile> _buildMediaFileIndex(List<MediaFile> mediaFiles) {
     final result = <String, MediaFile>{};
     for (final file in mediaFiles) {
       final tmdbId = file.episodeTmdbId;
@@ -73,10 +75,17 @@ class _EpisodeListState extends State<EpisodeList> {
 
   @override
   Widget build(BuildContext context) {
-    context.select<MediaLibraryProvider, (int, int)>(
-      (provider) => (provider.mediaCatalogRevision, provider.watchProgressRevision),
+    return LibraryQuery<List<MediaFile>>(
+      queryKey: widget.tvShow.tmdbId,
+      query: (r) => r.watchVersions(widget.tvShow.tmdbId),
+      initialData: const [],
+      sliver: true,
+      builder: (context, files) => _buildEpisodes(context, files),
     );
-    final mediaFileByTmdbId = _buildMediaFileIndex();
+  }
+
+  Widget _buildEpisodes(BuildContext context, List<MediaFile> files) {
+    final mediaFileByTmdbId = _buildMediaFileIndex(files);
 
     if (_sortedSeasons.isEmpty) {
       return const SliverToBoxAdapter(

@@ -1,8 +1,8 @@
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 
 class TmdbSeasonResult {
   const TmdbSeasonResult({required this.season, required this.episodes});
 
-  final SeasonMetadataEntity season;
-  final List<EpisodeMetadataEntity> episodes;
+  final Season season;
+  final List<Episode> episodes;
 }

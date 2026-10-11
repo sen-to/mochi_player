@@ -49,7 +49,7 @@ flowchart TD
   S --> R[runApp + MultiProvider]
 ```
 
-- 播放器窗口靠自己重新初始化数据库（[player_window_app.dart:379](../../lib/features/playback/presentation/player_window_app.dart#L379)），因此在同一进程内会出现两个数据库实例——这是 [0001](../decisions/0001-multi-window-strategy.md) 要消除的行为。
+- 播放器窗口靠自己重新初始化数据库（[player_window_app.dart:379](../../lib/features/playback/presentation/player_window_app.dart#L379)），因此同一进程内有两个后台 SQLite 连接，使用 WAL 与 `busy_timeout` 协调访问。数据库单写者仍是 [0001](../decisions/0001-multi-window-strategy.md) 的后续目标。
 - 主窗口注册的处理器负责接收播放器窗口关闭时回传的进度变更（见 [playback.md](playback.md)）。
 
 ## 全局 Provider
@@ -65,7 +65,7 @@ flowchart TD
 | `TrendingMediaProvider` | 首页 TMDB 趋势（不落库） |
 | `WindowControlsController` | macOS 原生窗口按钮控制 |
 
-状态刷新的约定：`MediaLibraryCatalog` 是内存中的唯一数据源，改动时递增对应的**修订号**（媒体目录 / 元数据 / 观看进度 / 收藏），UI 用 `Selector` 比较修订号决定是否重建。这套机制是在弥补 `provider` 缺少派生查询能力，长期计划见 [0003](../decisions/0003-persistence-migration.md)。
+状态刷新的约定：SQLite 是持久化数据源，`LibraryRepository` 提供分页 SQL 查询与 drift 订阅。`MediaLibraryProvider` 只保留有限的首页展示投影与同步任务状态，UI 以稳定查询订阅或投影比较决定重建。全量 Catalog 与手工修订号已删除。独立播放器连接的更新由既有跨窗口事件触发查询失效，见 [0003](../decisions/0003-persistence-migration.md)。
 
 ## 核心抽象
 
@@ -74,8 +74,8 @@ flowchart TD
 | `StorageSource` / `StorageCredentials` | [core/domain/storage](../../lib/core/domain/storage/storage_source.dart) | 媒体源配置；凭据刻意与配置分离，避免在列表中泄露 |
 | `StorageProvider` / `StorageConnection` | [core/domain/storage](../../lib/core/domain/storage/storage_provider.dart) | 按协议连接与列目录；`StorageProviderRegistry` 按类型分派 |
 | `PlaybackTargetResolver` / `PlaybackTarget` | [core/domain/playback](../../lib/core/domain/playback/playback_target.dart) | 把媒体文件解析成播放 URL 与请求头 |
-| `DatabaseService` | [core/infrastructure/database](../../lib/core/infrastructure/database/database_service.dart) | 数据库唯一出口（单例） |
-| `MediaEntityMapper` | [media_entity_mapper.dart](../../lib/core/infrastructure/database/media_entity_mapper.dart) | 实体 ↔ 领域模型转换，隔离持久化细节 |
+| `DatabaseService` | [core/infrastructure/database](../../lib/core/infrastructure/database/database_service.dart) | 数据库统一出口（每引擎单例） |
+| `LibraryRepository` | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 查询、分页、聚合与订阅，按标题加载详情与播放队列 |
 | `TmdbService` | [core/infrastructure/tmdb](../../lib/core/infrastructure/tmdb/tmdb_service.dart) | TMDB 请求、匹配与转换（单例）；客户端由设置在运行时配置 |
 | `AppTheme` + `core/ui/components` | [core/ui](../../lib/core/ui/app_ui.dart) | 设计系统：颜色、字号、间距、圆角、组件库 |
 
@@ -83,7 +83,7 @@ flowchart TD
 
 | 问题 | 影响 | 决策 |
 | --- | --- | --- |
-| 一个窗口一个 Flutter 引擎 | Windows 主窗口可能无响应；两个引擎各开数据库 | [0001](../decisions/0001-multi-window-strategy.md) |
+| 一个窗口一个 Flutter 引擎 | Windows 主窗口可能无响应；两个引擎各开 SQLite 连接 | [0001](../decisions/0001-multi-window-strategy.md) |
 | 数据访问是全表加载 + 内存重算 | 大库性能与刷新粒度问题 | [0003](../decisions/0003-persistence-migration.md) |
 | mpv 专有参数散落在业务代码 | 引擎抽象泄漏，替代方案难以评估 | [0002](../decisions/0002-playback-engine.md) |
 | SMB 直链依赖预编译产物是否含某协议 | 功能可用性不可控 | [0005](../decisions/0005-smb-playback-path.md) |

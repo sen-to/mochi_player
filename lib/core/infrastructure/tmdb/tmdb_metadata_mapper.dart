@@ -1,57 +1,59 @@
-import 'package:mochi_player/core/domain/media/trending_item.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_url.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 
 class TmdbMetadataMapper {
   const TmdbMetadataMapper();
 
-  MovieMetadataEntity movie(Map<String, dynamic> data) {
-    return MovieMetadataEntity()
-      ..tmdbId = data['id'].toString()
-      ..title = data['title'] ?? ''
-      ..originalTitle = data['original_title']
-      ..releaseYear = _year(data['release_date'])
-      ..releaseDate = _date(data['release_date'])
-      ..posterUrl = TmdbImageUrl.poster(data['poster_path'])
-      ..backdropUrl = TmdbImageUrl.backdrop(data['backdrop_path'])
-      ..overview = data['overview']
-      ..certification = _movieCertification(data['release_dates'])
-      ..rating = (data['vote_average'] ?? 0.0).toDouble()
-      ..genres = _genres(data['genres'])
-      ..cast = _cast(data['credits'])
-      ..logoUrl = _logoUrl(data['images']);
+  Movie movie(Map<String, dynamic> data) {
+    return Movie(
+      tmdbId: data['id'].toString(),
+      title: data['title'] ?? '',
+      originalTitle: data['original_title'],
+      releaseYear: _year(data['release_date']),
+      releaseDate: _date(data['release_date']),
+      posterUrl: TmdbImageUrl.poster(data['poster_path']),
+      backdropUrl: TmdbImageUrl.backdrop(data['backdrop_path']),
+      overview: data['overview'],
+      certification: _movieCertification(data['release_dates']),
+      rating: (data['vote_average'] ?? 0.0).toDouble(),
+      genres: _genres(data['genres']),
+      cast: _cast(data['credits']),
+      logoUrl: _logoUrl(data['images']),
+    );
   }
 
-  TVShowMetadataEntity tvShow(Map<String, dynamic> data) {
-    return TVShowMetadataEntity()
-      ..tmdbId = data['id'].toString()
-      ..title = data['name'] ?? ''
-      ..originalTitle = data['original_name']
-      ..releaseYear = _year(data['first_air_date'])
-      ..firstAirDate = _date(data['first_air_date'])
-      ..posterUrl = TmdbImageUrl.poster(data['poster_path'])
-      ..backdropUrl = TmdbImageUrl.backdrop(data['backdrop_path'])
-      ..overview = data['overview']
-      ..certification = _tvCertification(data['content_ratings'])
-      ..rating = (data['vote_average'] ?? 0.0).toDouble()
-      ..genres = _genres(data['genres'])
-      ..cast = _cast(data['credits'])
-      ..logoUrl = _logoUrl(data['images'])
-      ..status = data['status']
-      ..numberOfSeasons = data['number_of_seasons']
-      ..numberOfEpisodes = data['number_of_episodes'];
+  TVShow tvShow(Map<String, dynamic> data) {
+    return TVShow(
+      tmdbId: data['id'].toString(),
+      title: data['name'] ?? '',
+      originalTitle: data['original_name'],
+      releaseYear: _year(data['first_air_date']),
+      firstAirDate: _date(data['first_air_date']),
+      posterUrl: TmdbImageUrl.poster(data['poster_path']),
+      backdropUrl: TmdbImageUrl.backdrop(data['backdrop_path']),
+      overview: data['overview'],
+      certification: _tvCertification(data['content_ratings']),
+      rating: (data['vote_average'] ?? 0.0).toDouble(),
+      genres: _genres(data['genres']),
+      cast: _cast(data['credits']),
+      logoUrl: _logoUrl(data['images']),
+      status: data['status'],
+      numberOfSeasons: data['number_of_seasons'],
+      numberOfEpisodes: data['number_of_episodes'],
+    );
   }
 
   TmdbSeasonResult season(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
     final episodeData = (data['episodes'] as List? ?? []).whereType<Map<String, dynamic>>().toList();
-    final metadata = SeasonMetadataEntity()
-      ..seasonKey = '${showTmdbId}_s$seasonNumber'
-      ..seasonNumber = seasonNumber
-      ..title = data['name'] ?? '第 $seasonNumber 季'
-      ..posterUrl = TmdbImageUrl.poster(data['poster_path'])
-      ..overview = data['overview']
-      ..numberOfEpisodes = episodeData.length;
+    final metadata = Season(
+      seasonKey: '${showTmdbId}_s$seasonNumber',
+      seasonNumber: seasonNumber,
+      title: data['name'] ?? '第 $seasonNumber 季',
+      posterUrl: TmdbImageUrl.poster(data['poster_path']),
+      overview: data['overview'],
+      numberOfEpisodes: episodeData.length,
+    );
     return TmdbSeasonResult(
       season: metadata,
       episodes: episodeData.map((episode) => _episode(episode, showTmdbId, seasonNumber)).toList(),
@@ -73,16 +75,17 @@ class TmdbMetadataMapper {
     );
   }
 
-  EpisodeMetadataEntity _episode(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
+  Episode _episode(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
     final episodeNumber = data['episode_number'] as int;
-    return EpisodeMetadataEntity()
-      ..tmdbId = '${showTmdbId}_s${seasonNumber}e$episodeNumber'
-      ..episodeNumber = episodeNumber
-      ..title = data['name'] ?? 'Episode $episodeNumber'
-      ..airDate = _date(data['air_date'])
-      ..overview = data['overview']
-      ..stillUrl = TmdbImageUrl.backdrop(data['still_path'])
-      ..guestStars = _artists(data['guest_stars'], limit: 5);
+    return Episode(
+      tmdbId: '${showTmdbId}_s${seasonNumber}e$episodeNumber',
+      episodeNumber: episodeNumber,
+      title: data['name'] ?? 'Episode $episodeNumber',
+      airDate: _date(data['air_date']),
+      overview: data['overview'],
+      stillUrl: TmdbImageUrl.backdrop(data['still_path']),
+      guestStars: _artists(data['guest_stars'], limit: 5),
+    );
   }
 
   int? _year(String? value) {
@@ -97,16 +100,17 @@ class TmdbMetadataMapper {
 
   List<String> _genres(List<dynamic>? values) => values?.map((genre) => genre['name'].toString()).toList() ?? const [];
 
-  List<ArtistEmbedded> _cast(Map<String, dynamic>? credits) => _artists(credits?['cast'] as List?, limit: 10);
+  List<Artist> _cast(Map<String, dynamic>? credits) => _artists(credits?['cast'] as List?, limit: 10);
 
-  List<ArtistEmbedded> _artists(List<dynamic>? values, {required int limit}) {
+  List<Artist> _artists(List<dynamic>? values, {required int limit}) {
     if (values == null) return [];
     return values.take(limit).map((value) {
-      return ArtistEmbedded()
-        ..tmdbId = value['id']?.toString()
-        ..name = value['name'] ?? '未知'
-        ..character = value['character']
-        ..profileUrl = TmdbImageUrl.profile(value['profile_path']);
+      return Artist(
+        tmdbId: value['id']?.toString(),
+        name: value['name'] ?? '未知',
+        character: value['character'],
+        profileUrl: TmdbImageUrl.profile(value['profile_path']),
+      );
     }).toList();
   }
 

@@ -1,62 +1,54 @@
-import 'package:mochi_player/core/domain/storage/storage_locator.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/infrastructure/filename_parser.dart';
 
-/// Maps parsed filename metadata onto the persisted physical-file entity.
+/// Creates immutable scan snapshots. Persistence decides which fields may change.
 abstract final class MediaFileMetadataMapper {
-  static MediaFileEntity createEntity({
+  static MediaFile createFile({
     required String sourceId,
     required String path,
     required String fileName,
     required int size,
     required ParsedMediaFilename metadata,
-  }) {
-    final entity = MediaFileEntity()
-      ..sourceId = sourceId
-      ..storageKey = StorageLocator.keyFor(sourceId, path)
-      ..path = path
-      ..fileName = fileName
-      ..size = size;
-    updateEntity(entity, metadata, preserveExistingMatch: false);
-    return entity;
-  }
+  }) => reparse(
+    MediaFile(
+      id: 0,
+      sourceId: sourceId,
+      path: path,
+      fileName: fileName,
+      parsedTitle: metadata.title,
+      size: size,
+      addedAt: DateTime.now().toUtc(),
+    ),
+    metadata,
+  );
 
-  static void updateEntity(MediaFileEntity entity, ParsedMediaFilename metadata, {bool preserveExistingMatch = true}) {
-    final previousMediaType = entity.mediaType;
-    final parsedMediaType = _mediaType(metadata);
-    entity
-      ..parsedTitle = metadata.title
-      ..parsedYear = metadata.year
-      ..parsedSeason = metadata.season
-      ..parsedEpisode = metadata.episode
-      ..mediaType = parsedMediaType
-      ..container = metadata.container
-      ..height = metadata.height
-      ..videoCodec = metadata.videoCodec
-      ..audioCodec = metadata.audioCodec
-      ..audioChannels = metadata.audioChannels
-      ..isHdr = metadata.isHdr
-      ..hdrFormat = metadata.hdrFormat
-      ..versionLabel = _nonEmpty(metadata.versionLabel);
-
-    final explicitTmdbId = _nonEmpty(metadata.tmdbId);
-    final mediaTypeChanged = previousMediaType != StoredMediaType.unknown && previousMediaType != parsedMediaType;
-    entity.explicitTmdbId = explicitTmdbId;
-    if (!preserveExistingMatch || mediaTypeChanged) {
-      entity
-        ..movieTmdbId = null
-        ..tvShowTmdbId = null
-        ..episodeTmdbId = null
-        ..metadataMatchStatus = StoredMetadataMatchStatus.pending;
-    }
-  }
-
-  static StoredMediaType _mediaType(ParsedMediaFilename metadata) {
-    if (metadata.season != null || metadata.episode != null) {
-      return StoredMediaType.episode;
-    }
-    if (metadata.title.isNotEmpty) return StoredMediaType.movie;
-    return StoredMediaType.unknown;
+  static MediaFile reparse(MediaFile file, ParsedMediaFilename metadata) {
+    final type = metadata.season != null || metadata.episode != null
+        ? MediaType.episode
+        : metadata.title.isNotEmpty
+        ? MediaType.movie
+        : MediaType.unknown;
+    final changedType = file.mediaType != MediaType.unknown && file.mediaType != type;
+    return file.copyWith(
+      parsedTitle: metadata.title,
+      parsedYear: metadata.year,
+      parsedSeason: metadata.season,
+      parsedEpisode: metadata.episode,
+      mediaType: type,
+      explicitTmdbId: _nonEmpty(metadata.tmdbId),
+      container: metadata.container,
+      height: metadata.height,
+      videoCodec: metadata.videoCodec,
+      audioCodec: metadata.audioCodec,
+      audioChannels: metadata.audioChannels,
+      isHdr: metadata.isHdr,
+      hdrFormat: metadata.hdrFormat,
+      versionLabel: _nonEmpty(metadata.versionLabel),
+      movieTmdbId: changedType ? null : file.movieTmdbId,
+      tvShowTmdbId: changedType ? null : file.tvShowTmdbId,
+      episodeTmdbId: changedType ? null : file.episodeTmdbId,
+      metadataMatchStatus: changedType ? MetadataMatchStatus.pending : file.metadataMatchStatus,
+    );
   }
 
   static String? _nonEmpty(String? value) {

@@ -1,5 +1,4 @@
-import 'package:mochi_player/core/domain/media/trending_item.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_client.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_metadata_mapper.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_search_matcher.dart';
@@ -26,13 +25,13 @@ class TmdbService {
     _client.configure(apiKey: apiKey, apiBaseUrl: apiBaseUrl, proxyUrl: proxyUrl, proxyEnabled: proxyEnabled);
   }
 
-  Future<MovieMetadataEntity?> fetchMovie(String title, {int? year}) async {
+  Future<Movie?> fetchMovie(String title, {int? year}) async {
     final match = await _search('/search/movie', title, year: year);
     final id = match?['id'] as int?;
     return id == null ? null : fetchMovieById(id);
   }
 
-  Future<MovieMetadataEntity?> fetchMovieById(int movieId) async {
+  Future<Movie?> fetchMovieById(int movieId) async {
     final data = await _client.get(
       '/movie/$movieId',
       operation: '获取电影详情',
@@ -44,13 +43,13 @@ class TmdbService {
     return data == null ? null : _mapper.movie(data);
   }
 
-  Future<TVShowMetadataEntity?> fetchTVShow(String title, {int? year}) async {
+  Future<TVShow?> fetchTVShow(String title, {int? year}) async {
     final match = await _search('/search/tv', title, year: year, yearKey: 'first_air_date_year');
     final id = match?['id'] as int?;
     return id == null ? null : fetchTVShowById(id);
   }
 
-  Future<TVShowMetadataEntity?> fetchTVShowById(int tvId) async {
+  Future<TVShow?> fetchTVShowById(int tvId) async {
     final data = await _client.get(
       '/tv/$tvId',
       operation: '获取剧集详情',

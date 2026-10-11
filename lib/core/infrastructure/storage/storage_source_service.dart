@@ -6,7 +6,7 @@ class StorageSourceService {
   final StorageSourceRepository _repository;
 
   StorageSourceService({StorageSourceRepository? repository})
-    : _repository = repository ?? IsarStorageSourceRepository();
+    : _repository = repository ?? DatabaseStorageSourceRepository();
 
   Future<List<StorageSource>> getAll() => _repository.getAll();
 

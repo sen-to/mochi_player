@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_multi_window
   file_selector_windows
-  isar_flutter_libs
   media_kit_libs_windows_video
   media_kit_video
   screen_retriever_windows

@@ -1,16 +1,15 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/presentation/view_models/media_detail_view_model.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/cast_list.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/episode_list.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/media_detail_header.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
-import 'package:provider/provider.dart';
 
 void openMediaDetailPage(BuildContext context, LibraryItem item) {
   context.push(AppRoutePaths.mediaDetail(context), extra: item);
@@ -23,7 +22,16 @@ class MediaDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = MediaDetailViewModel(item);
+    return LibraryQuery<LibraryItem?>(
+      queryKey: (item.runtimeType, item.tmdbId),
+      query: (r) => r.watchDetail(item),
+      initialData: item,
+      builder: (context, current) => _buildDetail(context, current ?? item),
+    );
+  }
+
+  Widget _buildDetail(BuildContext context, LibraryItem current) {
+    final viewModel = MediaDetailViewModel(current);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
@@ -91,12 +99,16 @@ class _MovieMediaInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    context.select<MediaLibraryProvider, (int, int)>(
-      (provider) => (provider.mediaCatalogRevision, provider.watchProgressRevision),
+    return LibraryQuery<List<MediaFile>>(
+      queryKey: viewModel.tmdbId,
+      query: (r) => r.watchVersions(viewModel.tmdbId),
+      initialData: const [],
+      builder: (context, versions) => _buildVersions(context, List.of(versions)..sort(_compareVersions)),
     );
-    final files = context.read<MediaLibraryProvider>().getVersions(viewModel.tmdbId)..sort(_compareVersions);
+  }
 
+  Widget _buildVersions(BuildContext context, List<MediaFile> files) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

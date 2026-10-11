@@ -1,3 +1,5 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
+import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
@@ -12,7 +14,15 @@ class FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isFavorite = context.select<MediaLibraryProvider, bool>((provider) => provider.isFavorite(tmdbId));
+    return LibraryQuery<List<MediaFile>>(
+      queryKey: tmdbId,
+      query: (r) => r.watchVersions(tmdbId),
+      initialData: const [],
+      builder: (context, files) => _buildButton(context, files.any((file) => file.isFavorite)),
+    );
+  }
+
+  Widget _buildButton(BuildContext context, bool isFavorite) {
     final usesOverlayAppearance = overrideColor != null;
     final favoriteColor = AppColors.favorite(context);
     final icon = isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded;

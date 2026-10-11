@@ -37,8 +37,8 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 
 | 现象 | 处理 |
 | --- | --- |
-| 修改了 `core/infrastructure/database/entities/` 下的实体后编译报错 | 重新生成 Isar 代码：`fvm dart run build_runner build --delete-conflicting-outputs` |
-| `flutter analyze` 报生成代码的告警 | 生成物已在 [analysis_options.yaml](../../analysis_options.yaml) 中排除；若新增生成目录，需同步排除 |
+| 修改了 `core/infrastructure/database/app_database.dart` 表定义后编译报错 | 重新生成 drift 代码：`fvm dart run build_runner build` |
+| `flutter analyze` 报生成代码的告警 | drift 生成代码参与静态检查；请先重新生成并检查表定义与生成器版本 |
 | `pod install` 报 Flutter-Generated.xcconfig 不存在 | 先执行 `fvm flutter pub get` |
 | 构建后无法连接网络媒体源 | 检查对应构建配置的 `network.client` 权限 |
 

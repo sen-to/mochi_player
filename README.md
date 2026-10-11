@@ -176,13 +176,13 @@ fvm flutter test
 
 代码统一使用 120 列，已在 [`analysis_options.yaml`](analysis_options.yaml) 的 `formatter.page_width` 中声明，因此 `fvm dart format` 无需额外参数。
 
-修改 `lib/core/infrastructure/database/entities/` 下的实体后，需要重新生成 Isar 代码：
+修改 `lib/core/infrastructure/database/app_database.dart` 中的表定义或 `build.yaml` 中的 drift 配置后，需要重新生成数据库代码：
 
 ```bash
-fvm dart run build_runner build --delete-conflicting-outputs
+fvm dart run build_runner build
 ```
 
-生成结果（`*.g.dart`）已随仓库提交，普通构建不需要执行这一步。
+生成结果（`app_database.g.dart`）已随仓库提交，普通构建不需要执行这一步。数据库使用 drift + SQLite，首次运行创建 `mochi_player.sqlite`。项目尚未发布 Release，本次替换不导入旧 Isar 数据，需要重新配置媒体源并扫描。
 
 ## 🗂️ 项目结构
 

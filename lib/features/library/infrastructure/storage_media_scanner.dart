@@ -1,7 +1,6 @@
 import 'package:logger/logger.dart';
-import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 import 'package:mochi_player/core/domain/storage/storage_connection.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/infrastructure/filename_parser.dart';
 import 'package:mochi_player/features/library/infrastructure/media_file_metadata_mapper.dart';
 
@@ -15,11 +14,11 @@ class StorageMediaScanner {
 
   bool get hadReadError => _hadReadError;
 
-  Stream<MediaFileEntity> scan() async* {
+  Stream<MediaFile> scan() async* {
     _hadReadError = false;
     await for (final entry in _recursivelyListFiles('/')) {
       final parsed = FilenameParser.parse(fileName: entry.name, filePath: entry.path);
-      yield MediaFileMetadataMapper.createEntity(
+      yield MediaFileMetadataMapper.createFile(
         sourceId: _connection.source.id,
         path: entry.path,
         fileName: entry.name,

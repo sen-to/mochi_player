@@ -1,5 +1,5 @@
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
@@ -22,8 +22,8 @@ class MetadataMatchResolver {
   Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) =>
       _tmdb.fetchSeason(tvId, seasonNumber, showTmdbId: showTmdbId);
 
-  Future<MetadataMatch<MovieMetadataEntity>> resolveMovie(ScrapeCandidate candidate) async {
-    final knownId = candidate.movieTmdbId ?? candidate.numericExplicitTmdbId;
+  Future<MetadataMatch<Movie>> resolveMovie(ScrapeCandidate candidate) async {
+    final knownId = candidate.numericExplicitTmdbId ?? candidate.movieTmdbId;
     if (knownId != null) {
       final local = await _database.getMovieByTmdbId(knownId);
       if (local != null) {
@@ -33,7 +33,9 @@ class MetadataMatchResolver {
       if (remote != null) {
         return MetadataMatch.confirmed(
           remote,
-          source: candidate.movieTmdbId != null ? MetadataMatchSource.localId : MetadataMatchSource.explicitId,
+          source: candidate.numericExplicitTmdbId != null
+              ? MetadataMatchSource.explicitId
+              : MetadataMatchSource.localId,
         );
       }
     }
@@ -45,8 +47,8 @@ class MetadataMatchResolver {
     return const MetadataMatch.unmatched();
   }
 
-  Future<MetadataMatch<TVShowMetadataEntity>> resolveTVShow(ScrapeCandidate candidate) async {
-    final knownShowId = candidate.tvShowTmdbId ?? candidate.numericExplicitTmdbId;
+  Future<MetadataMatch<TVShow>> resolveTVShow(ScrapeCandidate candidate) async {
+    final knownShowId = candidate.numericExplicitTmdbId ?? candidate.tvShowTmdbId;
     if (knownShowId != null) {
       final local = await _database.getTVShowByTmdbId(knownShowId);
       if (local != null) {
@@ -65,7 +67,7 @@ class MetadataMatchResolver {
     return const MetadataMatch.unmatched();
   }
 
-  Future<MetadataMatch<MovieMetadataEntity>?> _searchMovieCandidates(ScrapeCandidate candidate) async {
+  Future<MetadataMatch<Movie>?> _searchMovieCandidates(ScrapeCandidate candidate) async {
     for (final attempt in _planFactory.createTitleSearchPlan(candidate).attempts) {
       final remote = await _tmdb.fetchMovie(attempt.query, year: attempt.year);
       if (remote != null) {
@@ -75,7 +77,7 @@ class MetadataMatchResolver {
     return null;
   }
 
-  Future<MetadataMatch<TVShowMetadataEntity>?> _searchTVShowCandidates(ScrapeCandidate candidate) async {
+  Future<MetadataMatch<TVShow>?> _searchTVShowCandidates(ScrapeCandidate candidate) async {
     for (final attempt in _planFactory.createTitleSearchPlan(candidate).attempts) {
       final remote = await _tmdb.fetchTVShow(attempt.query, year: attempt.year);
       if (remote != null) {
@@ -101,7 +103,5 @@ class MetadataMatch<T> {
 
   bool get isConfirmed => status == MetadataMatchStatus.confirmed;
 }
-
-enum MetadataMatchStatus { confirmed, unmatched }
 
 enum MetadataMatchSource { localId, explicitId, titleSearch }

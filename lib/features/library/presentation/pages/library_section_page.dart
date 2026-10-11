@@ -1,11 +1,12 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/presentation/widgets/continue_watching_card.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_item_poster_card.dart';
-import 'package:provider/provider.dart';
 
 /// Section 类型
 enum LibrarySection { continueWatching, movies, tvShows, recentlyAdded }
@@ -68,37 +69,23 @@ class _SectionPageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<MediaLibraryProvider, _SectionSnapshot>(
-      selector: (context, provider) => _SectionSnapshot(
-        showInitialLoading: provider.isLoading && provider.totalFiles == 0,
-        error: provider.error,
-        contentRevision: _contentRevisionFor(provider, section),
+    return switch (section) {
+      LibrarySection.continueWatching => PagedLibraryQuery<MediaCardViewData>(
+        queryKey: section,
+        query: (r, limit) => r.watchContinueWatching(limit: limit),
+        builder: (context, items) => _buildSection(items, (item) => ContinueWatchingCard(item: item)),
       ),
-      builder: (context, snapshot, child) {
-        if (snapshot.showInitialLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.error != null) {
-          return AppResult(status: AppResultStatus.error, title: '内容加载失败', subtitle: snapshot.error);
-        }
-
-        final provider = context.read<MediaLibraryProvider>();
-        return switch (section) {
-          LibrarySection.continueWatching => _buildSection(
-            provider.continueWatchingItems,
-            (item) => ContinueWatchingCard(item: item),
-          ),
-          LibrarySection.recentlyAdded => _buildSection(
-            provider.recentlyAddedContent,
-            (item) => LibraryItemPosterCard(item: item),
-          ),
-          LibrarySection.movies => _buildSection(provider.movies, (item) => LibraryItemPosterCard(item: item)),
-          LibrarySection.tvShows => _buildSection(provider.tvShows, (item) => LibraryItemPosterCard(item: item)),
-        };
-      },
-    );
+      LibrarySection.movies => _titles('movie'),
+      LibrarySection.tvShows => _titles('show'),
+      LibrarySection.recentlyAdded => _titles(null),
+    };
   }
+
+  Widget _titles(String? kind) => PagedLibraryQuery<LibraryItem>(
+    queryKey: section,
+    query: (r, limit) => r.watchTitles(kind: kind, recent: section == LibrarySection.recentlyAdded, limit: limit),
+    builder: (context, items) => _buildSection(items, (item) => LibraryItemPosterCard(item: item)),
+  );
 
   Widget _buildSection<T>(List<T> items, Widget Function(T item) itemBuilder) {
     if (items.isEmpty) {
@@ -107,18 +94,6 @@ class _SectionPageContent extends StatelessWidget {
     }
 
     return _buildGrid(items, itemBuilder);
-  }
-
-  int _contentRevisionFor(MediaLibraryProvider provider, LibrarySection section) {
-    switch (section) {
-      case LibrarySection.continueWatching:
-        return Object.hash(provider.mediaCatalogRevision, provider.metadataRevision, provider.watchProgressRevision);
-      case LibrarySection.recentlyAdded:
-        return Object.hash(provider.mediaCatalogRevision, provider.metadataRevision);
-      case LibrarySection.movies:
-      case LibrarySection.tvShows:
-        return provider.metadataRevision;
-    }
   }
 
   Widget _buildGrid<T>(List<T> items, Widget Function(T item) itemBuilder) {
@@ -167,23 +142,4 @@ String _sectionTitle(LibrarySection section) {
     case LibrarySection.tvShows:
       return '剧集';
   }
-}
-
-class _SectionSnapshot {
-  final bool showInitialLoading;
-  final String? error;
-  final int contentRevision;
-
-  const _SectionSnapshot({required this.showInitialLoading, required this.error, required this.contentRevision});
-
-  @override
-  bool operator ==(Object other) {
-    return other is _SectionSnapshot &&
-        other.showInitialLoading == showInitialLoading &&
-        other.error == error &&
-        other.contentRevision == contentRevision;
-  }
-
-  @override
-  int get hashCode => Object.hash(showInitialLoading, error, contentRevision);
 }

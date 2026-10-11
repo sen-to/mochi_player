@@ -1,8 +1,8 @@
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 
 /// Immutable, structured input for a metadata match.
 ///
-/// A candidate is deliberately separate from [MediaFileEntity]: parsing a file
+/// A candidate is deliberately separate from [MediaFile]: parsing a file
 /// name answers what we know locally, while matching answers whether that
 /// information identifies an item at a metadata provider.
 class ScrapeCandidate {
@@ -19,15 +19,15 @@ class ScrapeCandidate {
     required this.episodeTmdbId,
   });
 
-  factory ScrapeCandidate.fromMediaFile(MediaFileEntity file) {
+  factory ScrapeCandidate.fromMediaFile(MediaFile file) {
     return ScrapeCandidate._(
       file: file,
       title: file.parsedTitle,
       year: file.parsedYear,
       kind: switch (file.mediaType) {
-        StoredMediaType.movie => ScrapeCandidateKind.movie,
-        StoredMediaType.episode => ScrapeCandidateKind.episode,
-        StoredMediaType.unknown => ScrapeCandidateKind.unknown,
+        MediaType.movie => ScrapeCandidateKind.movie,
+        MediaType.episode => ScrapeCandidateKind.episode,
+        MediaType.unknown || MediaType.folder => ScrapeCandidateKind.unknown,
       },
       seasonNumber: file.parsedSeason,
       episodeNumber: file.parsedEpisode,
@@ -38,7 +38,7 @@ class ScrapeCandidate {
     );
   }
 
-  final MediaFileEntity file;
+  final MediaFile file;
   final String title;
   final int? year;
   final ScrapeCandidateKind kind;

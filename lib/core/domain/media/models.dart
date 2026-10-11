@@ -9,6 +9,7 @@ export 'library_item.dart';
 export 'media_file.dart';
 export 'media_file_kind.dart';
 export 'media_type.dart';
+export 'metadata_match_status.dart';
 export 'movie.dart';
 export 'season.dart';
 export 'trending_item.dart';

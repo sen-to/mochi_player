@@ -1,6 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
 import 'package:mochi_player/features/library/application/scrape_plan.dart';
@@ -11,8 +11,8 @@ import 'package:mochi_player/features/library/infrastructure/metadata_match_reso
 /// 负责协调 TMDB 搜索和数据库存储
 /// 刮削结果容器
 class ScrapeResult {
-  final List<MovieMetadataEntity> newMovies = [];
-  final List<TVShowMetadataEntity> newTVShows = [];
+  int newMovieCount = 0;
+  int newTVShowCount = 0;
   int successCount = 0;
   int failCount = 0;
 }
@@ -23,9 +23,6 @@ class ScrapeProgress {
   final int successCount;
   final int failCount;
   final String currentTitle;
-  final MovieMetadataEntity? movie;
-  final TVShowMetadataEntity? tvShow;
-  final bool seasonsChanged;
 
   const ScrapeProgress({
     required this.completed,
@@ -33,9 +30,6 @@ class ScrapeProgress {
     required this.successCount,
     required this.failCount,
     required this.currentTitle,
-    this.movie,
-    this.tvShow,
-    this.seasonsChanged = false,
   });
 }
 
@@ -44,7 +38,6 @@ typedef ScrapeProgressCallback = Future<void> Function(ScrapeProgress progress);
 /// 元数据刮削服务
 /// 负责协调 TMDB 搜索和数据库存储
 class MetadataScraper {
-  final DatabaseService _db;
   final MetadataMatchResolver _matchResolver;
   final MetadataImporter _importer;
   final Logger _logger;
@@ -54,8 +47,7 @@ class MetadataScraper {
     DatabaseService? db,
     MetadataMatchResolver? matchResolver,
     MetadataImporter? importer,
-  }) : _db = db ?? DatabaseService(),
-       _matchResolver = matchResolver ?? MetadataMatchResolver(tmdb: tmdb, database: db),
+  }) : _matchResolver = matchResolver ?? MetadataMatchResolver(tmdb: tmdb, database: db),
        _importer = importer ?? MetadataImporter(database: db),
        _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
@@ -63,43 +55,19 @@ class MetadataScraper {
 
   /// 批量刮削文件
   /// 自动区分电影和剧集，处理并发和去重
-  Future<ScrapeResult> scrapeBatch(List<MediaFileEntity> allFiles, {ScrapeProgressCallback? onProgress}) async {
+  Future<ScrapeResult> scrapeBatch(List<MediaFile> allFiles, {ScrapeProgressCallback? onProgress}) async {
     final result = ScrapeResult();
     if (!_matchResolver.isConfigured) {
       _logger.w('⚠️ 未配置 TMDB API Key，跳过元数据刮削');
       return result;
     }
 
-    final movieFiles = <MediaFileEntity>[];
-    final tvFiles = <MediaFileEntity>[];
-    final knownMovieIds = (await _db.getAllMovies()).map((item) => item.tmdbId).toSet();
-    final knownEpisodeIds = (await _db.getAllEpisodes()).map((item) => item.tmdbId).toSet();
-
-    // 1. 分类与预过滤
+    final movieFiles = <MediaFile>[];
+    final tvFiles = <MediaFile>[];
+    // The database supplies only files needing metadata; do not reload metadata tables.
     for (final file in allFiles) {
-      final candidate = ScrapeCandidate.fromMediaFile(file);
-      final explicitIdOverridesMovieMatch =
-          candidate.numericExplicitTmdbId != null && candidate.numericExplicitTmdbId != candidate.movieTmdbId;
-      final explicitIdOverridesTVMatch =
-          candidate.numericExplicitTmdbId != null && candidate.numericExplicitTmdbId != candidate.tvShowTmdbId;
-      if (candidate.isMovie &&
-          !explicitIdOverridesMovieMatch &&
-          candidate.movieTmdbId != null &&
-          knownMovieIds.contains(candidate.movieTmdbId)) {
-        continue;
-      }
-      if (candidate.isEpisode &&
-          !explicitIdOverridesTVMatch &&
-          candidate.episodeTmdbId != null &&
-          knownEpisodeIds.contains(candidate.episodeTmdbId)) {
-        continue;
-      }
-
-      if (candidate.isMovie) {
-        movieFiles.add(file);
-      } else if (candidate.isEpisode) {
-        tvFiles.add(file);
-      }
+      if (file.mediaType == MediaType.movie) movieFiles.add(file);
+      if (file.mediaType == MediaType.episode) tvFiles.add(file);
     }
 
     final tvGroups = <String, _TVShowScrapeGroup>{};
@@ -122,7 +90,7 @@ class MetadataScraper {
 
     // 2. 刮削电影 (并发)
     await _runWithConcurrency(movieFiles, (file) async {
-      final movie = await _scrapeMovieSingle(file, result);
+      await _scrapeMovieSingle(file, result);
       completedCount++;
       await onProgress?.call(
         ScrapeProgress(
@@ -131,14 +99,13 @@ class MetadataScraper {
           successCount: result.successCount,
           failCount: result.failCount,
           currentTitle: file.parsedTitle,
-          movie: movie,
         ),
       );
     }, 5);
 
     // 3. 刮削剧集 (按剧名分组后并发)
     await _runWithConcurrency(tvGroups.values.toList(), (group) async {
-      final tvShow = await _scrapeTVShowGroup(group.title, group.files, result);
+      await _scrapeTVShowGroup(group.title, group.files, result);
       completedCount += group.files.length;
       await onProgress?.call(
         ScrapeProgress(
@@ -147,19 +114,17 @@ class MetadataScraper {
           successCount: result.successCount,
           failCount: result.failCount,
           currentTitle: group.title,
-          tvShow: tvShow,
-          seasonsChanged: tvShow != null,
         ),
       );
     }, 5);
 
-    _logger.i('✅ 批量刮削完成: 新增电影 ${result.newMovies.length} 部, 新增剧集 ${result.newTVShows.length} 部');
+    _logger.i('✅ 批量刮削完成: 新增电影 ${result.newMovieCount} 部, 新增剧集 ${result.newTVShowCount} 部');
     return result;
   }
 
   // ===== 电影处理 =====
 
-  Future<MovieMetadataEntity?> _scrapeMovieSingle(MediaFileEntity file, ScrapeResult result) async {
+  Future<void> _scrapeMovieSingle(MediaFile file, ScrapeResult result) async {
     final candidate = ScrapeCandidate.fromMediaFile(file);
     try {
       final metadata = (await _matchResolver.resolveMovie(candidate)).metadata;
@@ -171,33 +136,29 @@ class MetadataScraper {
         );
         await _importer.markUnmatched([file]);
         result.failCount++;
-        return null;
+        return;
       }
 
       if (await _importer.importMovie(metadata, file)) {
-        result.newMovies.add(metadata);
+        result.newMovieCount++;
       }
       result.successCount++;
-      return metadata;
+      return;
     } catch (e) {
       _logger.e(
         '❌ 刮削电影出错: $e\n'
         '${_describeCandidate(candidate)}',
       );
       result.failCount++;
-      return null;
+      return;
     }
   }
 
   // ===== 剧集处理 =====
 
-  Future<TVShowMetadataEntity?> _scrapeTVShowGroup(
-    String showTitle,
-    List<MediaFileEntity> files,
-    ScrapeResult result,
-  ) async {
+  Future<void> _scrapeTVShowGroup(String showTitle, List<MediaFile> files, ScrapeResult result) async {
     try {
-      TVShowMetadataEntity? metadata;
+      TVShow? metadata;
 
       // Any episode-specific association is stronger evidence than the first
       // file's title. Otherwise the first file represents the group's parsed
@@ -218,32 +179,34 @@ class MetadataScraper {
         );
         await _importer.markUnmatched(files);
         result.failCount += files.length;
-        return null;
+        return;
       }
 
       if (await _importer.importTVShow(metadata)) {
-        result.newTVShows.add(metadata);
+        result.newTVShowCount++;
       }
 
       // 4. 处理季和集
       final tvId = int.parse(metadata.tmdbId);
       final seasonNumbers = files.map((f) => f.parsedSeason).whereType<int>().toSet();
 
-      var matchedFileCount = 0;
+      final matchedKeys = <String>{};
       for (final seasonNum in seasonNumbers) {
-        matchedFileCount += await _scrapeSeasonAndEpisodes(
-          tvId,
-          metadata.tmdbId,
-          seasonNum,
-          files.where((f) => f.parsedSeason == seasonNum).toList(),
+        matchedKeys.addAll(
+          await _scrapeSeasonAndEpisodes(
+            tvId,
+            metadata.tmdbId,
+            seasonNum,
+            files.where((f) => f.parsedSeason == seasonNum).toList(),
+          ),
         );
       }
 
       // A file only becomes confirmed when its exact episode has been found.
-      result.successCount += matchedFileCount;
-      final unmatchedFileCount = files.length - matchedFileCount;
+      result.successCount += matchedKeys.length;
+      final unmatchedFileCount = files.length - matchedKeys.length;
       if (unmatchedFileCount > 0) {
-        final unmatchedFiles = files.where((file) => file.episodeTmdbId == null).toList(growable: false);
+        final unmatchedFiles = files.where((file) => !matchedKeys.contains(file.storageKey)).toList(growable: false);
         await _importer.markUnmatched(unmatchedFiles);
         result.failCount += unmatchedFileCount;
         _logger.w(
@@ -253,7 +216,7 @@ class MetadataScraper {
           '未匹配文件：\n${_describeFiles(unmatchedFiles)}',
         );
       }
-      return metadata;
+      return;
     } catch (e) {
       _logger.e(
         '❌ 刮削剧集出错: $e\n'
@@ -261,26 +224,26 @@ class MetadataScraper {
         '分组文件（${files.length}）：\n${_describeFiles(files)}',
       );
       result.failCount += files.length;
-      return null;
+      return;
     }
   }
 
-  Future<int> _scrapeSeasonAndEpisodes(
+  Future<Set<String>> _scrapeSeasonAndEpisodes(
     int tvId,
     String showTmdbId,
     int seasonNum,
-    List<MediaFileEntity> seasonFiles,
+    List<MediaFile> seasonFiles,
   ) async {
     final season = await _matchResolver.fetchSeason(tvId, seasonNum, showTmdbId: showTmdbId);
-    if (season == null) return 0;
+    if (season == null) return {};
 
     return _importer.importSeasonEpisodes(season, showTmdbId, seasonFiles);
   }
 
   // ===== 辅助方法 =====
 
-  String _buildTVGroupKey(MediaFileEntity file) {
-    final showTmdbId = file.tvShowTmdbId;
+  String _buildTVGroupKey(MediaFile file) {
+    final showTmdbId = ScrapeCandidate.fromMediaFile(file).numericExplicitTmdbId ?? file.tvShowTmdbId;
     if (showTmdbId != null) return 'tmdb:$showTmdbId';
 
     final titleKey = _normalizeGroupKey(file.parsedTitle);
@@ -317,7 +280,7 @@ class MetadataScraper {
     return attempts.map((attempt) => 'query="${attempt.query}"，year=${attempt.year ?? '无'}').join(' → ');
   }
 
-  String _describeFiles(Iterable<MediaFileEntity> files) => files
+  String _describeFiles(Iterable<MediaFile> files) => files
       .map(
         (file) =>
             '- ${file.fileName} | 标题="${file.parsedTitle}" | '
@@ -345,11 +308,11 @@ class MetadataScraper {
 
 class _TVShowScrapeGroup {
   String title;
-  final List<MediaFileEntity> files = [];
+  final List<MediaFile> files = [];
 
   _TVShowScrapeGroup(this.title);
 
-  void add(MediaFileEntity file) {
+  void add(MediaFile file) {
     files.add(file);
     if (_isBetterTitle(file.parsedTitle, title)) {
       title = file.parsedTitle;

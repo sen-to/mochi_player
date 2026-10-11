@@ -1,11 +1,12 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/presentation/pages/media_detail_page.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_item_poster_card.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_card.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_poster_grid.dart';
-import 'package:provider/provider.dart';
 
 enum LibraryCategory { movies, series, favorites }
 
@@ -36,45 +37,26 @@ class _LibraryPageState extends State<LibraryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<MediaLibraryProvider, _LibraryPageSnapshot>(
-      selector: (context, provider) => _LibraryPageSnapshot(
-        showInitialLoading: provider.isLoading && provider.totalFiles == 0,
-        error: provider.error,
-        contentRevision: _contentRevisionFor(provider),
+    return switch (widget.category) {
+      LibraryCategory.movies => PagedLibraryQuery<LibraryItem>(
+        queryKey: (widget.category, widget.searchQuery),
+        query: (r, limit) => r.watchTitles(kind: 'movie', query: widget.searchQuery, limit: limit),
+        builder: (context, items) => _buildMovieGrid(context, items),
       ),
-      builder: (context, snapshot, child) {
-        if (snapshot.showInitialLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.error != null) {
-          return AppResult(status: AppResultStatus.error, title: '媒体库加载失败', subtitle: snapshot.error);
-        }
-
-        final provider = context.read<MediaLibraryProvider>();
-
-        return switch (widget.category) {
-          LibraryCategory.movies => _buildMovieGrid(context, provider),
-          LibraryCategory.series => _buildTVShowGrid(context, provider),
-          LibraryCategory.favorites => _buildFavoritesGrid(context, provider),
-        };
-      },
-    );
+      LibraryCategory.series => PagedLibraryQuery<LibraryItem>(
+        queryKey: (widget.category, widget.searchQuery),
+        query: (r, limit) => r.watchTitles(kind: 'show', query: widget.searchQuery, limit: limit),
+        builder: (context, items) => _buildTVShowGrid(context, items),
+      ),
+      LibraryCategory.favorites => PagedLibraryQuery<MediaCardViewData>(
+        queryKey: (widget.category, widget.searchQuery),
+        query: (r, limit) => r.watchFavorites(query: widget.searchQuery, limit: limit),
+        builder: (context, items) => _buildFavoritesGrid(context, items),
+      ),
+    };
   }
 
-  int _contentRevisionFor(MediaLibraryProvider provider) {
-    switch (widget.category) {
-      case LibraryCategory.movies:
-      case LibraryCategory.series:
-        return provider.metadataRevision;
-      case LibraryCategory.favorites:
-        return Object.hash(provider.mediaCatalogRevision, provider.metadataRevision, provider.favoriteRevision);
-    }
-  }
-
-  Widget _buildMovieGrid(BuildContext context, MediaLibraryProvider provider) {
-    final items = provider.searchMovies(widget.searchQuery);
-
+  Widget _buildMovieGrid(BuildContext context, List<LibraryItem> items) {
     if (items.isEmpty) {
       return _buildEmptyState('电影', hasQuery: _hasSearchQuery);
     }
@@ -87,9 +69,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildTVShowGrid(BuildContext context, MediaLibraryProvider provider) {
-    final items = provider.searchTVShows(widget.searchQuery);
-
+  Widget _buildTVShowGrid(BuildContext context, List<LibraryItem> items) {
     if (items.isEmpty) {
       return _buildEmptyState('剧集', hasQuery: _hasSearchQuery);
     }
@@ -102,9 +82,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  Widget _buildFavoritesGrid(BuildContext context, MediaLibraryProvider provider) {
-    final items = provider.searchFavorites(widget.searchQuery);
-
+  Widget _buildFavoritesGrid(BuildContext context, List<MediaCardViewData> items) {
     if (items.isEmpty) {
       return _buildEmptyState('收藏', hasQuery: _hasSearchQuery);
     }
@@ -149,23 +127,4 @@ class _LibraryPageState extends State<LibraryPage> {
       subtitle: hasQuery ? '请尝试其他关键词' : '请先扫描媒体库以发现资源',
     );
   }
-}
-
-class _LibraryPageSnapshot {
-  final bool showInitialLoading;
-  final String? error;
-  final int contentRevision;
-
-  const _LibraryPageSnapshot({required this.showInitialLoading, required this.error, required this.contentRevision});
-
-  @override
-  bool operator ==(Object other) {
-    return other is _LibraryPageSnapshot &&
-        other.showInitialLoading == showInitialLoading &&
-        other.error == error &&
-        other.contentRevision == contentRevision;
-  }
-
-  @override
-  int get hashCode => Object.hash(showInitialLoading, error, contentRevision);
 }

@@ -19,4 +19,13 @@ class Season {
     this.numberOfEpisodes,
     this.episodes = const [],
   });
+  Season withEpisodes(List<Episode> episodes) => Season(
+    seasonKey: seasonKey,
+    seasonNumber: seasonNumber,
+    title: title,
+    posterUrl: posterUrl,
+    overview: overview,
+    numberOfEpisodes: numberOfEpisodes,
+    episodes: List.unmodifiable(episodes),
+  );
 }

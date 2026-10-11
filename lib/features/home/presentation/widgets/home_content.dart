@@ -1,3 +1,4 @@
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
@@ -79,24 +80,17 @@ class _HomeContentState extends State<HomeContent> {
           controller: _mainScrollController,
           slivers: [
             // Hero Section (无 padding，直接到顶部)
-            Selector<MediaLibraryProvider, _LibraryContentRevision>(
-              selector: (context, provider) => _LibraryContentRevision(
-                mediaCatalogRevision: provider.mediaCatalogRevision,
-                metadataRevision: provider.metadataRevision,
-              ),
+            Selector<MediaLibraryProvider, LibraryItem?>(
+              selector: (context, provider) => provider.heroItem,
               builder: (context, revision, child) {
-                final heroItem = context.read<MediaLibraryProvider>().getRandomHeroItem();
+                final heroItem = context.read<MediaLibraryProvider>().heroItem;
                 return SliverToBoxAdapter(child: HeroSection(heroItem: heroItem));
               },
             ),
 
             // 继续观看
-            Selector<MediaLibraryProvider, _ContinueWatchingRevision>(
-              selector: (context, provider) => _ContinueWatchingRevision(
-                mediaCatalogRevision: provider.mediaCatalogRevision,
-                metadataRevision: provider.metadataRevision,
-                watchProgressRevision: provider.watchProgressRevision,
-              ),
+            Selector<MediaLibraryProvider, List<MediaCardViewData>>(
+              selector: (context, provider) => provider.continueWatchingItems,
               builder: (context, revision, child) {
                 final provider = context.read<MediaLibraryProvider>();
                 final continueWatchingItems = provider.continueWatchingItems;
@@ -119,11 +113,8 @@ class _HomeContentState extends State<HomeContent> {
             ),
 
             // 最近添加
-            Selector<MediaLibraryProvider, _LibraryContentRevision>(
-              selector: (context, provider) => _LibraryContentRevision(
-                mediaCatalogRevision: provider.mediaCatalogRevision,
-                metadataRevision: provider.metadataRevision,
-              ),
+            Selector<MediaLibraryProvider, List<LibraryItem>>(
+              selector: (context, provider) => provider.recentlyAddedContent,
               builder: (context, revision, child) {
                 final recentlyAddedItems = context.read<MediaLibraryProvider>().recentlyAddedContent.take(15).toList();
                 if (recentlyAddedItems.isEmpty) {
@@ -170,13 +161,10 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    return Selector<MediaLibraryProvider, _LibraryContentRevision>(
-      selector: (context, provider) => _LibraryContentRevision(
-        mediaCatalogRevision: provider.mediaCatalogRevision,
-        metadataRevision: provider.metadataRevision,
-      ),
-      builder: (context, revision, child) {
-        final items = context.read<MediaLibraryProvider>().searchLibrary(widget.searchQuery);
+    return PagedLibraryQuery<LibraryItem>(
+      queryKey: widget.searchQuery,
+      query: (repository, limit) => repository.watchTitles(query: widget.searchQuery, limit: limit),
+      builder: (context, items) {
         if (items.isEmpty) {
           return const AppResult(status: AppResultStatus.empty, title: '没有匹配的媒体', subtitle: '请尝试其他关键词');
         }
@@ -368,44 +356,4 @@ class _TrendingShellState {
 
   @override
   int get hashCode => Object.hash(hasContent, isConfigured);
-}
-
-class _LibraryContentRevision {
-  final int mediaCatalogRevision;
-  final int metadataRevision;
-
-  const _LibraryContentRevision({required this.mediaCatalogRevision, required this.metadataRevision});
-
-  @override
-  bool operator ==(Object other) {
-    return other is _LibraryContentRevision &&
-        other.mediaCatalogRevision == mediaCatalogRevision &&
-        other.metadataRevision == metadataRevision;
-  }
-
-  @override
-  int get hashCode => Object.hash(mediaCatalogRevision, metadataRevision);
-}
-
-class _ContinueWatchingRevision {
-  final int mediaCatalogRevision;
-  final int metadataRevision;
-  final int watchProgressRevision;
-
-  const _ContinueWatchingRevision({
-    required this.mediaCatalogRevision,
-    required this.metadataRevision,
-    required this.watchProgressRevision,
-  });
-
-  @override
-  bool operator ==(Object other) {
-    return other is _ContinueWatchingRevision &&
-        other.mediaCatalogRevision == mediaCatalogRevision &&
-        other.metadataRevision == metadataRevision &&
-        other.watchProgressRevision == watchProgressRevision;
-  }
-
-  @override
-  int get hashCode => Object.hash(mediaCatalogRevision, metadataRevision, watchProgressRevision);
 }

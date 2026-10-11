@@ -2,7 +2,7 @@ import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 
 /// 文件名解析结果
 ///
-/// 从文件名中提取的所有信息，用于填充 MediaFileEntity
+/// 从文件名中提取的所有信息，用于填充 MediaFile
 class ParsedMediaFilename {
   // ===== 基础信息 =====
 

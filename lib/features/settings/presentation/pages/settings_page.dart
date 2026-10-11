@@ -1103,7 +1103,6 @@ class _SettingsPageState extends State<SettingsPage> {
       if (fileBrowser.activeSource?.id == source.id) {
         fileBrowser.clearStorageSource();
       }
-      context.read<MediaLibraryProvider>().removeSourceMediaFromCatalog(source.id);
       await _loadStorageSources();
       if (mounted) {
         AppMessage.success('媒体源已删除，已清理 $deletedFileCount 个媒体文件');

@@ -1,6 +1,6 @@
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart';
+import 'package:mochi_player/core/infrastructure/database/app_database.dart';
 
 abstract interface class StorageSourceRepository {
   Future<List<StorageSource>> getAll();
@@ -18,44 +18,46 @@ abstract interface class StorageSourceRepository {
   Future<int?> deleteWithMedia(String sourceId);
 }
 
-/// Persists source configuration in Isar.
-class IsarStorageSourceRepository implements StorageSourceRepository {
+/// Persists source configuration in SQLite through DatabaseService.
+class DatabaseStorageSourceRepository implements StorageSourceRepository {
   final DatabaseService _database;
 
-  IsarStorageSourceRepository({DatabaseService? database}) : _database = database ?? DatabaseService();
+  DatabaseStorageSourceRepository({DatabaseService? database}) : _database = database ?? DatabaseService();
 
   @override
   Future<List<StorageSource>> getAll() async {
-    final entities = await _database.getStorageSources();
-    return entities.map(_toDomain).toList(growable: false);
+    final rows = await _database.getStorageSources();
+    return rows.map(_toDomain).toList(growable: false);
   }
 
   @override
   Future<StorageSource?> getById(String sourceId) async {
-    final entity = await _database.getStorageSource(_required(sourceId, 'sourceId'));
-    return entity == null ? null : _toDomain(entity);
+    final row = await _database.getStorageSource(_required(sourceId, 'sourceId'));
+    return row == null ? null : _toDomain(row);
   }
 
   @override
   Future<void> save(StorageSource source, {StorageCredentials? credentials}) {
     return _database.saveStorageSource(
-      StorageSourceEntity()
-        ..sourceId = _required(source.id, 'id')
-        ..name = _required(source.name, 'name')
-        ..type = source.type.name
-        ..endpoint = _required(source.endpoint, 'endpoint')
-        ..rootPath = _normalizeRootPath(source.rootPath)
-        ..enabled = source.enabled
-        ..username = credentials?.username.trim() ?? ''
-        ..password = credentials?.password ?? '',
+      StorageSourceRow(
+        sourceId: _required(source.id, 'id'),
+        name: _required(source.name, 'name'),
+        type: source.type.name,
+        endpoint: _required(source.endpoint, 'endpoint'),
+        rootPath: _normalizeRootPath(source.rootPath),
+        enabled: source.enabled,
+        username: credentials?.username.trim() ?? '',
+        password: credentials?.password ?? '',
+        id: 0,
+      ),
     );
   }
 
   @override
   Future<StorageCredentials?> readCredentials(String sourceId) async {
-    final entity = await _database.getStorageSource(_required(sourceId, 'sourceId'));
-    if (entity == null) return null;
-    return StorageCredentials(username: entity.username, password: entity.password);
+    final row = await _database.getStorageSource(_required(sourceId, 'sourceId'));
+    if (row == null) return null;
+    return StorageCredentials(username: row.username, password: row.password);
   }
 
   @override
@@ -68,14 +70,14 @@ class IsarStorageSourceRepository implements StorageSourceRepository {
     return _database.deleteStorageSourceAndMediaFiles(_required(sourceId, 'sourceId'));
   }
 
-  StorageSource _toDomain(StorageSourceEntity entity) {
+  StorageSource _toDomain(StorageSourceRow row) {
     return StorageSource(
-      id: entity.sourceId,
-      name: entity.name,
-      type: StorageSourceType.values.byName(entity.type),
-      endpoint: entity.endpoint,
-      rootPath: entity.rootPath,
-      enabled: entity.enabled,
+      id: row.sourceId,
+      name: row.name,
+      type: StorageSourceType.values.byName(row.type),
+      endpoint: row.endpoint,
+      rootPath: row.rootPath,
+      enabled: row.enabled,
     );
   }
 

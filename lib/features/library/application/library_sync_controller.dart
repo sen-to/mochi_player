@@ -2,35 +2,33 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/entities/entities.dart' as entity;
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_source_repository.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/library/application/media_library_catalog.dart';
-import 'package:mochi_player/features/library/infrastructure/filename_parser.dart';
-import 'package:mochi_player/features/library/infrastructure/media_file_metadata_mapper.dart';
+import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_scraper.dart';
 import 'package:mochi_player/features/library/infrastructure/storage_media_scanner.dart';
 
-/// Coordinates database loading, WebDAV scans and TMDB metadata scraping.
+/// Coordinates storage scans and TMDB metadata scraping.
 class LibrarySyncController extends ChangeNotifier {
   LibrarySyncController({
-    required MediaLibraryCatalog catalog,
     DatabaseService? database,
     TmdbService? tmdbService,
     MetadataScraper? metadataScraper,
     StorageSourceService? storageSourceService,
     StorageProviderRegistry? storageProviderRegistry,
     StorageMediaScanner Function(StorageConnection connection)? storageScannerFactory,
-  }) : _catalog = catalog,
-       _db = database ?? DatabaseService(),
+  }) : _db = database ?? DatabaseService(),
        _tmdbService = tmdbService ?? TmdbService(),
-       _metadataScraper = metadataScraper ?? MetadataScraper(),
-       _storageSourceService = storageSourceService ?? StorageSourceService(),
+       _metadataScraper = metadataScraper ?? MetadataScraper(db: database, tmdb: tmdbService),
+       _storageSourceService =
+           storageSourceService ??
+           StorageSourceService(repository: DatabaseStorageSourceRepository(database: database)),
        _storageProviderRegistry = storageProviderRegistry ?? StorageProviderRegistry.defaults(),
        _storageScannerFactory = storageScannerFactory ?? StorageMediaScanner.new;
 
-  final MediaLibraryCatalog _catalog;
   final DatabaseService _db;
   final TmdbService _tmdbService;
   final MetadataScraper _metadataScraper;
@@ -41,7 +39,6 @@ class LibrarySyncController extends ChangeNotifier {
 
   bool _isScanning = false;
   bool _isScraping = false;
-  bool _isInitialized = false;
   String? _error;
   int _scrapeCompleted = 0;
   int _scrapeTotal = 0;
@@ -79,27 +76,6 @@ class LibrarySyncController extends ChangeNotifier {
     return null;
   }
 
-  Future<void> loadFromDatabase() async {
-    if (_isInitialized) return;
-
-    _logger.i('从数据库加载媒体库...');
-    _catalog.replaceAll(
-      mediaFiles: await _db.getAllMediaFiles(),
-      movies: await _db.getAllMovies(),
-      tvShows: await _db.getAllTVShows(),
-      seasons: await _db.getAllSeasons(),
-      episodes: await _db.getAllEpisodes(),
-    );
-    _isInitialized = true;
-    _catalog.markAllLibraryContentChanged();
-    _logger.i(
-      '加载完成: ${_catalog.mediaFiles.length} 个文件, ${_catalog.movies.length} 部电影, '
-      '${_catalog.tvShows.length} 部剧集, ${_catalog.seasons.length} 季, '
-      '${_catalog.episodes.length} 集',
-    );
-    notifyListeners();
-  }
-
   /// Scans every enabled media source and updates the local file index.
   ///
   /// This workflow deliberately does not require a TMDB key. Metadata
@@ -115,11 +91,7 @@ class LibrarySyncController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (!_isInitialized) await loadFromDatabase();
-
-      _catalog.replaceMediaFiles(await _db.getAllMediaFiles());
-      _isInitialized = true;
-      _catalog.markMediaCatalogChanged();
+      await _db.init();
 
       final sources = (await _storageSourceService.getAll())
           .where((source) => source.enabled && _storageProviderRegistry.supports(source.type))
@@ -167,7 +139,6 @@ class LibrarySyncController extends ChangeNotifier {
           notifyListeners();
         }
       }
-      _catalog.markMediaCatalogChanged();
       _logger.i(
         '全部媒体源扫描完成：启用 ${sources.length} 个，'
         '成功 $completedSourceCount 个，失败 $failedSourceCount 个，'
@@ -196,31 +167,14 @@ class LibrarySyncController extends ChangeNotifier {
     }
   }
 
-  /// Retained for callers that explicitly request a full scan and metadata
-  /// refresh. A normal scan now follows the same workflow.
-  Future<void> refreshLibraryMetadata() async {
-    await scanEnabledMediaSources();
-  }
-
-  /// Parses every discovered file again before scraping so both newly added
-  /// and existing media can receive updated TMDB identifiers and metadata.
   Future<ScrapeResult?> _scrapeScannedMediaFiles() async {
-    if (_catalog.mediaFiles.isEmpty || !_tmdbService.isConfigured) return null;
-
-    for (final file in _catalog.mediaFiles) {
-      final parsed = FilenameParser.parse(fileName: file.fileName, filePath: file.path);
-      MediaFileMetadataMapper.updateEntity(file, parsed);
-    }
-    await _db.saveMediaFiles(_catalog.mediaFiles);
-    _catalog.markMediaCatalogChanged();
-    notifyListeners();
+    if (!_tmdbService.isConfigured) return null;
     return _scrapeMetadata();
   }
 
   void reset() {
     _isScanning = false;
     _isScraping = false;
-    _isInitialized = false;
     _error = null;
     _scrapeCompleted = 0;
     _scrapeTotal = 0;
@@ -249,7 +203,7 @@ class LibrarySyncController extends ChangeNotifier {
 
     try {
       final result = await _metadataScraper.scrapeBatch(
-        _catalog.mediaFiles,
+        await LibraryRepository(_db).scrapeCandidates(),
         onProgress: (progress) async {
           _scrapeCompleted = progress.completed;
           _scrapeTotal = progress.total;
@@ -257,43 +211,10 @@ class LibrarySyncController extends ChangeNotifier {
           _scrapeFailCount = progress.failCount;
           _scrapeCurrentTitle = progress.currentTitle;
 
-          var mediaCatalogChanged = false;
-          var metadataChanged = false;
-          if (progress.movie != null) {
-            _upsertMovie(progress.movie!);
-            mediaCatalogChanged = true;
-            metadataChanged = true;
-          }
-          if (progress.tvShow != null) {
-            _upsertTVShow(progress.tvShow!);
-            mediaCatalogChanged = true;
-            metadataChanged = true;
-          }
-          if (progress.seasonsChanged) {
-            _catalog.seasons
-              ..clear()
-              ..addAll(await _db.getAllSeasons());
-            _catalog.episodes
-              ..clear()
-              ..addAll(await _db.getAllEpisodes());
-            metadataChanged = true;
-          }
-          if (mediaCatalogChanged) _catalog.markMediaCatalogChanged();
-          if (metadataChanged) _catalog.markMetadataChanged();
           notifyListeners();
         },
       );
 
-      _catalog.replaceMetadata(
-        movies: await _db.getAllMovies(),
-        tvShows: await _db.getAllTVShows(),
-        seasons: await _db.getAllSeasons(),
-        episodes: await _db.getAllEpisodes(),
-      );
-      if (result.successCount > 0) {
-        _catalog.markMetadataChanged();
-        _catalog.markMediaCatalogChanged();
-      }
       return result;
     } catch (error, stackTrace) {
       _logger.e('刮削失败', error: error, stackTrace: stackTrace);
@@ -308,29 +229,31 @@ class LibrarySyncController extends ChangeNotifier {
 
   Future<_LibraryScanResult> _scanFilesFromStorage(StorageConnection connection) async {
     final scanner = _storageScannerFactory(connection);
+    final repository = LibraryRepository(_db);
+    final knownPaths = await repository.sourcePaths(connection.source.id);
     var newCount = 0;
-    var removedCount = 0;
     var discoveredCount = 0;
     final scannedPaths = <String>{};
-
-    await for (final file in scanner.scan()) {
-      discoveredCount++;
-      scannedPaths.add(file.path);
-      final existing = await _db.getMediaFile(file.sourceId, file.path);
-      if (existing != null) continue;
-
-      await _db.saveMediaFile(file);
-      _catalog.mediaFiles.add(file);
-      _catalog.markMediaCatalogChanged();
-      newCount++;
-      if (newCount % 10 == 0) notifyListeners();
+    final pending = <MediaFile>[];
+    Future<void> flush() async {
+      await _db.saveScannedFiles(pending);
+      pending.clear();
     }
 
-    if (scanner.hadReadError) {
-      _logger.w('跳过失效文件清理，因为来源 ${connection.source.name} 的扫描存在读取失败');
-    } else {
-      removedCount = await _removeMissingMediaFiles(connection.source.id, scannedPaths);
+    // Persist successful discoveries even when a later directory fails.
+    try {
+      await for (final file in scanner.scan()) {
+        discoveredCount++;
+        if (scannedPaths.add(file.path) && !knownPaths.contains(file.path)) newCount++;
+        pending.add(file);
+        if (pending.length >= 128) await flush();
+      }
+    } finally {
+      await flush();
     }
+    final removedCount = scanner.hadReadError
+        ? 0
+        : await repository.removeMissingFiles(connection.source.id, scannedPaths);
 
     return _LibraryScanResult(
       discoveredCount: discoveredCount,
@@ -338,40 +261,6 @@ class LibrarySyncController extends ChangeNotifier {
       removedCount: removedCount,
       hadReadError: scanner.hadReadError,
     );
-  }
-
-  Future<int> _removeMissingMediaFiles(String sourceId, Set<String> scannedPaths) async {
-    final staleFiles = _catalog.mediaFiles
-        .where((file) => file.sourceId == sourceId && !scannedPaths.contains(file.path))
-        .toList();
-    if (staleFiles.isEmpty) return 0;
-
-    final removedCount = await _db.deleteMediaFilesByIds(staleFiles.map((file) => file.id).toList());
-    if (removedCount == 0) return 0;
-
-    final staleIds = staleFiles.map((file) => file.id).toSet();
-    _catalog.mediaFiles.removeWhere((file) => staleIds.contains(file.id));
-    _catalog.recountContinueWatching();
-    _catalog.markAllLibraryContentChanged();
-    return removedCount;
-  }
-
-  void _upsertMovie(entity.MovieMetadataEntity movie) {
-    final index = _catalog.movies.indexWhere((item) => item.tmdbId == movie.tmdbId);
-    if (index >= 0) {
-      _catalog.movies[index] = movie;
-    } else {
-      _catalog.movies.add(movie);
-    }
-  }
-
-  void _upsertTVShow(entity.TVShowMetadataEntity show) {
-    final index = _catalog.tvShows.indexWhere((item) => item.tmdbId == show.tmdbId);
-    if (index >= 0) {
-      _catalog.tvShows[index] = show;
-    } else {
-      _catalog.tvShows.add(show);
-    }
   }
 }
 

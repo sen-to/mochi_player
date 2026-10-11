@@ -12,7 +12,7 @@ class StorageSourcePlaybackResolver implements PlaybackTargetResolver {
   final StorageSourceRepository _repository;
 
   StorageSourcePlaybackResolver({StorageSourceRepository? repository})
-    : _repository = repository ?? IsarStorageSourceRepository();
+    : _repository = repository ?? DatabaseStorageSourceRepository();
 
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) async {
