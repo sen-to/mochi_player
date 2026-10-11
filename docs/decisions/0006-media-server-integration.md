@@ -4,7 +4,7 @@
 - **Date**: 2026-10-08
 - **Related**: [0001 多窗口策略](0001-multi-window-strategy.md)、[0002 播放引擎](0002-playback-engine.md)、[0003 持久化迁移](0003-persistence-migration.md)、[0005 SMB 播放路径](0005-smb-playback-path.md)
 
-> 2026-10-11 实施更新：底层已替换为 drift + SQLite，建立新库且不导入旧 Isar 数据。媒体库与播放器目前仍各开后台连接，使用 WAL 与 busy_timeout；查询、分页与订阅已实施，播放器回传变更后使主窗口查询失效；单写者窗口改造仍待实施。下方涉及旧 Isar 的背景描述保留为决策历史。
+> 2026-10-11 实施更新：底层已替换为 drift + SQLite，建立新库且不导入旧 Isar 数据。媒体库与播放器目前仍各开后台连接，使用 WAL 与 busy_timeout；查询、分页与订阅已实施，播放器回传变更后使主窗口查询失效。当前保留多连接，单写者根据实测问题或明确收益另行评估，见 [0001](0001-multi-window-strategy.md)。下方涉及旧 Isar 的背景描述保留为决策历史。
 
 ## Context（背景与约束）
 

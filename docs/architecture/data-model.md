@@ -8,7 +8,7 @@
 | 应用设置 | SharedPreferences | TMDB、缓存、字幕、主题 |
 | TMDB 图片 | flutter_cache_manager 文件缓存 | 30 天过期，上限 1200 条 |
 
-[DatabaseService](../../lib/core/infrastructure/database/database_service.dart) 负责连接与写入边界，[LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart) 负责 SQL 读取投影。[AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 定义 typed 表与 schema 版本。生产连接通过 `NativeDatabase.createInBackground` 运行在后台 isolate，启用 WAL、5 秒 busy timeout 和外键检查。当前两个窗口分别建立连接，单写者仍待 [0001](../decisions/0001-multi-window-strategy.md) 实施。
+[DatabaseService](../../lib/core/infrastructure/database/database_service.dart) 负责连接与写入边界，[LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart) 负责 SQL 读取投影。[AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 定义 typed 表与 schema 版本。生产连接通过 `NativeDatabase.createInBackground` 运行在后台 isolate，启用 WAL、5 秒 busy timeout 和外键检查。当前保留两个窗口分别建立连接的方案；单写者仅在实测并发问题或统一状态管理需求出现时评估，见 [0001](../decisions/0001-multi-window-strategy.md)。
 
 项目尚无 Release，本次从 Isar 替换后直接建立新库，不导入或删除旧库；需重新配置媒体源与扫描，见 [0003](../decisions/0003-persistence-migration.md)。
 
@@ -57,5 +57,5 @@ schema 版本从 1 开始，表定义变更后执行 `fvm dart run build_runner 
 ## 待改进
 
 - 删除文件后元数据尚未回收。
-- 两个窗口仍各自访问数据库；SQLite 并发可用不等于完成单写者改造。
+- 主窗口关闭时需协调播放器最后进度提交，再关闭连接并退出进程；该退出流程尚待实现。
 - 独立连接不自动共享失效通知；现有回传事件用于播放结束或切换后的刷新，播放过程实时同步需扩展协议。

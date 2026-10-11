@@ -49,8 +49,9 @@ flowchart TD
   S --> R[runApp + MultiProvider]
 ```
 
-- 播放器窗口靠自己重新初始化数据库（[player_window_app.dart:379](../../lib/features/playback/presentation/player_window_app.dart#L379)），因此同一进程内有两个后台 SQLite 连接，使用 WAL 与 `busy_timeout` 协调访问。数据库单写者仍是 [0001](../decisions/0001-multi-window-strategy.md) 的后续目标。
+- 播放器窗口靠自己重新初始化数据库（[player_window_app.dart:379](../../lib/features/playback/presentation/player_window_app.dart#L379)），因此同一进程内有两个后台 SQLite 连接，使用 WAL 与 `busy_timeout` 协调访问。当前保留该方案，单写者按收益和实测问题另行评估，见 [0001](../decisions/0001-multi-window-strategy.md)。
 - 主窗口注册的处理器负责接收播放器窗口关闭时回传的进度变更（见 [playback.md](playback.md)）。
+- 生命周期目标为关闭主窗口即退出整个应用，单独关闭播放器则保留主窗口。主窗口退出协调器尚待实现，必须先等待播放器最终进度提交及资源清理，再销毁主引擎和退出进程。
 
 ## 全局 Provider
 
