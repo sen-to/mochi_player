@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_toolbar.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('exposes the file browser toolbar actions', (tester) async {
@@ -14,6 +15,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: SizedBox(

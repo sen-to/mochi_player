@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
-import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
+import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class PlaybackLauncher {
@@ -39,7 +40,7 @@ class PlaybackLauncher {
       return;
     }
 
-    _showError(context, "不支持播放此资源");
+    _showError(context, context.l10n.unsupportedPlayback);
   }
 
   /// 播放电影：查找文件并播放（支持多版本选择）
@@ -49,7 +50,7 @@ class PlaybackLauncher {
 
     if (!context.mounted) return;
     if (versions.isEmpty) {
-      _showError(context, "未找到这部电影的本地文件");
+      _showError(context, context.l10n.movieFileMissing);
       return;
     }
 
@@ -68,7 +69,7 @@ class PlaybackLauncher {
     final target = EpisodePlaybackTargetResolver.resolveForShowPlayback(versions);
 
     if (target == null) {
-      _showError(context, "未找到可播放剧集");
+      _showError(context, context.l10n.noPlayableEpisodes);
       return;
     }
 
@@ -83,7 +84,7 @@ class PlaybackLauncher {
     if (!context.mounted) return;
 
     if (targetFile == null) {
-      _showError(context, "未找到这一集的本地文件");
+      _showError(context, context.l10n.episodeFileMissing);
       return;
     }
 
@@ -102,7 +103,7 @@ class PlaybackLauncher {
     AppMessageHandle? loadingBanner;
     final loadingDelay = Timer(const Duration(milliseconds: 180), () {
       if (!context.mounted) return;
-      loadingBanner = AppMessage.loading(loadingMessage ?? '正在打开播放器…');
+      loadingBanner = AppMessage.loading(loadingMessage ?? context.l10n.openingPlayer);
     });
 
     try {
@@ -115,7 +116,7 @@ class PlaybackLauncher {
     } catch (error, stackTrace) {
       debugPrint('打开播放器窗口失败: $error\n$stackTrace');
       if (context.mounted) {
-        _showError(context, failureMessage ?? '无法打开播放器，请检查媒体源和网络');
+        _showError(context, failureMessage ?? context.l10n.playerLaunchFailed);
       }
     } finally {
       loadingDelay.cancel();
@@ -153,7 +154,7 @@ class PlaybackLauncher {
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(
-                  "选择版本",
+                  context.l10n.selectVersion,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color),
                 ),
               ),
@@ -173,7 +174,7 @@ class PlaybackLauncher {
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      MediaFileLabels.versionSubtitle(file, includeContainer: false),
+                      MediaFileLabels.versionSubtitle(file, l10n: context.l10n, includeContainer: false),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     onTap: () {

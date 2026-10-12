@@ -1,5 +1,6 @@
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// Builds the title and detail lines used to present a media file.
 abstract final class MediaFileLabels {
@@ -15,7 +16,12 @@ abstract final class MediaFileLabels {
     return parts.isEmpty ? file.fileName : parts.join(' • ');
   }
 
-  static String versionSubtitle(MediaFile file, {bool includeContainer = true, bool includeResumePosition = false}) {
+  static String versionSubtitle(
+    MediaFile file, {
+    required AppLocalizations l10n,
+    bool includeContainer = true,
+    bool includeResumePosition = false,
+  }) {
     final parts = <String>[];
     final codec = file.audioCodec;
     if (codec != null && codec.isNotEmpty) parts.add(codec);
@@ -27,9 +33,9 @@ abstract final class MediaFileLabels {
     if (includeContainer && container != null && container.isNotEmpty) {
       parts.add(container.toUpperCase());
     }
-    if (file.size > 0) parts.add(MediaFormat.fileSize(file.size));
+    if (file.size > 0) parts.add(MediaFormat.fileSize(file.size, locale: l10n.localeName));
     if (includeResumePosition && file.position > 0 && file.duration > 0 && file.progress < 0.95) {
-      parts.add('从 ${MediaFormat.clockDuration(Duration(milliseconds: file.position))} 继续');
+      parts.add(l10n.resumeFrom(MediaFormat.clockDuration(Duration(milliseconds: file.position))));
     }
     return parts.isEmpty ? file.fileName : parts.join(' • ');
   }
@@ -52,7 +58,7 @@ abstract final class MediaFileLabels {
     return title.isEmpty ? (file.quality.isNotEmpty ? file.quality : file.fileName) : title;
   }
 
-  static String playableVersionDetails(MediaFile file) {
+  static String playableVersionDetails(MediaFile file, {required AppLocalizations l10n}) {
     final parts = <String>[];
     final videoParts = [
       _formattedCodec(file.videoCodec),
@@ -70,7 +76,7 @@ abstract final class MediaFileLabels {
     if (container != null && container.isNotEmpty) {
       parts.add(container.toUpperCase());
     }
-    if (file.size > 0) parts.add(MediaFormat.fileSize(file.size));
+    if (file.size > 0) parts.add(MediaFormat.fileSize(file.size, locale: l10n.localeName));
     return parts.isEmpty ? file.fileName : parts.join(' · ');
   }
 

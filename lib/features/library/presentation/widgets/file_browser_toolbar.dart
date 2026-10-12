@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class FileBrowserToolbar extends StatelessWidget {
   final String? sourceName;
@@ -41,7 +42,13 @@ class FileBrowserToolbar extends StatelessWidget {
     return Row(
       children: [
         _ToolbarGroup(
-          children: [_ToolbarIconButton(icon: AppIcons.back, tooltip: '后退', onPressed: canGoBack ? onBack : null)],
+          children: [
+            _ToolbarIconButton(
+              icon: AppIcons.back,
+              tooltip: context.l10n.browserBack,
+              onPressed: canGoBack ? onBack : null,
+            ),
+          ],
         ),
         const SizedBox(width: AppSpacing.compact),
         Expanded(
@@ -63,16 +70,26 @@ class FileBrowserToolbar extends StatelessWidget {
               value: viewMode,
               onChanged: onViewModeChanged,
               appearance: AppSegmentedControlAppearance.toolbar,
-              options: const [
-                AppSegmentedOption.icon(value: FileBrowserViewMode.list, label: '列表视图', icon: AppIcons.list),
-                AppSegmentedOption.icon(value: FileBrowserViewMode.grid, label: '网格视图', icon: AppIcons.grid),
+              options: [
+                AppSegmentedOption.icon(
+                  value: FileBrowserViewMode.list,
+                  label: context.l10n.listView,
+                  icon: AppIcons.list,
+                ),
+                AppSegmentedOption.icon(
+                  value: FileBrowserViewMode.grid,
+                  label: context.l10n.gridView,
+                  icon: AppIcons.grid,
+                ),
               ],
             ),
           ),
         ],
         const SizedBox(width: AppSpacing.compact),
         _ToolbarGroup(
-          children: [_ToolbarIconButton(icon: AppIcons.refresh, tooltip: '刷新目录', onPressed: onRefresh)],
+          children: [
+            _ToolbarIconButton(icon: AppIcons.refresh, tooltip: context.l10n.refreshFolder, onPressed: onRefresh),
+          ],
         ),
       ],
     );
@@ -98,7 +115,7 @@ class _FilePathBreadcrumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final segments = path.split('/').where((segment) => segment.isNotEmpty);
     final crumbs = <({String label, String? path})>[
-      (label: '根目录', path: null),
+      (label: context.l10n.rootFolder, path: null),
       if (sourceName != null) (label: sourceName!, path: '/'),
     ];
     var accumulatedPath = '/';
@@ -174,13 +191,13 @@ class _FileSortButton extends StatelessWidget {
 
   const _FileSortButton({required this.field, required this.ascending, required this.onChanged});
 
-  String get _label => switch (field) {
-    FileSortField.name => '名称',
-    FileSortField.size => '大小',
-    FileSortField.modifiedAt => '修改时间',
+  String _label(BuildContext context) => switch (field) {
+    FileSortField.name => context.l10n.name,
+    FileSortField.size => context.l10n.size,
+    FileSortField.modifiedAt => context.l10n.modifiedAt,
   };
 
-  String get _directionLabel => ascending ? '升序' : '降序';
+  String _directionLabel(BuildContext context) => ascending ? context.l10n.ascending : context.l10n.descending;
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +217,7 @@ class _FileSortButton extends StatelessWidget {
                   ),
                   const SizedBox(width: 7),
                   Text(
-                    _label,
+                    _label(context),
                     style: TextStyle(color: AppColors.textPrimary(context), fontSize: 13, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(width: 5),
@@ -209,13 +226,13 @@ class _FileSortButton extends StatelessWidget {
               ),
             ),
           ),
-          tooltip: '排序：$_label，$_directionLabel',
+          tooltip: context.l10n.sortDescription(_label(context), _directionLabel(context)),
           selectedValue: field,
           onSelected: (value) => onChanged(value, value == field ? !ascending : true),
-          options: const [
-            AppDropdownOption(value: FileSortField.name, label: '名称'),
-            AppDropdownOption(value: FileSortField.size, label: '大小'),
-            AppDropdownOption(value: FileSortField.modifiedAt, label: '修改时间'),
+          options: [
+            AppDropdownOption(value: FileSortField.name, label: context.l10n.name),
+            AppDropdownOption(value: FileSortField.size, label: context.l10n.size),
+            AppDropdownOption(value: FileSortField.modifiedAt, label: context.l10n.modifiedAt),
           ],
           menuWidth: 126,
         ),

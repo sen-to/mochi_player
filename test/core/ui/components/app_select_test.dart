@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   Widget buildSelect({ValueChanged<int>? onChanged}) {
     return MaterialApp(
+      locale: const Locale('zh'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme.lightTheme,
       home: Scaffold(
         body: Center(

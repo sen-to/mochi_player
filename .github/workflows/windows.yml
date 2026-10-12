@@ -49,6 +49,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Check localization resources
+        run: dart run tool/check_l10n.dart
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
       - name: Analyze
         run: flutter analyze
 

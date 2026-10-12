@@ -34,6 +34,7 @@ class PlaybackSessionController {
   bool _closing = false;
 
   void beginShutdown() => _closing = true;
+
   Future<void> drainProgress() => _progressWriter.drain();
 
   MediaFile get currentItem => _queue.current;

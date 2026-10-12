@@ -4,8 +4,8 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/database/app_database.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
-import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 import 'package:mochi_player/features/library/application/library_search_matcher.dart';
+import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 
 MediaFile file(
   String path, {

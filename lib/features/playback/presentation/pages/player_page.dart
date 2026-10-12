@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/media_type.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
@@ -17,8 +18,8 @@ import 'package:mochi_player/features/playback/presentation/widgets/player_contr
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
-import 'package:mochi_player/core/platform/window_service.dart';
 
 class PlayerPage extends StatefulWidget {
   final PlaybackEngine Function(PlaybackOptions) engineFactory;
@@ -74,7 +75,7 @@ class _PlayerPageState extends State<PlayerPage> {
     final season = _currentItem.parsedSeason;
     final episode = _currentItem.parsedEpisode;
     if (season == null || episode == null) return null;
-    return '第 $season 季 · 第 $episode 集';
+    return context.l10n.seasonEpisodeLabel(season, episode);
   }
 
   @override
@@ -249,8 +250,8 @@ class _PlayerPageState extends State<PlayerPage> {
                   top: 72,
                   child: _PlayerMessage(
                     icon: Icons.error_outline_rounded,
-                    message: error,
-                    actionLabel: '关闭',
+                    message: context.l10n.failure(error),
+                    actionLabel: context.l10n.close,
                     onAction: _playbackController.clearError,
                   ),
                 ),
@@ -261,7 +262,9 @@ class _PlayerPageState extends State<PlayerPage> {
                   top: 72,
                   child: _PlayerMessage(
                     icon: Icons.history_rounded,
-                    message: '已从 ${_playbackController.resumePositionLabel ?? '上次进度'} 继续播放',
+                    message: context.l10n.resumedPlayback(
+                      (_playbackController.resumePositionLabel ?? context.l10n.resumeLastPosition),
+                    ),
                   ),
                 ),
               if (_playbackController.overrideEmbeddedSubtitleStyle)
@@ -335,7 +338,7 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> _loadExternalSubtitle() async {
-    const subtitleFiles = XTypeGroup(label: '字幕文件', extensions: ['srt', 'ass', 'ssa', 'vtt']);
+    final subtitleFiles = XTypeGroup(label: context.l10n.subtitleFiles, extensions: ['srt', 'ass', 'ssa', 'vtt']);
 
     try {
       final selectedFile = await openFile(acceptedTypeGroups: [subtitleFiles]);
@@ -343,11 +346,11 @@ class _PlayerPageState extends State<PlayerPage> {
 
       final loaded = await _playbackController.loadExternalSubtitle(selectedFile.path);
       if (!loaded && mounted) {
-        AppMessage.error('无法加载所选字幕文件');
+        AppMessage.error(context.l10n.subtitleLoadFailed);
       }
     } catch (error, stackTrace) {
       debugPrint('选择外挂字幕失败: $error\n$stackTrace');
-      if (mounted) AppMessage.error('无法加载所选字幕文件');
+      if (mounted) AppMessage.error(context.l10n.subtitleLoadFailed);
     }
   }
 }

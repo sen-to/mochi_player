@@ -11,12 +11,16 @@ import 'package:path_provider/path_provider.dart';
 /// SQLite connection and write boundary. Read projections live in LibraryRepository.
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
+
   factory DatabaseService() => _instance;
+
   DatabaseService._internal();
+
   DatabaseService.withDatabase(AppDatabase database) : _database = database;
 
   AppDatabase? _database;
   Future<void>? _initializing;
+
   AppDatabase get database => _database ?? (throw StateError('Initialize the database before use'));
 
   Future<void> init() => _initializing ??= _initialize();
@@ -142,8 +146,10 @@ class DatabaseService {
 
   Future<Movie?> getMovieByTmdbId(String id) =>
       (database.select(database.movies)..where((t) => t.tmdbId.equals(id))).getSingleOrNull();
+
   Future<TVShow?> getTVShowByTmdbId(String id) =>
       (database.select(database.tVShows)..where((t) => t.tmdbId.equals(id))).getSingleOrNull();
+
   Future<void> saveMovieMetadata(Movie movie) async {
     await database
         .into(database.movies)
@@ -179,8 +185,10 @@ class DatabaseService {
 
   Future<List<StorageSourceRow>> getStorageSources() =>
       (database.select(database.storageSources)..orderBy([(t) => OrderingTerm.asc(t.name)])).get();
+
   Future<StorageSourceRow?> getStorageSource(String id) =>
       (database.select(database.storageSources)..where((t) => t.sourceId.equals(id))).getSingleOrNull();
+
   Future<void> saveStorageSource(StorageSourceRow row) async {
     final values = row.toCompanion(false).copyWith(id: const Value.absent());
     await database
@@ -190,6 +198,7 @@ class DatabaseService {
 
   Future<bool> deleteStorageSource(String id) async =>
       await (database.delete(database.storageSources)..where((t) => t.sourceId.equals(id))).go() > 0;
+
   Future<int?> deleteStorageSourceAndMediaFiles(String id) => database.transaction(() async {
     if (!await deleteStorageSource(id)) return null;
     return (database.delete(database.mediaFiles)..where((t) => t.sourceId.equals(id))).go();

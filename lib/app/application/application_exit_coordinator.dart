@@ -22,6 +22,7 @@ class ApplicationExitCoordinator {
   final Duration cleanupTimeout;
   bool _isExiting = false;
   Future<void>? _operation;
+
   bool get isExiting => _isExiting;
 
   Future<void> requestExit() {

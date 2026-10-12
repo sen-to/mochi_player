@@ -7,6 +7,7 @@ import 'package:mochi_player/core/ui/theme/app_icons.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_entry_display.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class FileBrowserListRow extends StatelessWidget {
   final FileBrowserEntry item;
@@ -39,7 +40,10 @@ class FileBrowserListRow extends StatelessWidget {
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.textTheme.bodyMedium!.color),
                 ),
                 const SizedBox(height: 3),
-                Text(item.browserTypeLabel, style: TextStyle(fontSize: 11, color: AppColors.textSecondary(context))),
+                Text(
+                  item.browserTypeLabel(context),
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary(context)),
+                ),
               ],
             ),
           ),
@@ -47,7 +51,7 @@ class FileBrowserListRow extends StatelessWidget {
           SizedBox(
             width: 120,
             child: Text(
-              item.isDirectory ? '—' : item.browserSizeLabel,
+              item.isDirectory ? '—' : item.browserSizeLabel(context),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary(context)),
@@ -56,7 +60,7 @@ class FileBrowserListRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              item.browserModifiedAtLabel,
+              item.browserModifiedAtLabel(context),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary(context)),
@@ -71,14 +75,17 @@ class FileBrowserListRow extends StatelessWidget {
                 height: 34,
                 child: Icon(AppIcons.more, color: AppColors.textSecondary(context)),
               ),
-              tooltip: '更多操作',
+              tooltip: context.l10n.moreActions,
               menuWidth: 140,
               menuAlignment: AppDropdownMenuAlignment.end,
               onSelected: _handleAction,
               options: [
                 if (item.isDirectory || item.isPlayable)
-                  AppDropdownOption(value: _FileBrowserItemAction.open, label: item.isDirectory ? '打开' : '播放'),
-                const AppDropdownOption(value: _FileBrowserItemAction.copyPath, label: '复制路径'),
+                  AppDropdownOption(
+                    value: _FileBrowserItemAction.open,
+                    label: item.isDirectory ? context.l10n.open : context.l10n.play,
+                  ),
+                AppDropdownOption(value: _FileBrowserItemAction.copyPath, label: context.l10n.copyPath),
               ],
             ),
           ),

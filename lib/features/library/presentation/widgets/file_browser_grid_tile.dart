@@ -15,7 +15,9 @@ class FileBrowserGridTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtitle = item.isDirectory ? item.browserTypeLabel : '${item.browserTypeLabel} · ${item.browserSizeLabel}';
+    final subtitle = item.isDirectory
+        ? item.browserTypeLabel(context)
+        : '${item.browserTypeLabel(context)} · ${item.browserSizeLabel(context)}';
 
     return AppClickableArea(
       onTap: onTap,

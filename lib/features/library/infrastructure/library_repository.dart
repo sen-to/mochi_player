@@ -1,15 +1,17 @@
 import 'package:drift/drift.dart';
-import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/library_search_text.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/app_database.dart';
+import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 
 /// SQL owns availability, ordering and paging. Only scoped projections leave the database.
 class LibraryRepository {
   LibraryRepository(this._service);
+
   final DatabaseService _service;
+
   AppDatabase get _db => _service.database;
 
   Stream<int> watchFileCount() => _db
@@ -120,8 +122,11 @@ class LibraryRepository {
       (t) => OrderingTerm.asc(t.parsedEpisode),
       (t) => OrderingTerm.asc(t.path),
     ]);
+
   Future<List<MediaFile>> getVersions(String id) => _versions(id).get();
+
   Stream<List<MediaFile>> watchVersions(String id) => _versions(id).watch();
+
   Future<MediaFile?> getEpisodeFile(String id) =>
       (_db.select(_db.mediaFiles)
             ..where((t) => t.episodeTmdbId.equals(id))
@@ -219,7 +224,7 @@ class LibraryRepository {
     final id = file.mediaType == MediaType.episode ? file.tvShowTmdbId : file.movieTmdbId;
     final item = id == null ? null : await _title(file.mediaType == MediaType.episode ? 'show' : 'movie', id);
     final subtitle = file.mediaType == MediaType.episode && useBackdrop
-        ? MediaFormat.episodeLabel(file)
+        ? MediaFormat.episodeCode(file)
         : item?.releaseYear?.toString();
     return MediaCardViewData(
       file: file,

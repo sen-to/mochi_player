@@ -6,6 +6,7 @@ import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_control_metrics.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_typography.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// A bounded integer input with increment and decrement controls.
 ///
@@ -145,7 +146,7 @@ class _AppInputNumberState extends State<AppInputNumber> {
         children: [
           _StepperButton(
             icon: Icons.remove_rounded,
-            tooltip: '减少',
+            tooltip: context.l10n.decrease,
             enabled: canDecrement,
             onPressed: () => _adjust(-widget.step),
           ),
@@ -171,7 +172,7 @@ class _AppInputNumberState extends State<AppInputNumber> {
           VerticalDivider(width: 1, color: AppColors.separator(context)),
           _StepperButton(
             icon: Icons.add_rounded,
-            tooltip: '增加',
+            tooltip: context.l10n.increase,
             enabled: canIncrement,
             onPressed: () => _adjust(widget.step),
           ),

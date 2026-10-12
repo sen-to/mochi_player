@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_card.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('renders media metadata without a separate progress flag', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: const Scaffold(
           body: SizedBox(
@@ -27,6 +31,9 @@ void main() {
   testWidgets('omits playback progress when no value is supplied', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: const Scaffold(
           body: SizedBox(width: 200, height: 300, child: MediaCard(title: '测试电影')),

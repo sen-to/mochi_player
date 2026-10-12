@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('renders configured status content and a custom icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const AppResult(
           status: AppResultStatus.empty,
@@ -29,6 +33,9 @@ void main() {
   testWidgets('uses the status appearance and renders the operation area', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const AppResult(
           status: AppResultStatus.error,
@@ -50,6 +57,9 @@ void main() {
   testWidgets('uses the neutral background for an empty-state icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const AppResult(status: AppResultStatus.empty, title: '没有内容'),
       ),
@@ -62,6 +72,9 @@ void main() {
   testWidgets('uses the shared control background for an info-state icon', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const AppResult(status: AppResultStatus.info, title: '提示'),
       ),

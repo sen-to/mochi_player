@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   media_kit: ^1.2.6
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
@@ -63,6 +65,7 @@ dev_dependencies:
 
   build_runner: ^2.10.0
   drift_dev: ^2.35.1
+  shared_preferences_platform_interface: ^2.4.2
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -76,6 +79,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  generate: true
 
   # Keep CocoaPods for this project until all native plugins are verified on SPM.
   config:

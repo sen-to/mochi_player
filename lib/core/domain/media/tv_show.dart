@@ -53,6 +53,7 @@ class TVShow implements LibraryItem {
     this.numberOfEpisodes,
     this.seasons = const [],
   });
+
   TVShow withSeasons(List<Season> seasons) => TVShow(
     tmdbId: tmdbId,
     title: title,

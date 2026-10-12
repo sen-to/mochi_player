@@ -1,11 +1,12 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class EpisodeList extends StatefulWidget {
   final TVShow tvShow;
@@ -88,10 +89,10 @@ class _EpisodeListState extends State<EpisodeList> {
     final mediaFileByTmdbId = _buildMediaFileIndex(files);
 
     if (_sortedSeasons.isEmpty) {
-      return const SliverToBoxAdapter(
+      return SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(top: 32),
-          child: Text("暂无季信息", style: TextStyle(color: Colors.grey)),
+          child: Text(context.l10n.noSeasonInfo, style: TextStyle(color: Colors.grey)),
         ),
       );
     }
@@ -244,9 +245,9 @@ class _EpisodeStatusLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final label = !available
-        ? '缺失'
+        ? context.l10n.missing
         : completed
-        ? '已看'
+        ? context.l10n.watched
         : '';
     if (label.isEmpty) return const SizedBox.shrink();
 
@@ -287,11 +288,11 @@ class _EpisodeMetaRow extends StatelessWidget {
     final theme = Theme.of(context);
     final parts = <String>[];
     if (episode.airDate != null) {
-      parts.add(_formatDate(episode.airDate!));
+      parts.add(DateFormat.yMd(context.l10n.localeName).format(episode.airDate!));
     }
     final mediaFile = file;
     if (mediaFile != null && mediaFile.duration > 0) {
-      parts.add(MediaFormat.compactDuration(Duration(milliseconds: mediaFile.duration)));
+      parts.add(context.l10n.minutesDuration(mediaFile.duration ~/ 60000));
     }
 
     if (parts.isEmpty) return const SizedBox.shrink();
@@ -301,10 +302,6 @@ class _EpisodeMetaRow extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color, fontWeight: FontWeight.w600),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
 
@@ -331,17 +328,17 @@ class _EpisodeHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '剧集',
+              context.l10n.series,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color),
             ),
             SizedBox(
               width: 92,
               child: AppSelect<Season>(
                 value: selectedSeason,
-                placeholder: '选择季',
+                placeholder: context.l10n.selectSeason,
                 options: [
                   for (final season in sortedSeasons)
-                    AppSelectOption(value: season, label: '第 ${season.seasonNumber} 季'),
+                    AppSelectOption(value: season, label: context.l10n.seasonLabel(season.seasonNumber)),
                 ],
                 onChanged: onSeasonSelected,
               ),

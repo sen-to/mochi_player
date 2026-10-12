@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 typedef AppSliderValueFormatter = String Function(double value);
 
@@ -77,17 +79,14 @@ class AppSlider extends StatelessWidget {
         min: min,
         max: max,
         divisions: _divisionCount,
-        label: _formattedValue(value),
+        label: tooltipFormatter?.call(value) ?? _formatValue(value, context.l10n.localeName),
         onChangeStart: onChanged == null ? null : onChangeStart,
         onChanged: onChanged,
         onChangeEnd: onChanged == null ? null : onChangeEnd,
-        semanticFormatterCallback: semanticFormatterCallback ?? tooltipFormatter ?? _formatValue,
+        semanticFormatterCallback:
+            semanticFormatterCallback ?? tooltipFormatter ?? (value) => _formatValue(value, context.l10n.localeName),
       ),
     );
-  }
-
-  String _formattedValue(double currentValue) {
-    return tooltipFormatter?.call(currentValue) ?? _formatValue(currentValue);
   }
 
   int? get _divisionCount {
@@ -105,10 +104,7 @@ class AppSlider extends StatelessWidget {
     return roundedIntervalCount;
   }
 
-  String _formatValue(double value) {
-    if (value == value.roundToDouble()) return value.round().toString();
-    return value.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
-  }
+  String _formatValue(double value, String locale) => NumberFormat('0.##', locale).format(value);
 }
 
 class _SliderTooltipPainter {

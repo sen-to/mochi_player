@@ -57,6 +57,7 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 **外观**
 
 - 🎨 支持浅色、深色、跟随系统主题与强调色选择
+- 🌐 简体中文 / English，可在应用内切换或跟随系统；主窗口与播放器同步
 
 ## 🖥️ 支持平台
 
@@ -149,6 +150,8 @@ fvm install
 
 ```bash
 fvm flutter pub get
+fvm dart run tool/check_l10n.dart
+fvm flutter gen-l10n
 fvm flutter run -d macos
 ```
 
@@ -169,10 +172,14 @@ macOS 原生插件目前由 CocoaPods 管理。由于本项目尚未完成 SPM �
 提交代码前请执行：
 
 ```bash
-fvm dart format lib test
+fvm dart format lib test tool
+fvm dart run tool/check_l10n.dart
+fvm flutter gen-l10n
 fvm flutter analyze
 fvm flutter test
 ```
+
+本地化源文件位于 `lib/l10n/app_en.arb` 与 `app_zh.arb`，生成目录 `lib/l10n/generated/` 不提交。干净检出或修改 ARB 后，先检查资源并执行 `fvm flutter gen-l10n`，再进行静态检查、测试或构建，见 [本地化 ADR](docs/decisions/0004-i18n-l10n.md)。
 
 代码统一使用 120 列，已在 [`analysis_options.yaml`](analysis_options.yaml) 的 `formatter.page_width` 中声明，因此 `fvm dart format` 无需额外参数。
 
@@ -210,7 +217,7 @@ windows/ macos/ 各平台 runner
 
 ## 📌 已知限制
 
-- 应用界面当前仅提供简体中文；设置页已预留语言选择入口，尚未接通切换。计划支持「跟随系统 / 简体中文 / English」，并同步主窗口与播放器，见 [本地化 ADR](docs/decisions/0004-i18n-l10n.md)。
+- 系统原生文件选择器与菜单的语言受操作系统控制；应用内语言切换不改变媒体文件名、TMDB 元数据语言或字幕语言优先级。
 - media_kit 已明确有限维护，完整播放能力仍需两平台样片验收；目前通过播放引擎门面隔离后端，详见 [ADR 0002](docs/decisions/0002-playback-engine.md)。
 - TMDB 匹配依赖文件命名质量，少数作品可能需要后续手动处理。
 - SMB 媒体源可扫描和浏览；用户已实测当前捆绑播放器无法打开 / seek SMB 文件，本地 HTTP 回源尚未实现。请先在系统中挂载共享，再按本地目录添加播放。

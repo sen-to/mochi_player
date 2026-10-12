@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('reports the selected tab and exposes selection semantics', (tester) async {
@@ -9,6 +10,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: StatefulBuilder(
           builder: (context, setState) {

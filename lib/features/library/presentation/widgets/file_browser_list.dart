@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_list_row.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class FileBrowserList extends StatelessWidget {
   static const double headerHeight = 47;
@@ -125,10 +126,10 @@ class _FileListHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         child: Row(
           children: [
-            Expanded(flex: 5, child: Text('名称', style: style)),
+            Expanded(flex: 5, child: Text(context.l10n.name, style: style)),
             const SizedBox(width: 52),
-            SizedBox(width: 120, child: Text('大小', style: style)),
-            Expanded(flex: 2, child: Text('修改时间', style: style)),
+            SizedBox(width: 120, child: Text(context.l10n.size, style: style)),
+            Expanded(flex: 2, child: Text(context.l10n.modifiedAt, style: style)),
             const SizedBox(width: 54),
           ],
         ),
@@ -149,14 +150,13 @@ class FileBrowserSummary extends StatelessWidget {
     final folderCount = items.where((item) => item.isDirectory).length;
     final fileCount = items.length - folderCount;
     final parts = <String>[
-      if (folderCount > 0) '$folderCount 个文件夹',
-      if (fileCount > 0) '$fileCount 个文件',
-      if (items.isEmpty) '0 个项目',
+      if (folderCount > 0) context.l10n.folderCount(folderCount),
+      if (fileCount > 0) context.l10n.fileCount(fileCount),
+      if (items.isEmpty) context.l10n.zeroItems,
     ];
-    final prefix = isFiltered ? '找到 ' : '';
-    final suffix = isFiltered ? '（共 $totalItemCount 个项目）' : '';
+    final summary = parts.join(' · ');
     return Text(
-      '$prefix${parts.join(' · ')}$suffix',
+      isFiltered ? context.l10n.filteredDirectorySummary(summary, totalItemCount) : summary,
       style: TextStyle(fontSize: 13, color: AppColors.textSecondary(context)),
     );
   }

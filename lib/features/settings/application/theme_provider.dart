@@ -6,22 +6,23 @@ const String _themePrefKey = 'theme_mode';
 const String _accentPrefKey = 'accent_color';
 
 enum AppAccentColor {
-  blue('蓝色', Color(0xFF2F80ED)),
-  green('绿色', Color(0xFF43B649)),
-  purple('紫色', Color(0xFF7065A8)),
-  orange('橙色', Color(0xFFF28C28)),
-  red('红色', Color(0xFFE94B64));
+  blue(Color(0xFF2F80ED)),
+  green(Color(0xFF43B649)),
+  purple(Color(0xFF7065A8)),
+  orange(Color(0xFFF28C28)),
+  red(Color(0xFFE94B64));
 
-  const AppAccentColor(this.label, this.color);
+  const AppAccentColor(this.color);
 
-  final String label;
   final Color color;
 }
 
 class ThemeProvider with ChangeNotifier {
   bool _shuttingDown = false;
   Future<void> _pendingSave = Future<void>.value();
+
   void beginShutdown() => _shuttingDown = true;
+
   Future<void> waitForPendingSave() => _pendingSave;
 
   void _persist(String key, int value) {

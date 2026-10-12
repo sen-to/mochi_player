@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,7 @@ import 'package:mochi_player/core/infrastructure/database/database_service.dart'
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -23,7 +25,12 @@ void main() {
   });
   Widget host(Widget child) => ChangeNotifierProvider.value(
     value: provider,
-    child: MaterialApp(home: Scaffold(body: child)),
+    child: MaterialApp(
+      locale: const Locale('zh'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    ),
   );
 
   testWidgets('query survives parent rebuilds and replaces its subscription when identity changes', (tester) async {

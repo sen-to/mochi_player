@@ -1,8 +1,9 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
-import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class FavoriteButton extends StatelessWidget {
@@ -34,7 +35,7 @@ class FavoriteButton extends StatelessWidget {
       return AppButton(
         onPressed: toggleFavorite,
         icon: icon,
-        label: isFavorite ? '已收藏' : '加入收藏',
+        label: isFavorite ? context.l10n.favorited : context.l10n.addFavorite,
         variant: AppButtonVariant.secondary,
         appearance: usesOverlayAppearance ? AppAppearance.overlay : AppAppearance.standard,
         selected: isFavorite,
@@ -46,7 +47,7 @@ class FavoriteButton extends StatelessWidget {
     return AppButton.icon(
       onPressed: toggleFavorite,
       icon: icon,
-      tooltip: isFavorite ? "取消收藏" : "加入收藏",
+      tooltip: isFavorite ? context.l10n.removeFavorite : context.l10n.addFavorite,
       selected: isFavorite,
       appearance: usesOverlayAppearance ? AppAppearance.overlay : AppAppearance.standard,
       accentColor: favoriteColor,

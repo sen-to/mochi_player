@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('stacks repeated messages and dismisses each independently', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: const AppMessageHost(child: Scaffold()),
       ),
@@ -30,6 +34,9 @@ void main() {
   testWidgets('keeps loading visible until its handle is dismissed', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: const AppMessageHost(child: Scaffold()),
       ),
@@ -48,6 +55,9 @@ void main() {
   testWidgets('slides the complete message into view without clipping it', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: const AppMessageHost(child: Scaffold()),
       ),
@@ -81,6 +91,9 @@ void main() {
   testWidgets('collapses a dismissed item while the queue closes its gap', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: const AppMessageHost(child: Scaffold()),
       ),

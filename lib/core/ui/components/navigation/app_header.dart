@@ -1,10 +1,11 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/components/basic/app_button.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
-import 'package:mochi_player/core/platform/window_service.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class AppHeader extends StatelessWidget {
   static const double height = 60;
@@ -31,7 +32,7 @@ class AppHeader extends StatelessWidget {
         ? AppButton.icon(
             onPressed: onBack ?? () => Navigator.of(context).maybePop(),
             icon: Icons.arrow_back_rounded,
-            tooltip: '返回',
+            tooltip: context.l10n.back,
             size: AppButtonSize.regular,
           )
         : null;

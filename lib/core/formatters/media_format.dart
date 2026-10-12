@@ -1,8 +1,9 @@
+import 'package:intl/intl.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 
 /// Formats media-related values for display.
 abstract final class MediaFormat {
-  static String fileSize(int bytes) {
+  static String fileSize(int bytes, {required String locale}) {
     if (bytes < 0) return '';
     if (bytes == 0) return '0 B';
 
@@ -18,7 +19,7 @@ abstract final class MediaFormat {
         : suffixIndex >= 3
         ? 2
         : 1;
-    return '${value.toStringAsFixed(decimals)} ${suffixes[suffixIndex]}';
+    return '${NumberFormat.decimalPatternDigits(locale: locale, decimalDigits: decimals).format(value)} ${suffixes[suffixIndex]}';
   }
 
   static String clockDuration(Duration duration) {
@@ -28,20 +29,10 @@ abstract final class MediaFormat {
     return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
   }
 
-  static String compactDuration(Duration duration) {
-    if (duration.inHours > 0) {
-      final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-      return '${duration.inHours}h ${minutes}m';
-    }
-    return '${duration.inMinutes}m';
-  }
-
-  static String? episodeLabel(MediaFile file) {
+  static String? episodeCode(MediaFile file) {
     final season = file.parsedSeason;
     final episode = file.parsedEpisode;
     if (season == null || episode == null) return null;
-    return '第 $season 季 第 $episode 集';
+    return 'S${season.toString().padLeft(2, '0')}E${episode.toString().padLeft(2, '0')}';
   }
-
-  static String seasonCount(int count) => '$count 季';
 }

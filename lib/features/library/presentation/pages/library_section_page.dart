@@ -1,12 +1,13 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
-import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:mochi_player/features/library/presentation/widgets/continue_watching_card.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_item_poster_card.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// Section 类型
 enum LibrarySection { continueWatching, movies, tvShows, recentlyAdded }
@@ -53,7 +54,7 @@ class _LibrarySectionPageState extends State<LibrarySectionPage> {
             left: 0,
             right: 0,
             height: AppHeader.height,
-            child: AppHeader.back(title: _sectionTitle(widget.section)),
+            child: AppHeader.back(title: _sectionTitle(context, widget.section)),
           ),
         ],
       ),
@@ -73,7 +74,7 @@ class _SectionPageContent extends StatelessWidget {
       LibrarySection.continueWatching => PagedLibraryQuery<MediaCardViewData>(
         queryKey: section,
         query: (r, limit) => r.watchContinueWatching(limit: limit),
-        builder: (context, items) => _buildSection(items, (item) => ContinueWatchingCard(item: item)),
+        builder: (context, items) => _buildSection(context, items, (item) => ContinueWatchingCard(item: item)),
       ),
       LibrarySection.movies => _titles('movie'),
       LibrarySection.tvShows => _titles('show'),
@@ -84,13 +85,17 @@ class _SectionPageContent extends StatelessWidget {
   Widget _titles(String? kind) => PagedLibraryQuery<LibraryItem>(
     queryKey: section,
     query: (r, limit) => r.watchTitles(kind: kind, recent: section == LibrarySection.recentlyAdded, limit: limit),
-    builder: (context, items) => _buildSection(items, (item) => LibraryItemPosterCard(item: item)),
+    builder: (context, items) => _buildSection(context, items, (item) => LibraryItemPosterCard(item: item)),
   );
 
-  Widget _buildSection<T>(List<T> items, Widget Function(T item) itemBuilder) {
+  Widget _buildSection<T>(BuildContext context, List<T> items, Widget Function(T item) itemBuilder) {
     if (items.isEmpty) {
-      final title = _sectionTitle(section);
-      return AppResult(status: AppResultStatus.empty, title: '$title为空', subtitle: '请先扫描媒体库以发现资源');
+      final title = _sectionTitle(context, section);
+      return AppResult(
+        status: AppResultStatus.empty,
+        title: context.l10n.categoryEmpty(title),
+        subtitle: context.l10n.scanToDiscover,
+      );
     }
 
     return _buildGrid(items, itemBuilder);
@@ -131,15 +136,15 @@ class _SectionPageContent extends StatelessWidget {
   }
 }
 
-String _sectionTitle(LibrarySection section) {
+String _sectionTitle(BuildContext context, LibrarySection section) {
   switch (section) {
     case LibrarySection.continueWatching:
-      return '继续观看';
+      return context.l10n.continueWatching;
     case LibrarySection.recentlyAdded:
-      return '最近添加';
+      return context.l10n.recentlyAdded;
     case LibrarySection.movies:
-      return '电影';
+      return context.l10n.movies;
     case LibrarySection.tvShows:
-      return '剧集';
+      return context.l10n.series;
   }
 }

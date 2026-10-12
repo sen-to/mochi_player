@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
@@ -34,7 +35,7 @@ class FileBrowserProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasLoaded = false;
   String _currentPath = '/';
-  String? _error;
+  AppFailure? _error;
   FileBrowserViewMode _viewMode = FileBrowserViewMode.list;
   FileSortField _sortField = FileSortField.name;
   bool _sortAscending = true;
@@ -50,7 +51,7 @@ class FileBrowserProvider extends ChangeNotifier {
 
   String get currentPath => _currentPath;
 
-  String? get error => _error;
+  AppFailure? get error => _error;
 
   bool get canGoBack => _currentPath != '/';
 
@@ -100,7 +101,7 @@ class FileBrowserProvider extends ChangeNotifier {
     try {
       if (!hasSelectedStorageSource) {
         _items = [];
-        _error = '请先选择媒体源';
+        _error = AppFailure.sourceRequired;
         _hasLoaded = true;
         return;
       }
@@ -117,7 +118,7 @@ class FileBrowserProvider extends ChangeNotifier {
       if (requestGeneration != _requestGeneration) return;
       _logger.e("❌ 加载文件失败: $e");
       _items = [];
-      _error = '加载文件失败: $e';
+      _error = AppFailure.filesLoad;
       _hasLoaded = true;
     } finally {
       if (requestGeneration == _requestGeneration) {

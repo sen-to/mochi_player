@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class ThemeModePicker extends StatelessWidget {
   const ThemeModePicker({super.key, required this.value, required this.accentColor, required this.onChanged});
@@ -67,7 +68,7 @@ class AccentColorPicker extends StatelessWidget {
             (accent) => Padding(
               padding: const EdgeInsets.only(left: AppSpacing.md),
               child: Tooltip(
-                message: accent.label,
+                message: _accentLabel(context, accent),
                 child: InkWell(
                   onTap: () => onChanged(accent),
                   borderRadius: BorderRadius.circular(22),
@@ -101,10 +102,10 @@ class _ThemePreviewCard extends StatelessWidget {
   final Color accentColor;
   final VoidCallback onTap;
 
-  String get _label => switch (mode) {
-    ThemeMode.light => '浅色',
-    ThemeMode.dark => '深色',
-    ThemeMode.system => '跟随系统',
+  String _label(BuildContext context) => switch (mode) {
+    ThemeMode.light => context.l10n.themeLight,
+    ThemeMode.dark => context.l10n.themeDark,
+    ThemeMode.system => context.l10n.languageSystem,
   };
 
   @override
@@ -113,7 +114,7 @@ class _ThemePreviewCard extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: '$_label主题',
+      label: context.l10n.themeLabel(_label(context)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadii.control),
@@ -158,7 +159,7 @@ class _ThemePreviewCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              _label,
+              _label(context),
               style: TextStyle(
                 color: selected ? accentColor : AppColors.textSecondary(context),
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
@@ -170,3 +171,11 @@ class _ThemePreviewCard extends StatelessWidget {
     );
   }
 }
+
+String _accentLabel(BuildContext context, AppAccentColor color) => switch (color) {
+  AppAccentColor.blue => context.l10n.accentBlue,
+  AppAccentColor.green => context.l10n.accentGreen,
+  AppAccentColor.purple => context.l10n.accentPurple,
+  AppAccentColor.orange => context.l10n.accentOrange,
+  AppAccentColor.red => context.l10n.accentRed,
+};

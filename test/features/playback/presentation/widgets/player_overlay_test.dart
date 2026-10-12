@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/platform/window_controls_layout.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('aligns title with the safe inset after macOS window controls', (tester) async {
@@ -192,6 +193,9 @@ void main() {
 
 Widget _testApp(Widget child) {
   return MaterialApp(
+    locale: const Locale('zh'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     theme: AppTheme.darkTheme.copyWith(platform: TargetPlatform.macOS),
     home: Scaffold(
       backgroundColor: Colors.black,

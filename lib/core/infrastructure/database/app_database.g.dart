@@ -7,7 +7,9 @@ class $MediaFilesTable extends MediaFiles with TableInfo<$MediaFilesTable, Media
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   $MediaFilesTable(this.attachedDatabase, [this._alias]);
+
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -290,6 +292,7 @@ class $MediaFilesTable extends MediaFiles with TableInfo<$MediaFilesTable, Media
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -324,11 +327,14 @@ class $MediaFilesTable extends MediaFiles with TableInfo<$MediaFilesTable, Media
     isFavorite,
     addedAt,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'media_files';
+
   @override
   VerificationContext validateIntegrity(Insertable<MediaFile> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -462,6 +468,7 @@ class $MediaFilesTable extends MediaFiles with TableInfo<$MediaFilesTable, Media
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+
   @override
   MediaFile map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -558,6 +565,7 @@ class MediaFilesCompanion extends UpdateCompanion<MediaFile> {
   final Value<DateTime?> lastWatchedAt;
   final Value<bool> isFavorite;
   final Value<DateTime> addedAt;
+
   const MediaFilesCompanion({
     this.id = const Value.absent(),
     this.sourceId = const Value.absent(),
@@ -591,6 +599,7 @@ class MediaFilesCompanion extends UpdateCompanion<MediaFile> {
     this.isFavorite = const Value.absent(),
     this.addedAt = const Value.absent(),
   });
+
   MediaFilesCompanion.insert({
     this.id = const Value.absent(),
     required String sourceId,
@@ -637,6 +646,7 @@ class MediaFilesCompanion extends UpdateCompanion<MediaFile> {
        watchStatus = Value(watchStatus),
        isFavorite = Value(isFavorite),
        addedAt = Value(addedAt);
+
   static Insertable<MediaFile> custom({
     Expression<int>? id,
     Expression<String>? sourceId,
@@ -915,7 +925,9 @@ class MediaFilesCompanion extends UpdateCompanion<MediaFile> {
 
 class _$MediaFileInsertable implements Insertable<MediaFile> {
   MediaFile _object;
+
   _$MediaFileInsertable(this._object);
+
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return MediaFilesCompanion(
@@ -964,7 +976,9 @@ class $MoviesTable extends Movies with TableInfo<$MoviesTable, Movie> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   $MoviesTable(this.attachedDatabase, [this._alias]);
+
   static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
   @override
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
@@ -1080,6 +1094,7 @@ class $MoviesTable extends Movies with TableInfo<$MoviesTable, Movie> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<List<Artist>>($MoviesTable.$convertercast);
+
   @override
   List<GeneratedColumn> get $columns => [
     tmdbId,
@@ -1096,11 +1111,14 @@ class $MoviesTable extends Movies with TableInfo<$MoviesTable, Movie> {
     genres,
     cast,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'movies';
+
   @override
   VerificationContext validateIntegrity(Insertable<Movie> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -1155,6 +1173,7 @@ class $MoviesTable extends Movies with TableInfo<$MoviesTable, Movie> {
 
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
+
   @override
   Movie map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -1203,6 +1222,7 @@ class MoviesCompanion extends UpdateCompanion<Movie> {
   final Value<List<String>> genres;
   final Value<List<Artist>> cast;
   final Value<int> rowid;
+
   const MoviesCompanion({
     this.tmdbId = const Value.absent(),
     this.title = const Value.absent(),
@@ -1219,6 +1239,7 @@ class MoviesCompanion extends UpdateCompanion<Movie> {
     this.cast = const Value.absent(),
     this.rowid = const Value.absent(),
   });
+
   MoviesCompanion.insert({
     required String tmdbId,
     required String title,
@@ -1239,6 +1260,7 @@ class MoviesCompanion extends UpdateCompanion<Movie> {
        rating = Value(rating),
        genres = Value(genres),
        cast = Value(cast);
+
   static Insertable<Movie> custom({
     Expression<String>? tmdbId,
     Expression<String>? title,
@@ -1379,7 +1401,9 @@ class MoviesCompanion extends UpdateCompanion<Movie> {
 
 class _$MovieInsertable implements Insertable<Movie> {
   Movie _object;
+
   _$MovieInsertable(this._object);
+
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return MoviesCompanion(
@@ -1410,7 +1434,9 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   $TVShowsTable(this.attachedDatabase, [this._alias]);
+
   static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
   @override
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
@@ -1553,6 +1579,7 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     tmdbId,
@@ -1572,11 +1599,14 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
     numberOfSeasons,
     numberOfEpisodes,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 't_v_shows';
+
   @override
   VerificationContext validateIntegrity(Insertable<TVShow> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -1646,6 +1676,7 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
 
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
+
   @override
   TVShow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -1703,6 +1734,7 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
   final Value<int?> numberOfSeasons;
   final Value<int?> numberOfEpisodes;
   final Value<int> rowid;
+
   const TVShowsCompanion({
     this.tmdbId = const Value.absent(),
     this.title = const Value.absent(),
@@ -1722,6 +1754,7 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
     this.numberOfEpisodes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
+
   TVShowsCompanion.insert({
     required String tmdbId,
     required String title,
@@ -1745,6 +1778,7 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
        rating = Value(rating),
        genres = Value(genres),
        cast = Value(cast);
+
   static Insertable<TVShow> custom({
     Expression<String>? tmdbId,
     Expression<String>? title,
@@ -1909,7 +1943,9 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
 
 class _$TVShowInsertable implements Insertable<TVShow> {
   TVShow _object;
+
   _$TVShowInsertable(this._object);
+
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return TVShowsCompanion(
@@ -1943,7 +1979,9 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   $SeasonsTable(this.attachedDatabase, [this._alias]);
+
   static const VerificationMeta _seasonKeyMeta = const VerificationMeta('seasonKey');
   @override
   late final GeneratedColumn<String> seasonKey = GeneratedColumn<String>(
@@ -1998,13 +2036,17 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+
   @override
   List<GeneratedColumn> get $columns => [seasonKey, seasonNumber, title, posterUrl, overview, numberOfEpisodes];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'seasons';
+
   @override
   VerificationContext validateIntegrity(Insertable<Season> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -2041,6 +2083,7 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
 
   @override
   Set<GeneratedColumn> get $primaryKey => {seasonKey};
+
   @override
   Season map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -2071,6 +2114,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
   final Value<String?> overview;
   final Value<int?> numberOfEpisodes;
   final Value<int> rowid;
+
   const SeasonsCompanion({
     this.seasonKey = const Value.absent(),
     this.seasonNumber = const Value.absent(),
@@ -2080,6 +2124,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
     this.numberOfEpisodes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
+
   SeasonsCompanion.insert({
     required String seasonKey,
     required int seasonNumber,
@@ -2091,6 +2136,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
   }) : seasonKey = Value(seasonKey),
        seasonNumber = Value(seasonNumber),
        title = Value(title);
+
   static Insertable<Season> custom({
     Expression<String>? seasonKey,
     Expression<int>? seasonNumber,
@@ -2175,7 +2221,9 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
 
 class _$SeasonInsertable implements Insertable<Season> {
   Season _object;
+
   _$SeasonInsertable(this._object);
+
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return SeasonsCompanion(
@@ -2199,7 +2247,9 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   $EpisodesTable(this.attachedDatabase, [this._alias]);
+
   static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
   @override
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
@@ -2262,13 +2312,17 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<List<Artist>>($EpisodesTable.$converterguestStars);
+
   @override
   List<GeneratedColumn> get $columns => [tmdbId, episodeNumber, title, airDate, overview, stillUrl, guestStars];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'episodes';
+
   @override
   VerificationContext validateIntegrity(Insertable<Episode> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -2305,6 +2359,7 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
 
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
+
   @override
   Episode map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -2338,6 +2393,7 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
   final Value<String?> stillUrl;
   final Value<List<Artist>> guestStars;
   final Value<int> rowid;
+
   const EpisodesCompanion({
     this.tmdbId = const Value.absent(),
     this.episodeNumber = const Value.absent(),
@@ -2348,6 +2404,7 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
     this.guestStars = const Value.absent(),
     this.rowid = const Value.absent(),
   });
+
   EpisodesCompanion.insert({
     required String tmdbId,
     required int episodeNumber,
@@ -2361,6 +2418,7 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
        episodeNumber = Value(episodeNumber),
        title = Value(title),
        guestStars = Value(guestStars);
+
   static Insertable<Episode> custom({
     Expression<String>? tmdbId,
     Expression<int>? episodeNumber,
@@ -2453,7 +2511,9 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
 
 class _$EpisodeInsertable implements Insertable<Episode> {
   Episode _object;
+
   _$EpisodeInsertable(this._object);
+
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return EpisodesCompanion(
@@ -2478,7 +2538,9 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   $StorageSourcesTable(this.attachedDatabase, [this._alias]);
+
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -2564,13 +2626,17 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+
   @override
   List<GeneratedColumn> get $columns => [id, sourceId, name, type, endpoint, rootPath, enabled, username, password];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'storage_sources';
+
   @override
   VerificationContext validateIntegrity(Insertable<StorageSourceRow> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -2623,6 +2689,7 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+
   @override
   StorageSourceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -2655,6 +2722,7 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
   final bool enabled;
   final String username;
   final String password;
+
   const StorageSourceRow({
     required this.id,
     required this.sourceId,
@@ -2666,6 +2734,7 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
     required this.username,
     required this.password,
   });
+
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2709,6 +2778,7 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
       password: serializer.fromJson<String>(json['password']),
     );
   }
+
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
@@ -2746,6 +2816,7 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
     username: username ?? this.username,
     password: password ?? this.password,
   );
+
   StorageSourceRow copyWithCompanion(StorageSourcesCompanion data) {
     return StorageSourceRow(
       id: data.id.present ? data.id.value : this.id,
@@ -2778,6 +2849,7 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
 
   @override
   int get hashCode => Object.hash(id, sourceId, name, type, endpoint, rootPath, enabled, username, password);
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2803,6 +2875,7 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
   final Value<bool> enabled;
   final Value<String> username;
   final Value<String> password;
+
   const StorageSourcesCompanion({
     this.id = const Value.absent(),
     this.sourceId = const Value.absent(),
@@ -2814,6 +2887,7 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
     this.username = const Value.absent(),
     this.password = const Value.absent(),
   });
+
   StorageSourcesCompanion.insert({
     this.id = const Value.absent(),
     required String sourceId,
@@ -2832,6 +2906,7 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
        enabled = Value(enabled),
        username = Value(username),
        password = Value(password);
+
   static Insertable<StorageSourceRow> custom({
     Expression<int>? id,
     Expression<String>? sourceId,
@@ -2932,6 +3007,7 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
+
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $MediaFilesTable mediaFiles = $MediaFilesTable(this);
   late final $MoviesTable movies = $MoviesTable(this);
@@ -2975,8 +3051,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'media_files_added_at_idx',
     'CREATE INDEX media_files_added_at_idx ON media_files (added_at)',
   );
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     mediaFiles,
@@ -2995,6 +3073,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     mediaFilesIsFavoriteIdx,
     mediaFilesAddedAtIdx,
   ];
+
   @override
   DriftDatabaseOptions get options => const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
@@ -3076,6 +3155,7 @@ class $$MediaFilesTableFilterComposer extends Composer<_$AppDatabase, $MediaFile
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get sourceId =>
@@ -3176,6 +3256,7 @@ class $$MediaFilesTableOrderingComposer extends Composer<_$AppDatabase, $MediaFi
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get sourceId =>
@@ -3277,6 +3358,7 @@ class $$MediaFilesTableAnnotationComposer extends Composer<_$AppDatabase, $Media
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get sourceId => $composableBuilder(column: $table.sourceId, builder: (column) => column);
@@ -3577,6 +3659,7 @@ class $$MoviesTableFilterComposer extends Composer<_$AppDatabase, $MoviesTable> 
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnFilters<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
 
@@ -3625,6 +3708,7 @@ class $$MoviesTableOrderingComposer extends Composer<_$AppDatabase, $MoviesTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnOrderings<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
 
@@ -3673,6 +3757,7 @@ class $$MoviesTableAnnotationComposer extends Composer<_$AppDatabase, $MoviesTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
 
   GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
@@ -3869,6 +3954,7 @@ class $$TVShowsTableFilterComposer extends Composer<_$AppDatabase, $TVShowsTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnFilters<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
 
@@ -3926,6 +4012,7 @@ class $$TVShowsTableOrderingComposer extends Composer<_$AppDatabase, $TVShowsTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnOrderings<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
 
@@ -3983,6 +4070,7 @@ class $$TVShowsTableAnnotationComposer extends Composer<_$AppDatabase, $TVShowsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
 
   GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
@@ -4179,6 +4267,7 @@ class $$SeasonsTableFilterComposer extends Composer<_$AppDatabase, $SeasonsTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnFilters<String> get seasonKey =>
       $composableBuilder(column: $table.seasonKey, builder: (column) => ColumnFilters(column));
 
@@ -4206,6 +4295,7 @@ class $$SeasonsTableOrderingComposer extends Composer<_$AppDatabase, $SeasonsTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnOrderings<String> get seasonKey =>
       $composableBuilder(column: $table.seasonKey, builder: (column) => ColumnOrderings(column));
 
@@ -4233,6 +4323,7 @@ class $$SeasonsTableAnnotationComposer extends Composer<_$AppDatabase, $SeasonsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   GeneratedColumn<String> get seasonKey => $composableBuilder(column: $table.seasonKey, builder: (column) => column);
 
   GeneratedColumn<int> get seasonNumber => $composableBuilder(column: $table.seasonNumber, builder: (column) => column);
@@ -4364,6 +4455,7 @@ class $$EpisodesTableFilterComposer extends Composer<_$AppDatabase, $EpisodesTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnFilters<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
 
@@ -4394,6 +4486,7 @@ class $$EpisodesTableOrderingComposer extends Composer<_$AppDatabase, $EpisodesT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnOrderings<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
 
@@ -4424,6 +4517,7 @@ class $$EpisodesTableAnnotationComposer extends Composer<_$AppDatabase, $Episode
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
 
   GeneratedColumn<int> get episodeNumber =>
@@ -4564,6 +4658,7 @@ class $$StorageSourcesTableFilterComposer extends Composer<_$AppDatabase, $Stora
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get sourceId =>
@@ -4597,6 +4692,7 @@ class $$StorageSourcesTableOrderingComposer extends Composer<_$AppDatabase, $Sto
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get sourceId =>
@@ -4632,6 +4728,7 @@ class $$StorageSourcesTableAnnotationComposer extends Composer<_$AppDatabase, $S
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+
   GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get sourceId => $composableBuilder(column: $table.sourceId, builder: (column) => column);
@@ -4748,11 +4845,18 @@ typedef $$StorageSourcesTableProcessedTableManager =
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
+
   $AppDatabaseManager(this._db);
+
   $$MediaFilesTableTableManager get mediaFiles => $$MediaFilesTableTableManager(_db, _db.mediaFiles);
+
   $$MoviesTableTableManager get movies => $$MoviesTableTableManager(_db, _db.movies);
+
   $$TVShowsTableTableManager get tVShows => $$TVShowsTableTableManager(_db, _db.tVShows);
+
   $$SeasonsTableTableManager get seasons => $$SeasonsTableTableManager(_db, _db.seasons);
+
   $$EpisodesTableTableManager get episodes => $$EpisodesTableTableManager(_db, _db.episodes);
+
   $$StorageSourcesTableTableManager get storageSources => $$StorageSourcesTableTableManager(_db, _db.storageSources);
 }

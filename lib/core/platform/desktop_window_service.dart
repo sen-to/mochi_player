@@ -14,12 +14,15 @@ class DesktopWindowService extends WindowService with WindowListener {
 
   @override
   Future<WindowHandle> current() async => _DesktopWindowHandle(await WindowController.fromCurrentEngine());
+
   @override
   Future<WindowHandle> create(String arguments) async => _DesktopWindowHandle(
     await WindowController.create(WindowConfiguration(arguments: arguments, hiddenAtLaunch: true)),
   );
+
   @override
   Future<List<WindowHandle>> getAll() async => (await WindowController.getAll()).map(_DesktopWindowHandle.new).toList();
+
   @override
   Future<void> initialize() async {
     await windowManager.ensureInitialized();
@@ -45,8 +48,10 @@ class DesktopWindowService extends WindowService with WindowListener {
 
   @override
   void addListener(WindowEvents listener) => _listeners.add(listener);
+
   @override
   void removeListener(WindowEvents listener) => _listeners.remove(listener);
+
   @override
   void onWindowClose() {
     for (final listener in _listeners.toList()) {
@@ -70,6 +75,7 @@ class DesktopWindowService extends WindowService with WindowListener {
 
   @override
   Future<void> setPreventClose(bool prevent) => windowManager.setPreventClose(prevent);
+
   @override
   Future<void> activate() async {
     await windowManager.show();
@@ -88,40 +94,56 @@ class DesktopWindowService extends WindowService with WindowListener {
 
   @override
   void exitApplication() => exit(0);
+
   @override
   Future<void> startDragging() => windowManager.startDragging();
+
   @override
   Future<bool> isMaximized() => windowManager.isMaximized();
+
   @override
   Future<void> maximize() => windowManager.maximize();
+
   @override
   Future<void> unmaximize() => windowManager.unmaximize();
+
   @override
   Future<Rect> getBounds() => windowManager.getBounds();
+
   @override
   Future<void> setBounds(Rect bounds, {bool animate = false}) => windowManager.setBounds(bounds, animate: animate);
+
   @override
   Future<void> setMinimumSize(Size size) => windowManager.setMinimumSize(size);
+
   @override
   Future<bool> isAlwaysOnTop() => windowManager.isAlwaysOnTop();
+
   @override
   Future<void> setAlwaysOnTop(bool value) => windowManager.setAlwaysOnTop(value);
+
   @override
   Future<bool> isFullScreen() => windowManager.isFullScreen();
+
   @override
   Future<void> setFullScreen(bool value) => windowManager.setFullScreen(value);
 }
 
 class _DesktopWindowHandle implements WindowHandle {
   _DesktopWindowHandle(this._controller);
+
   final WindowController _controller;
+
   @override
   String get id => _controller.windowId;
+
   @override
   String get arguments => _controller.arguments;
+
   @override
   Future<T?> invoke<T>(String method, [Object? arguments, Duration? timeout]) =>
       _controller.invokeMethod<T>(method, arguments).timeout(timeout ?? const Duration(seconds: 3));
+
   @override
   Future<void> setHandler(Future<Object?> Function(MethodCall call) handler) =>
       _controller.setWindowMethodHandler(handler);

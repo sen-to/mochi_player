@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
@@ -8,6 +9,7 @@ import 'package:mochi_player/features/library/presentation/widgets/file_browser_
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_list.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_toolbar.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class FileBrowserPage extends StatefulWidget {
@@ -21,7 +23,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
   final _storageSourceService = StorageSourceService();
   var _sources = const <StorageSource>[];
   var _isLoadingSources = true;
-  String? _sourceError;
+  AppFailure? _sourceError;
   bool _showSourceList = true;
   String? _openingSourceId;
   bool _didScheduleExternalSelection = false;
@@ -46,12 +48,15 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppHeader(
-            title: '文件浏览',
+            title: context.l10n.fileBrowser,
             trailing: showSourceList
                 ? null
                 : SizedBox(
                     width: 300,
-                    child: AppSearchInput(placeholder: '搜索当前目录…', onChanged: provider.setSearchQuery),
+                    child: AppSearchInput(
+                      placeholder: context.l10n.searchDirectory,
+                      onChanged: provider.setSearchQuery,
+                    ),
                   ),
           ),
           Expanded(
@@ -127,7 +132,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
       if (!mounted) return;
       setState(() {
         _isLoadingSources = false;
-        _sourceError = '加载媒体源失败';
+        _sourceError = AppFailure.contentLoad;
       });
     }
   }
@@ -146,7 +151,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
         '打开媒体源失败: name=${source.name}, type=${source.type.name}, '
         'endpoint=${source.endpoint}, error=$error\n$stackTrace',
       );
-      if (mounted) AppMessage.error('无法连接到“${source.name}”');
+      if (mounted) AppMessage.error(context.l10n.sourceConnectionFailed(source.name));
     } finally {
       if (mounted) setState(() => _openingSourceId = null);
     }
@@ -167,8 +172,8 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
     PlaybackLauncher.playFile(
       context,
       provider.createPlaybackFile(item),
-      loadingMessage: '正在获取播放链接: ${item.name}',
-      failureMessage: '获取播放链接失败，请检查 WebDAV 配置或网络',
+      loadingMessage: context.l10n.fetchingPlaybackLink(item.name),
+      failureMessage: context.l10n.playbackLinkFailed,
     );
   }
 }
@@ -185,7 +190,7 @@ class _StorageSourceListBody extends StatelessWidget {
 
   final List<StorageSource> sources;
   final bool isLoading;
-  final String? error;
+  final AppFailure? error;
   final String? openingSourceId;
   final ValueChanged<StorageSource> onSourceSelected;
   final VoidCallback onRefresh;
@@ -214,14 +219,18 @@ class _StorageSourceListBody extends StatelessWidget {
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (error != null)
             Expanded(
-              child: AppResult(status: AppResultStatus.error, title: '媒体源加载失败', subtitle: error),
+              child: AppResult(
+                status: AppResultStatus.error,
+                title: context.l10n.sourcesLoadFailed,
+                subtitle: error == null ? null : context.l10n.failure(error!),
+              ),
             )
           else if (sources.isEmpty)
-            const Expanded(
+            Expanded(
               child: AppResult(
                 status: AppResultStatus.empty,
-                title: '尚未添加媒体源',
-                subtitle: '请在设置的“媒体源”中添加 WebDAV 媒体源',
+                title: context.l10n.noMediaSources,
+                subtitle: context.l10n.addSourcesInSettings,
                 icon: Icon(Icons.dns_outlined),
               ),
             )
@@ -285,8 +294,8 @@ class _StorageSourceTableHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         child: Row(
           children: [
-            Expanded(flex: 6, child: Text('名称', style: style)),
-            Expanded(flex: 5, child: Text('位置', style: style)),
+            Expanded(flex: 6, child: Text(context.l10n.name, style: style)),
+            Expanded(flex: 5, child: Text(context.l10n.location, style: style)),
             const SizedBox(width: 28),
           ],
         ),
@@ -314,7 +323,7 @@ class _StorageSourceTableRow extends StatelessWidget {
         ? '${endpoint.host}:${endpoint.port}'
         : endpoint.host;
     final typeLabel = switch (source.type) {
-      StorageSourceType.local => '本地目录',
+      StorageSourceType.local => context.l10n.localFolder,
       StorageSourceType.webDav => 'WebDAV',
       StorageSourceType.smb => 'SMB',
     };
@@ -416,7 +425,7 @@ class _FileBrowserBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (state.sourceName == null) {
-      return const AppResult(status: AppResultStatus.info, title: '请选择媒体源');
+      return AppResult(status: AppResultStatus.info, title: context.l10n.selectMediaSource);
     }
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.section, AppSpacing.xxl, AppSpacing.section, AppSpacing.xxl),
@@ -464,15 +473,23 @@ class _FileBrowserBody extends StatelessWidget {
       if (state.hasSearchQuery) {
         return AppResult(
           status: AppResultStatus.empty,
-          title: '没有匹配的文件',
-          subtitle: '请尝试其他关键词',
+          title: context.l10n.noMatchingFiles,
+          subtitle: context.l10n.tryOtherKeywords,
           icon: Icon(Icons.search_off_rounded, size: 44, color: AppColors.textSecondary(context)),
         );
       }
       if (state.error != null) {
-        return AppResult(status: AppResultStatus.error, title: '文件加载失败', subtitle: state.error);
+        return AppResult(
+          status: AppResultStatus.error,
+          title: context.l10n.filesLoadFailed,
+          subtitle: context.l10n.failure(state.error!),
+        );
       }
-      return const AppResult(status: AppResultStatus.empty, title: '此文件夹为空', icon: Icon(Icons.folder_open_outlined));
+      return AppResult(
+        status: AppResultStatus.empty,
+        title: context.l10n.folderEmpty,
+        icon: Icon(Icons.folder_open_outlined),
+      );
     }
     if (state.viewMode == FileBrowserViewMode.grid) return _buildGrid();
     return _buildList();
@@ -529,7 +546,7 @@ class _FileBrowserState {
   final int totalItemCount;
   final bool isLoading;
   final bool hasLoaded;
-  final String? error;
+  final AppFailure? error;
   final String currentPath;
   final bool canGoBack;
   final FileBrowserViewMode viewMode;

@@ -75,11 +75,13 @@ void main() {
 class _EpisodeResolver extends MetadataMatchResolver {
   @override
   bool get isConfigured => true;
+
   @override
   Future<MetadataMatch<TVShow>> resolveTVShow(ScrapeCandidate candidate) async => MetadataMatch.confirmed(
     const TVShow(tmdbId: '123', title: 'Show'),
     source: MetadataMatchSource.titleSearch,
   );
+
   @override
   Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) async =>
       const TmdbSeasonResult(

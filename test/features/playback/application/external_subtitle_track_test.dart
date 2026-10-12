@@ -1,6 +1,6 @@
-import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/features/playback/application/external_subtitle_track.dart';
+import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:path/path.dart' as path;
 
 void main() {

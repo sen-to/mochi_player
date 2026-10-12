@@ -89,4 +89,10 @@ flowchart TD
 | media_kit 有限维护 | 播放后端已隔离，原生渲染、捆绑构建和关键补丁仍需自行验证 | [0002](../decisions/0002-playback-engine.md) |
 | SMB 直链依赖预编译产物是否含某协议 | 功能可用性不可控 | [0005](../decisions/0005-smb-playback-path.md) |
 | 媒体服务器包含目录浏览、播放协商与服务端会话，不能由文件系统源抽象完整表达 | 需独立的服务端接入与播放生命周期 | [0006](../decisions/0006-media-server-integration.md) |
-| 无本地化工具链，文案硬编码；语言设置仅预留入口 | 语言偏好尚未持久化或同步到播放器，Material 系统文案为英文 | [0004](../decisions/0004-i18n-l10n.md) |
+| 本地化已接入 gen-l10n，提供中英文与双窗口语言同步 | Windows 原生运行时与完整页面布局仍需验收；系统原生菜单语言由平台控制 | [0004](../decisions/0004-i18n-l10n.md) |
+
+## 界面语言
+
+`lib/l10n/` 的英文模板与简体中文译文由 gen-l10n 生成类型安全接口。`AppLocaleController` 保存 `system / zh / en` 偏好到 SharedPreferences 的 `app_language` 键，独立于 TMDB 和字幕设置；主窗口负责保存与跨窗口通知。播放器启动时向主窗口读取快照，就绪 / 复用时再次校准；revision 拒绝过期通知。两个 `MaterialApp` 配置同一套委托、支持语言与解析策略。
+
+应用与控制器的用户可见错误使用 `AppFailure`，扫描 / 刮削活动使用 `LibraryActivity`；展示层根据当前 locale 翻译，服务层不依赖 `BuildContext`。日志、字幕语言匹配词及用户媒体内容不属于界面译文。生成目录不入库，CI 校验资源完整性并在静态检查 / 测试前生成。

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('each segment fills the control height', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: Center(
@@ -65,6 +69,9 @@ void main() {
   testWidgets('is disabled when onChanged is omitted', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const Scaffold(
           body: Center(
@@ -92,6 +99,9 @@ void main() {
   testWidgets('toolbar appearance uses neutral toolbar surfaces', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: AppSegmentedControl<int>(
@@ -121,6 +131,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: SizedBox(

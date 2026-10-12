@@ -1,4 +1,3 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
@@ -6,10 +5,12 @@ import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/view_models/media_detail_view_model.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/cast_list.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/episode_list.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/media_detail_header.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void openMediaDetailPage(BuildContext context, LibraryItem item) {
   context.push(AppRoutePaths.mediaDetail(context), extra: item);
@@ -113,12 +114,8 @@ class _MovieMediaInfoSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SectionTitle(
-          title: '可播放版本',
-          trailing: files.isEmpty
-              ? null
-              : files.length == 1
-              ? '1 个文件'
-              : '${files.length} 个文件',
+          title: context.l10n.playableVersions,
+          trailing: files.isEmpty ? null : context.l10n.fileCount(files.length),
         ),
         const SizedBox(height: 8),
         if (files.isEmpty)
@@ -129,7 +126,7 @@ class _MovieMediaInfoSection extends StatelessWidget {
               color: AppColors.subtleSurface(context),
               borderRadius: BorderRadius.circular(AppRadii.control),
             ),
-            child: Text('未找到可播放的本地文件', style: TextStyle(color: theme.textTheme.bodySmall?.color)),
+            child: Text(context.l10n.noPlayableLocalFiles, style: TextStyle(color: theme.textTheme.bodySmall?.color)),
           )
         else
           Column(
@@ -166,10 +163,10 @@ class _OverviewSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _SectionTitle(title: '简介'),
+        _SectionTitle(title: context.l10n.overview),
         const SizedBox(height: 10),
         Text(
-          viewModel.overview,
+          viewModel.overview ?? context.l10n.noOverview,
           style: TextStyle(fontSize: 14, height: 1.55, color: theme.textTheme.bodyMedium?.color?.withAlpha(220)),
         ),
       ],
@@ -247,7 +244,7 @@ class _VersionRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  MediaFileLabels.playableVersionDetails(file),
+                  MediaFileLabels.playableVersionDetails(file, l10n: context.l10n),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color),

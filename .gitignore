@@ -48,3 +48,6 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Generated localization classes
+lib/l10n/generated/

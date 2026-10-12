@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/features/home/presentation/widgets/trending_category_card.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('shows row skeletons instead of hiding trend content while loading', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
+        locale: Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: TrendingCategoryCard(
             config: TrendingCardConfig(

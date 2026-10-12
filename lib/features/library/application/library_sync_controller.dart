@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_repository.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_scraper.dart';
@@ -42,6 +43,7 @@ class LibrarySyncController extends ChangeNotifier {
   Future<MediaSourceScanSummary?>? _activeScan;
 
   void beginShutdown() => _shuttingDown = true;
+
   Future<void> shutdown() async {
     beginShutdown();
     await _activeScan;
@@ -60,7 +62,7 @@ class LibrarySyncController extends ChangeNotifier {
 
   bool _isScanning = false;
   bool _isScraping = false;
-  String? _error;
+  AppFailure? _error;
   int _scrapeCompleted = 0;
   int _scrapeTotal = 0;
   int _scrapeSuccessCount = 0;
@@ -72,27 +74,31 @@ class LibrarySyncController extends ChangeNotifier {
 
   bool get isLoading => _isScanning || _isScraping;
 
-  String? get error => _error;
+  AppFailure? get error => _error;
 
   double? get scrapeProgress {
     if (!_isScraping || _scrapeTotal <= 0) return null;
     return (_scrapeCompleted / _scrapeTotal).clamp(0.0, 1.0);
   }
 
-  String? get activityMessage {
+  LibraryActivity? get activity {
     if (_isScraping) {
-      final count = _scrapeTotal > 0 ? '$_scrapeCompleted/$_scrapeTotal' : '准备中';
-      final summary = '已匹配 $_scrapeSuccessCount，失败 $_scrapeFailCount';
-      final title = _scrapeCurrentTitle;
-      if (title != null && title.isNotEmpty) {
-        return '正在刮削 $count：$title · $summary';
-      }
-      return '正在刮削媒体库 $count · $summary';
+      return LibraryActivity(
+        kind: LibraryActivityKind.scraping,
+        completed: _scrapeCompleted,
+        total: _scrapeTotal,
+        success: _scrapeSuccessCount,
+        failed: _scrapeFailCount,
+        title: _scrapeCurrentTitle ?? '',
+      );
     }
     if (_isScanning) {
-      final progress = _scanTotalSources > 0 ? '$_scanCompletedSources/$_scanTotalSources' : '准备中';
-      final source = _scanCurrentSource;
-      return source == null ? '正在扫描已启用的媒体源...' : '正在扫描 $progress：$source';
+      return LibraryActivity(
+        kind: LibraryActivityKind.scanning,
+        completed: _scanCompletedSources,
+        total: _scanTotalSources,
+        title: _scanCurrentSource ?? '',
+      );
     }
     return null;
   }
@@ -122,7 +128,7 @@ class LibrarySyncController extends ChangeNotifier {
           .where((source) => source.enabled && _storageProviderRegistry.supports(source.type))
           .toList(growable: false);
       if (sources.isEmpty) {
-        _error = '请先添加并启用至少一个可扫描的媒体源';
+        _error = AppFailure.scanSourceRequired;
         return null;
       }
 
@@ -184,8 +190,8 @@ class LibrarySyncController extends ChangeNotifier {
         metadataFailedCount: scrapeResult?.failCount,
       );
     } catch (error, stackTrace) {
-      _logger.e('扫描媒体源失败', error: error, stackTrace: stackTrace);
-      _error = '扫描媒体源失败: $error';
+      _logger.e('Media source scan failed', error: error, stackTrace: stackTrace);
+      _error = AppFailure.scanFailed;
       return null;
     } finally {
       _isScanning = false;
@@ -246,7 +252,7 @@ class LibrarySyncController extends ChangeNotifier {
       return result;
     } catch (error, stackTrace) {
       _logger.e('刮削失败', error: error, stackTrace: stackTrace);
-      _error = '刮削失败: $error';
+      _error = AppFailure.scrapeFailed;
       return null;
     } finally {
       _isScraping = false;

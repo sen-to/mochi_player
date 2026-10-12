@@ -1,4 +1,3 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
@@ -10,7 +9,9 @@ import 'package:mochi_player/features/library/application/media_library_provider
 import 'package:mochi_player/features/library/presentation/pages/library_section_page.dart';
 import 'package:mochi_player/features/library/presentation/widgets/continue_watching_card.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_item_poster_card.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_poster_grid.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class HomeContent extends StatefulWidget {
@@ -72,7 +73,11 @@ class _HomeContentState extends State<HomeContent> {
         }
 
         if (!shellState.hasHomeContent) {
-          return const AppResult(status: AppResultStatus.empty, title: '媒体库为空', subtitle: '请先扫描媒体库以发现资源');
+          return AppResult(
+            status: AppResultStatus.empty,
+            title: context.l10n.libraryEmpty,
+            subtitle: context.l10n.scanToDiscover,
+          );
         }
 
         return CustomScrollView(
@@ -102,7 +107,7 @@ class _HomeContentState extends State<HomeContent> {
                   slivers: [
                     _buildSectionHeaderSliver(
                       context,
-                      '继续观看',
+                      context.l10n.continueWatching,
                       onSeeAll: () => openLibrarySectionPage(context, LibrarySection.continueWatching),
                     ),
                     SliverToBoxAdapter(child: _buildContinueWatchingList(continueWatchingItems)),
@@ -125,7 +130,7 @@ class _HomeContentState extends State<HomeContent> {
                   slivers: [
                     _buildSectionHeaderSliver(
                       context,
-                      '最近添加',
+                      context.l10n.recentlyAdded,
                       onSeeAll: () => openLibrarySectionPage(context, LibrarySection.recentlyAdded),
                     ),
                     SliverToBoxAdapter(child: _buildRecentlyAddedList(recentlyAddedItems)),
@@ -144,7 +149,7 @@ class _HomeContentState extends State<HomeContent> {
 
                 return SliverMainAxisGroup(
                   slivers: [
-                    _buildSectionHeaderSliver(context, 'TMDB 趋势'),
+                    _buildSectionHeaderSliver(context, context.l10n.tmdbTrending),
                     SliverToBoxAdapter(child: _buildTrendingCards(provider)),
                     const SliverToBoxAdapter(child: SizedBox(height: 30)),
                   ],
@@ -166,7 +171,11 @@ class _HomeContentState extends State<HomeContent> {
       query: (repository, limit) => repository.watchTitles(query: widget.searchQuery, limit: limit),
       builder: (context, items) {
         if (items.isEmpty) {
-          return const AppResult(status: AppResultStatus.empty, title: '没有匹配的媒体', subtitle: '请尝试其他关键词');
+          return AppResult(
+            status: AppResultStatus.empty,
+            title: context.l10n.noMatchingMedia,
+            subtitle: context.l10n.tryOtherKeywords,
+          );
         }
 
         return MediaPosterGrid<LibraryItem>(
@@ -195,7 +204,7 @@ class _HomeContentState extends State<HomeContent> {
                   child: Row(
                     children: [
                       Text(
-                        '查看全部',
+                        context.l10n.viewAll,
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey[500]),
                       ),
                       const SizedBox(width: 4),
@@ -282,11 +291,11 @@ class _HomeContentState extends State<HomeContent> {
           // Trending Movies
           Expanded(
             child: TrendingCategoryCard(
-              config: const TrendingCardConfig(
+              config: TrendingCardConfig(
                 icon: Icons.local_fire_department_rounded,
                 iconColor: Color(0xFFFF6B35),
-                title: '热门电影',
-                subtitle: '全球前三',
+                title: context.l10n.trendingMovies,
+                subtitle: context.l10n.worldwideTopThree,
               ),
               items: provider.movies,
               isLoading: provider.isLoading || !provider.hasContent,
@@ -299,8 +308,8 @@ class _HomeContentState extends State<HomeContent> {
               config: TrendingCardConfig(
                 icon: Icons.tv_rounded,
                 iconColor: AppColors.primary(context),
-                title: '热门剧集',
-                subtitle: '最多观看',
+                title: context.l10n.trendingSeries,
+                subtitle: context.l10n.mostWatched,
               ),
               items: provider.tvShows,
               isLoading: provider.isLoading || !provider.hasContent,
@@ -310,11 +319,11 @@ class _HomeContentState extends State<HomeContent> {
           // Top Rated
           Expanded(
             child: TrendingCategoryCard(
-              config: const TrendingCardConfig(
+              config: TrendingCardConfig(
                 icon: Icons.star_rounded,
                 iconColor: Color(0xFFFFD60A),
-                title: '高分佳作',
-                subtitle: '评分最高',
+                title: context.l10n.topRated,
+                subtitle: context.l10n.highestRated,
               ),
               items: provider.topRated,
               isLoading: provider.isLoading || !provider.hasContent,

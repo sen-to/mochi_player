@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('shows the default footer and returns the confirmed result', (tester) async {
@@ -8,6 +9,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: Builder(
@@ -37,6 +41,9 @@ void main() {
   testWidgets('can omit the default footer', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: Builder(

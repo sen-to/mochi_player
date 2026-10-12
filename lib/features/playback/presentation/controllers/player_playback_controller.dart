@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/domain/playback_track.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/features/playback/application/external_subtitle_track.dart';
+import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';
+import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/features/playback/infrastructure/libmpv_log_buffer.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 
@@ -63,7 +64,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   bool _overrideEmbeddedSubtitleStyle = false;
   int _mediaOpenGeneration = 0;
   double _lastVolumeBeforeMute = 100;
-  String? _playerError;
+  AppFailure? _playerError;
   String? _resumePositionLabel;
   String? _pendingExternalSubtitlePath;
   final Map<String, _LoadedExternalSubtitle> _loadedExternalSubtitles = {};
@@ -91,7 +92,7 @@ class PlayerPlaybackController extends ChangeNotifier {
 
   bool get overrideEmbeddedSubtitleStyle => _overrideEmbeddedSubtitleStyle;
 
-  String? get playerError => _playerError;
+  AppFailure? get playerError => _playerError;
 
   String? get resumePositionLabel => _resumePositionLabel;
 
@@ -136,7 +137,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     }
     if (!move.isReady) {
       _setBuffering(false);
-      _playerError = '获取播放链接失败: ${move.item.fileName}';
+      _playerError = AppFailure.playbackLink;
       notifyListeners();
       return;
     }
@@ -266,7 +267,7 @@ class PlayerPlaybackController extends ChangeNotifier {
         if (_isDisposed || _isClosing) return;
         debugPrint('播放器错误: ${LibmpvLogBuffer.sanitize(error)}');
         _dumpLibmpvLogs();
-        _playerError = LibmpvLogBuffer.sanitize(error);
+        _playerError = AppFailure.playbackOpen;
         notifyListeners();
       }),
       engine.stream.log.listen((log) {
@@ -336,7 +337,7 @@ class PlayerPlaybackController extends ChangeNotifier {
       debugPrint('打开媒体失败: ${LibmpvLogBuffer.sanitize(error.toString())}');
       _dumpLibmpvLogs();
       if (_canUsePlayer(generation)) {
-        _playerError = LibmpvLogBuffer.sanitize(error.toString());
+        _playerError = AppFailure.playbackOpen;
         notifyListeners();
       }
     }

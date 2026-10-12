@@ -13,9 +13,11 @@ class PlayerWindowCoordinator {
     this.launchTimeout = const Duration(seconds: 10),
     this.closeTimeout = const Duration(seconds: 12),
   });
+
   final WindowService windows;
   final Duration launchTimeout;
   final Duration closeTimeout;
+  Map<String, Object?> Function()? _localeSnapshot;
   WindowHandle? _active;
   Future<void> _launchQueue = Future<void>.value();
   bool _shuttingDown = false;
@@ -25,17 +27,44 @@ class PlayerWindowCoordinator {
   Future<void> installMainWindowHandler(
     WindowHandle main, {
     required Future<void> Function(List<PlaybackMediaKey>) onPlaybackStateChanged,
-  }) => main.setHandler((call) async {
-    if (call.method != 'player.closed') throw MissingPluginException('Unsupported main-window method: ${call.method}');
-    final payload = call.arguments as Map;
-    if (_active?.id == payload['windowId']) _active = null;
-    final changed = (payload['changedMedia'] as List)
-        .map(PlaybackMediaKey.tryParse)
-        .whereType<PlaybackMediaKey>()
-        .toList(growable: false);
-    if (!_shuttingDown) await onPlaybackStateChanged(changed);
-    return null;
-  });
+    Map<String, Object?> Function()? localeSnapshot,
+  }) {
+    _localeSnapshot = localeSnapshot;
+    return main.setHandler((call) async {
+      if (call.method == 'app.getLocale') return _localeSnapshot?.call();
+      if (call.method != 'player.closed') {
+        throw MissingPluginException('Unsupported main-window method: ${call.method}');
+      }
+      final payload = call.arguments as Map;
+      if (_active?.id == payload['windowId']) _active = null;
+      final changed = (payload['changedMedia'] as List)
+          .map(PlaybackMediaKey.tryParse)
+          .whereType<PlaybackMediaKey>()
+          .toList(growable: false);
+      if (!_shuttingDown) await onPlaybackStateChanged(changed);
+      return null;
+    });
+  }
+
+  Future<void> synchronizeLocale(Map<String, Object?> snapshot) async {
+    if (_shuttingDown) return;
+    final all = await windows.getAll().timeout(const Duration(seconds: 3));
+    for (final window in all) {
+      if (_shuttingDown) return;
+      if (PlayerWindowRequest.tryDecode(window.arguments) != null) {
+        await window.invoke<void>('app.setLocale', snapshot);
+      }
+    }
+  }
+
+  Future<void> _syncLocale(WindowHandle window) async {
+    if (_shuttingDown || _localeSnapshot == null) return;
+    try {
+      await window.invoke<void>('app.setLocale', _localeSnapshot!());
+    } catch (error) {
+      debugPrint('Player locale synchronization failed: $error');
+    }
+  }
 
   Future<void> openOrReplace(PlayerWindowRequest request) {
     if (_shuttingDown) return Future.error(StateError('应用正在退出，无法启动播放器。'));
@@ -62,6 +91,8 @@ class PlayerWindowCoordinator {
         _checkRunning();
         if (result?['state'] == 'closing') throw StateError('播放器正在关闭。');
         if (result?['ready'] != true) throw const _PlayerWindowRequestRejected();
+        await _syncLocale(existing);
+        _checkRunning();
         await existing.invoke<void>('player.activate');
         return;
       } on _PlayerWindowRequestRejected {
@@ -138,7 +169,10 @@ class PlayerWindowCoordinator {
       _checkRunning();
       try {
         final result = await window.invoke<Map<Object?, Object?>>('player.ready');
-        if (result?['ready'] == true) return;
+        if (result?['ready'] == true) {
+          await _syncLocale(window);
+          return;
+        }
         if (result?['state'] == 'failed') {
           throw PlayerWindowLaunchFailed(
             mediaStatus: result?['media'] as String?,
@@ -158,6 +192,7 @@ class PlayerWindowCoordinator {
 
 class _PlayerWindowRequestRejected implements Exception {
   const _PlayerWindowRequestRejected();
+
   @override
   String toString() => '播放器无法准备新的媒体请求。';
 }
@@ -165,8 +200,10 @@ class _PlayerWindowRequestRejected implements Exception {
 /// The child already presents this failure; do not show another library toast.
 class PlayerWindowLaunchFailed implements Exception {
   const PlayerWindowLaunchFailed({this.mediaStatus, this.targetStatus});
+
   final String? mediaStatus;
   final String? targetStatus;
+
   @override
   String toString() => [mediaStatus, targetStatus].whereType<String>().where((status) => status.isNotEmpty).join(' · ');
 }

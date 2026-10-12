@@ -48,3 +48,15 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 fvm flutter build macos --debug     # 调试构建
 fvm flutter build macos --release   # 发布构建
 ```
+
+## 本地化生成
+
+首次检出或修改 ARB 后，在静态检查、测试与平台构建之前执行：
+
+```bash
+fvm flutter pub get
+fvm dart run tool/check_l10n.dart
+fvm flutter gen-l10n
+```
+
+生成文件位于 `lib/l10n/generated/`，不提交到仓库。Windows CI 已显式接入资源检查与生成，规则见 [ADR 0004](../decisions/0004-i18n-l10n.md)。

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_popup_menu.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('opens a rounded player menu above its control', (tester) async {
@@ -152,6 +153,9 @@ void main() {
 
 Widget _testApp(Widget child) {
   return MaterialApp(
+    locale: const Locale('zh'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     theme: AppTheme.darkTheme,
     home: Scaffold(
       backgroundColor: Colors.black,

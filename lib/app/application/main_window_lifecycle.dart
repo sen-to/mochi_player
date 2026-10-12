@@ -1,5 +1,5 @@
-import 'dart:ui' show AppExitResponse;
 import 'dart:async';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -9,6 +9,7 @@ import 'package:mochi_player/core/platform/window_service.dart';
 /// Routes the native close button and platform exit requests to one coordinator.
 class MainWindowLifecycle with WindowEvents {
   MainWindowLifecycle(this.windows, this.coordinator);
+
   final WindowService windows;
   final ApplicationExitCoordinator coordinator;
   static const _channel = MethodChannel('mochi_player/application_lifecycle');

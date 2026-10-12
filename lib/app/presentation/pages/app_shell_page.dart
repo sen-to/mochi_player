@@ -6,6 +6,7 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class AppShellPage extends StatefulWidget {
@@ -64,7 +65,9 @@ class _AppShellPageState extends State<AppShellPage> {
                     Positioned.fill(child: widget.navigationShell),
                     Selector<MediaLibraryProvider, _LibraryActivityState>(
                       selector: (context, provider) => _LibraryActivityState(
-                        message: provider.libraryActivityMessage,
+                        message: provider.libraryActivity == null
+                            ? null
+                            : context.l10n.activity(provider.libraryActivity!),
                         progress: provider.scrapeProgress,
                       ),
                       builder: (context, activity, child) {

@@ -44,8 +44,10 @@ class FakePlaybackEngine implements PlaybackEngine {
     completed: const Stream.empty(),
     subtitle: subtitles.stream,
   );
+
   @override
   Widget buildVideoSurface() => const SizedBox();
+
   @override
   Future<void> open(PlaybackTarget target, {Duration? start}) async {
     events.add('open');

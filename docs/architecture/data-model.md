@@ -59,3 +59,5 @@ schema 版本从 1 开始，表定义变更后执行 `fvm dart run build_runner 
 - 删除文件后元数据尚未回收。
 - 窗口退出已协调最后进度提交与连接关闭；Windows 原生交互及两平台真实视频退出仍需运行时验收，见 [0001](../decisions/0001-multi-window-strategy.md)。
 - 独立连接不自动共享失效通知；现有回传事件用于播放结束或切换后的刷新，播放过程实时同步需扩展协议。
+
+界面语言由 `AppLocaleController` 单独保存到 SharedPreferences 的 `app_language` 键（`system / zh / en`），不写入 SQLite，也不改变 `AppSettingsService` 的 TMDB / 字幕偏好。主窗口是语言偏好的写入方，播放器只接收版本化快照，避免子引擎缓存覆盖主窗口设置。

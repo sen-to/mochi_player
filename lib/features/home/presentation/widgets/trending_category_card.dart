@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:mochi_player/core/domain/media/trending_item.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// 趋势分类卡片配置
 class TrendingCardConfig {
@@ -52,7 +54,7 @@ class TrendingCategoryCard extends StatelessWidget {
           if (isLoading)
             _buildLoadingState(theme)
           else if (items.isEmpty)
-            _buildEmptyState(theme)
+            _buildEmptyState(context, theme)
           else
             ...items.asMap().entries.map(
               (entry) => _TrendingListItem(
@@ -160,11 +162,14 @@ class TrendingCategoryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
+  Widget _buildEmptyState(BuildContext context, ThemeData theme) {
     return SizedBox(
       height: 200,
       child: Center(
-        child: Text('暂无数据', style: TextStyle(color: theme.textTheme.bodySmall?.color?.withAlpha(128), fontSize: 13)),
+        child: Text(
+          context.l10n.noData,
+          style: TextStyle(color: theme.textTheme.bodySmall?.color?.withAlpha(128), fontSize: 13),
+        ),
       ),
     );
   }
@@ -289,7 +294,7 @@ class _TrendingListItemState extends State<_TrendingListItem> {
           const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
           const SizedBox(width: 4),
           Text(
-            widget.item.rating.toStringAsFixed(1),
+            NumberFormat('0.0', context.l10n.localeName).format(widget.item.rating),
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.amber[300]),
           ),
         ],

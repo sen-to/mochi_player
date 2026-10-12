@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 enum MediaArtworkType { poster, backdrop }
 
@@ -192,7 +194,7 @@ class _RatingBadge extends StatelessWidget {
           const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
           const SizedBox(width: 3),
           Text(
-            rating.toStringAsFixed(1),
+            NumberFormat('0.0', context.l10n.localeName).format(rating),
             style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ],

@@ -6,14 +6,15 @@ import 'package:mochi_player/core/ui/components/basic/app_button.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 abstract final class AppModal {
   static Future<bool?> confirm({
     required BuildContext context,
     required String title,
     required String message,
-    String confirmLabel = '确定',
-    String cancelLabel = '取消',
+    String? confirmLabel,
+    String? cancelLabel,
     IconData icon = Icons.help_outline_rounded,
     bool destructive = false,
   }) {
@@ -40,8 +41,8 @@ abstract final class AppModal {
     required BuildContext context,
     required String title,
     required Widget content,
-    String confirmLabel = '确定',
-    String cancelLabel = '取消',
+    String? confirmLabel,
+    String? cancelLabel,
     IconData? icon,
     bool destructive = false,
     bool showFooter = true,
@@ -53,7 +54,7 @@ abstract final class AppModal {
     return showGeneralDialog<bool>(
       context: context,
       barrierDismissible: barrierDismissible,
-      barrierLabel: '关闭弹窗',
+      barrierLabel: context.l10n.closeDialog,
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 240),
       pageBuilder: (dialogContext, animation, secondaryAnimation) {
@@ -71,8 +72,8 @@ abstract final class AppModal {
                 icon: icon,
                 destructive: destructive,
                 showFooter: showFooter,
-                confirmLabel: confirmLabel,
-                cancelLabel: cancelLabel,
+                confirmLabel: confirmLabel ?? dialogContext.l10n.confirm,
+                cancelLabel: cancelLabel ?? dialogContext.l10n.cancel,
                 onCancel: () => Navigator.of(dialogContext).pop(false),
                 onConfirm: onConfirm == null
                     ? () => Navigator.of(dialogContext).pop(true)

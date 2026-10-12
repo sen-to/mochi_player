@@ -6,22 +6,36 @@ import 'package:mochi_player/features/playback/domain/playback_track.dart';
 /// objects may escape it. The backend owns the video surface and native resources.
 abstract interface class PlaybackEngine {
   PlaybackState get state;
+
   PlaybackStreams get stream;
+
   Widget buildVideoSurface();
+
   Future<void> open(PlaybackTarget target, {Duration? start});
+
   Future<void> pause();
+
   Future<void> playOrPause();
+
   Future<void> seek(Duration position);
+
   Future<void> setVolume(double volume);
+
   Future<void> setRate(double rate);
+
   Future<void> setAudioTrack(PlaybackAudioTrack track);
+
   Future<void> setSubtitleTrack(PlaybackSubtitleTrack track);
+
   Future<void> applyOptions(PlaybackOptions options);
+
   Future<void> setSubtitleStyleOverride(bool override);
+
   Future<double?> readCacheBytesPerSecond();
 
   /// Invalidate pending option changes when switching media or shutting down.
   void cancelPendingCommands();
+
   Future<void> dispose();
 }
 
@@ -32,6 +46,7 @@ class PlaybackOptions {
     required this.hardwareAcceleration,
     required this.subtitleLanguagePriority,
   });
+
   final int cacheMaxBytes;
   final int readaheadSeconds;
   final bool hardwareAcceleration;
@@ -48,6 +63,7 @@ class PlaybackState {
     this.rate = 1,
     this.tracks = const PlaybackTracks(),
   });
+
   final Duration position;
   final Duration duration;
   final Duration buffer;
@@ -59,6 +75,7 @@ class PlaybackState {
 
 class PlaybackLog {
   const PlaybackLog({required this.prefix, required this.level, required this.text});
+
   final String prefix;
   final String level;
   final String text;
@@ -80,6 +97,7 @@ class PlaybackStreams {
     required this.completed,
     required this.subtitle,
   });
+
   final Stream<Duration> position;
   final Stream<Duration> duration;
   final Stream<Duration> buffer;

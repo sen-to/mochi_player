@@ -5,6 +5,7 @@ import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_icons.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 extension FileBrowserEntryDisplay on FileBrowserEntry {
   IconData get browserIcon => switch (kind) {
@@ -13,15 +14,17 @@ extension FileBrowserEntryDisplay on FileBrowserEntry {
     MediaFileKind.other => AppIcons.file,
   };
 
-  String get browserTypeLabel => switch (kind) {
-    MediaFileKind.directory => '文件夹',
-    MediaFileKind.video => '视频',
-    MediaFileKind.other => '文件',
+  String browserTypeLabel(BuildContext context) => switch (kind) {
+    MediaFileKind.directory => context.l10n.folder,
+    MediaFileKind.video => context.l10n.video,
+    MediaFileKind.other => context.l10n.file,
   };
 
-  String get browserSizeLabel => isDirectory ? '' : MediaFormat.fileSize(size);
+  String browserSizeLabel(BuildContext context) =>
+      isDirectory ? '' : MediaFormat.fileSize(size, locale: context.l10n.localeName);
 
-  String get browserModifiedAtLabel => modifiedAt == null ? '—' : DateFormat('yyyy-MM-dd HH:mm').format(modifiedAt!);
+  String browserModifiedAtLabel(BuildContext context) =>
+      modifiedAt == null ? '—' : DateFormat.yMd(context.l10n.localeName).add_Hm().format(modifiedAt!);
 
   Color browserIconColor(BuildContext context) {
     return switch (kind) {

@@ -4,6 +4,7 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/view_models/media_detail_view_model.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class CastList extends StatefulWidget {
   final MediaDetailViewModel viewModel;
@@ -34,7 +35,7 @@ class _CastListState extends State<CastList> {
       children: [
         SizedBox(height: widget.topPadding),
         Text(
-          "演员",
+          context.l10n.cast,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: theme.textTheme.bodyLarge?.color),
         ),
         const SizedBox(height: 12),

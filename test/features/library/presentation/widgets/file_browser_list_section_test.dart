@@ -4,6 +4,7 @@ import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_list.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('handles transient layout heights smaller than the summary', (tester) async {
@@ -17,6 +18,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Align(
           alignment: Alignment.topLeft,
@@ -39,6 +43,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Align(
           alignment: Alignment.topLeft,
@@ -74,6 +81,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: SizedBox(
           width: 600,

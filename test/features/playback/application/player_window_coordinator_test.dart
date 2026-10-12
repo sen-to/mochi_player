@@ -25,8 +25,10 @@ class FakeWindows extends WindowService {
   final List<String> events = [];
   Completer<WindowHandle>? creation;
   int created = 0;
+
   @override
   Future<List<WindowHandle>> getAll() async => List.of(all);
+
   @override
   Future<WindowHandle> create(String arguments) async {
     created++;
@@ -42,6 +44,7 @@ class FakeWindows extends WindowService {
 
 class FakeWindow implements WindowHandle {
   FakeWindow(this.windows, this.id, this.arguments);
+
   final FakeWindows windows;
   @override
   final String id;
@@ -50,12 +53,16 @@ class FakeWindow implements WindowHandle {
   Future<Object?> Function(MethodCall)? handler;
   Completer<void>? save;
   bool rejectReplace = false;
+  Completer<void>? ready;
+  final localeSnapshots = <Object?>[];
+
   @override
   Future<T?> invoke<T>(String method, [Object? arguments, Duration? timeout]) async {
     windows.events.add('$id:$method');
     Object? result;
     switch (method) {
       case 'player.ready':
+        await ready?.future;
         result = {'ready': true};
       case 'player.replaceRequest':
         if (rejectReplace) throw StateError('channel unavailable');
@@ -63,6 +70,8 @@ class FakeWindow implements WindowHandle {
       case 'player.prepareClose':
         if (save != null) await save!.future;
         result = {'prepared': true, 'saved': true, 'released': true};
+      case 'app.setLocale':
+        localeSnapshots.add(arguments);
       case 'player.close':
         windows.all.remove(this);
     }
@@ -74,6 +83,52 @@ class FakeWindow implements WindowHandle {
 }
 
 void main() {
+  test('player readiness and replacement calibrate the latest language', () async {
+    final windows = FakeWindows();
+    final coordinator = PlayerWindowCoordinator(windows);
+    final main = FakeWindow(windows, 'main', '');
+    var snapshot = <String, Object?>{'language': 'en', 'revision': 0};
+    await coordinator.installMainWindowHandler(
+      main,
+      localeSnapshot: () => snapshot,
+      onPlaybackStateChanged: (_) async {},
+    );
+    expect(await main.handler!(const MethodCall('app.getLocale')), snapshot);
+    await coordinator.openOrReplace(request('first'));
+    final player = windows.all.single;
+    expect(player.localeSnapshots.last, snapshot);
+    snapshot = {'language': 'zh', 'revision': 1};
+    await coordinator.synchronizeLocale(snapshot);
+    expect(player.localeSnapshots.last, snapshot);
+    await coordinator.openOrReplace(request('second'));
+    expect(windows.created, 1);
+    expect(player.localeSnapshots.last, snapshot);
+    coordinator.beginShutdown();
+    final notices = player.localeSnapshots.length;
+    await coordinator.synchronizeLocale({'language': 'en', 'revision': 2});
+    expect(player.localeSnapshots.length, notices);
+  });
+
+  test('language changed during native creation is sent after child readiness', () async {
+    final windows = FakeWindows()..creation = Completer<WindowHandle>();
+    final coordinator = PlayerWindowCoordinator(windows);
+    final main = FakeWindow(windows, 'main', '');
+    var snapshot = <String, Object?>{'language': 'en', 'revision': 0};
+    await coordinator.installMainWindowHandler(
+      main,
+      localeSnapshot: () => snapshot,
+      onPlaybackStateChanged: (_) async {},
+    );
+    final opening = coordinator.openOrReplace(request('first'));
+    await Future<void>.delayed(Duration.zero);
+    snapshot = {'language': 'zh', 'revision': 1};
+    final player = FakeWindow(windows, 'late', request('first').encode());
+    windows.all.add(player);
+    windows.creation!.complete(player);
+    await opening;
+    expect(player.localeSnapshots.single, snapshot);
+  });
+
   test('shutdown waits for durable preparation before closing the player', () async {
     final windows = FakeWindows();
     final coordinator = PlayerWindowCoordinator(windows);

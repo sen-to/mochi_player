@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' show NumberFormat;
+import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
-import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_popup_menu.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_seek_time_preview.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class PlayerControls extends StatefulWidget {
   final PlaybackEngine engine;
@@ -130,9 +132,10 @@ class _PlayerControlsState extends State<PlayerControls> {
   Future<void> _updateCacheSpeed() async {
     try {
       final bytesPerSecond = await widget.engine.readCacheBytesPerSecond();
+      if (!mounted) return;
       final cacheSpeed = bytesPerSecond == null || !bytesPerSecond.isFinite || bytesPerSecond <= 0
           ? ''
-          : _formatCacheSpeed(bytesPerSecond);
+          : _formatCacheSpeed(bytesPerSecond, context.l10n.localeName);
       if (mounted && cacheSpeed != _cacheSpeed) {
         setState(() => _cacheSpeed = cacheSpeed);
       }
@@ -141,12 +144,12 @@ class _PlayerControlsState extends State<PlayerControls> {
     }
   }
 
-  static String _formatCacheSpeed(double bytesPerSecond) {
+  static String _formatCacheSpeed(double bytesPerSecond, String locale) {
     const bytesPerMegabyte = 1024 * 1024;
     if (bytesPerSecond >= bytesPerMegabyte) {
-      return '${(bytesPerSecond / bytesPerMegabyte).toStringAsFixed(1)} MB/s';
+      return '${NumberFormat('0.0', locale).format(bytesPerSecond / bytesPerMegabyte)} MB/s';
     }
-    return '${(bytesPerSecond / 1024).toStringAsFixed(0)} KB/s';
+    return '${NumberFormat('0', locale).format(bytesPerSecond / 1024)} KB/s';
   }
 
   @override
@@ -394,7 +397,7 @@ class _PlayerControlsState extends State<PlayerControls> {
 }
 
 class _RateMenuButton extends StatelessWidget {
-  static const List<double> _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+  static final List<double> _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
 
   final double rate;
   final ValueChanged<double> onSelected;
@@ -402,11 +405,11 @@ class _RateMenuButton extends StatelessWidget {
 
   const _RateMenuButton({required this.rate, required this.onSelected, this.onMenuVisibilityChanged});
 
-  String _labelFor(double value) {
+  String _labelFor(BuildContext context, double value) {
     if (value == value.roundToDouble()) {
-      return '${value.toInt()}×';
+      return '${NumberFormat('0', context.l10n.localeName).format(value)}×';
     }
-    return '${value.toStringAsFixed(2).replaceAll(RegExp(r'0$'), '')}×';
+    return '${NumberFormat('0.0#', context.l10n.localeName).format(value)}×';
   }
 
   @override
@@ -415,11 +418,11 @@ class _RateMenuButton extends StatelessWidget {
       menuWidth: 148,
       onVisibilityChanged: onMenuVisibilityChanged,
       menuBuilder: (context, close) => PlayerPopupMenuPanel(
-        title: '播放速度',
+        title: context.l10n.playbackSpeed,
         children: [
           for (final value in _rates)
             PlayerPopupMenuItem(
-              label: _labelFor(value),
+              label: _labelFor(context, value),
               selected: (rate - value).abs() < 0.01,
               onPressed: () {
                 close();
@@ -431,7 +434,7 @@ class _RateMenuButton extends StatelessWidget {
       child: PlayerMenuButtonSurface(
         width: 42,
         child: Text(
-          _labelFor(rate),
+          _labelFor(context, rate),
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -458,7 +461,7 @@ class _AudioMenuButton extends StatelessWidget {
     this.onMenuVisibilityChanged,
   });
 
-  String _labelFor(PlaybackAudioTrack track) {
+  String _labelFor(BuildContext context, PlaybackAudioTrack track) {
     final title = track.title?.trim();
     final language = track.language?.trim();
     final codec = track.codec?.trim();
@@ -477,7 +480,7 @@ class _AudioMenuButton extends StatelessWidget {
       parts.add(channels);
     }
     if (parts.isEmpty) {
-      parts.add('音轨 ${track.id}');
+      parts.add(context.l10n.audioTrackLabel(track.id));
     }
     return parts.join(' / ');
   }
@@ -488,7 +491,7 @@ class _AudioMenuButton extends StatelessWidget {
       menuWidth: 240,
       onVisibilityChanged: onMenuVisibilityChanged,
       menuBuilder: (context, close) => PlayerPopupMenuPanel(
-        title: '音轨',
+        title: context.l10n.audioTracks,
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 280),
@@ -497,7 +500,7 @@ class _AudioMenuButton extends StatelessWidget {
                 children: [
                   for (final track in tracks)
                     PlayerPopupMenuItem(
-                      label: _labelFor(track),
+                      label: _labelFor(context, track),
                       selected: selectedTrack == track,
                       onPressed: () {
                         close();
@@ -536,8 +539,8 @@ class _SubtitleMenuButton extends StatelessWidget {
 
   bool _isOff(PlaybackSubtitleTrack track) => track.isDisabled;
 
-  String _labelFor(PlaybackSubtitleTrack track) {
-    if (_isOff(track)) return '关闭字幕';
+  String _labelFor(BuildContext context, PlaybackSubtitleTrack track) {
+    if (_isOff(track)) return context.l10n.subtitlesOff;
 
     final title = track.title?.trim();
     final language = track.language?.trim();
@@ -549,7 +552,7 @@ class _SubtitleMenuButton extends StatelessWidget {
       parts.add(language);
     }
     if (parts.isEmpty) {
-      parts.add('字幕 ${track.id}');
+      parts.add(context.l10n.subtitleTrackLabel(track.id));
     }
     return parts.join(' / ');
   }
@@ -560,7 +563,7 @@ class _SubtitleMenuButton extends StatelessWidget {
       menuWidth: 280,
       onVisibilityChanged: onMenuVisibilityChanged,
       menuBuilder: (context, close) => PlayerPopupMenuPanel(
-        title: '字幕',
+        title: context.l10n.subtitles,
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 240),
@@ -569,7 +572,7 @@ class _SubtitleMenuButton extends StatelessWidget {
                 children: [
                   for (final track in tracks)
                     PlayerPopupMenuItem(
-                      label: _labelFor(track),
+                      label: _labelFor(context, track),
                       selected: selectedTrack == track,
                       onPressed: () {
                         close();
@@ -579,7 +582,7 @@ class _SubtitleMenuButton extends StatelessWidget {
                   if (onExternalSubtitleRequested != null) ...[
                     const PlayerPopupMenuDivider(),
                     PlayerPopupMenuItem(
-                      label: '加载外挂字幕…',
+                      label: context.l10n.loadExternalSubtitle,
                       onPressed: () {
                         close();
                         onExternalSubtitleRequested!();
@@ -592,8 +595,8 @@ class _SubtitleMenuButton extends StatelessWidget {
           ),
           const PlayerPopupMenuDivider(),
           PlayerPopupMenuSwitchItem(
-            title: '使用 Mochi 字幕样式',
-            subtitle: '忽略字幕文件自带的字体与颜色',
+            title: context.l10n.mochiSubtitleStyle,
+            subtitle: context.l10n.mochiSubtitleStyleDescription,
             value: overrideEmbeddedStyle,
             onChanged: onStyleOverrideChanged,
           ),

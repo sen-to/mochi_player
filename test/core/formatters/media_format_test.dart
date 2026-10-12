@@ -1,23 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
+import 'package:mochi_player/l10n/generated/app_localizations_zh.dart';
 
 void main() {
   test('formats file sizes consistently through terabytes', () {
-    expect(MediaFormat.fileSize(-1), isEmpty);
-    expect(MediaFormat.fileSize(0), '0 B');
-    expect(MediaFormat.fileSize(1023), '1023 B');
-    expect(MediaFormat.fileSize(1024), '1.0 KB');
-    expect(MediaFormat.fileSize(1024 * 1024 * 1024), '1.00 GB');
-    expect(MediaFormat.fileSize(1024 * 1024 * 1024 * 1024), '1.00 TB');
+    expect(MediaFormat.fileSize(-1, locale: 'en'), isEmpty);
+    expect(MediaFormat.fileSize(0, locale: 'en'), '0 B');
+    expect(MediaFormat.fileSize(1023, locale: 'en'), '1,023 B');
+    expect(MediaFormat.fileSize(1024, locale: 'en'), '1.0 KB');
+    expect(MediaFormat.fileSize(1024 * 1024 * 1024, locale: 'en'), '1.00 GB');
+    expect(MediaFormat.fileSize(1024 * 1024 * 1024 * 1024, locale: 'en'), '1.00 TB');
   });
 
-  test('formats clock, compact, episode, and season labels', () {
+  test('formats clock, episode codes, and localized season counts', () {
     expect(MediaFormat.clockDuration(const Duration(hours: 1, minutes: 2, seconds: 3)), '1:02:03');
-    expect(MediaFormat.compactDuration(const Duration(minutes: 42)), '42m');
-    expect(MediaFormat.episodeLabel(_episode()), '第 2 季 第 7 集');
-    expect(MediaFormat.seasonCount(1), '1 季');
-    expect(MediaFormat.seasonCount(4), '4 季');
+    expect(MediaFormat.episodeCode(_episode()), 'S02E07');
+    expect(AppLocalizationsZh().totalSeasonCount(1), '共 1 季');
+    expect(AppLocalizationsZh().totalSeasonCount(4), '共 4 季');
   });
 }
 

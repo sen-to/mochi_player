@@ -6,6 +6,7 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/pages/media_detail_page.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_rating_tag.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// 首页 Hero Section
 /// 展示随机选择的一部电影或剧集，带有背景图、标题和操作按钮
@@ -155,7 +156,7 @@ class HeroSection extends StatelessWidget {
         AppButton(
           onPressed: () => _handlePlay(context),
           icon: Icons.play_arrow_rounded,
-          label: '播放',
+          label: context.l10n.playback,
           size: AppButtonSize.regular,
         ),
         const SizedBox(width: 12),
@@ -163,7 +164,7 @@ class HeroSection extends StatelessWidget {
         AppButton(
           onPressed: () => _handleMoreInfo(context),
           icon: Icons.info_outline_rounded,
-          label: '详情',
+          label: context.l10n.details,
           variant: AppButtonVariant.secondary,
           appearance: AppAppearance.overlay,
           size: AppButtonSize.regular,

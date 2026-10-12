@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 /// to the desktop multi-window implementation.
 class PlayerWindowCloseCoordinator {
   PlayerWindowCloseCoordinator({this.stageTimeout = const Duration(seconds: 2)});
+
   final Duration stageTimeout;
   Future<Map<String, Object?>>? _preparing;
 

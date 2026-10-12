@@ -81,20 +81,27 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
     kit.Media(target.url, httpHeaders: {'User-Agent': 'MochiPlayer/1.0.0', ...target.httpHeaders}, start: start),
     play: true,
   );
+
   @override
   Future<void> pause() => _player.pause();
+
   @override
   Future<void> playOrPause() => _player.playOrPause();
+
   @override
   Future<void> seek(Duration position) => _player.seek(position);
+
   @override
   Future<void> setVolume(double volume) => _player.setVolume(volume);
+
   @override
   Future<void> setRate(double rate) => _player.setRate(rate);
+
   @override
   Future<void> setAudioTrack(PlaybackAudioTrack track) => _player.setAudioTrack(
     kit.AudioTrack(track.id, track.title, track.language, uri: track.origin == PlaybackTrackOrigin.externalFile),
   );
+
   @override
   Future<void> setSubtitleTrack(PlaybackSubtitleTrack track) => _player.setSubtitleTrack(
     kit.SubtitleTrack(
@@ -155,6 +162,7 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
 
   @override
   void cancelPendingCommands() => _commandGeneration++;
+
   @override
   Future<void> dispose() {
     if (_disposal != null) return _disposal!;
@@ -180,6 +188,7 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
     codec: track.codec,
     channels: track.channels,
   );
+
   static PlaybackSubtitleTrack _subtitle(kit.SubtitleTrack track) => PlaybackSubtitleTrack(
     track.id,
     track.title,
@@ -187,6 +196,7 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
     origin: _origin(track.id, track.uri, track.data),
     isDefault: track.isDefault,
   );
+
   static PlaybackTracks _tracks(kit.Tracks tracks) => PlaybackTracks(
     audio: List.unmodifiable(tracks.audio.map(_audio)),
     subtitle: List.unmodifiable(tracks.subtitle.map(_subtitle)),

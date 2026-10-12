@@ -80,6 +80,8 @@ sequenceDiagram
 
 | 方向 | 方法 | 作用 |
 | --- | --- | --- |
+| 主 → 子 | `app.setLocale` | 应用语言快照（偏好与 revision），子窗口拒绝过期通知；不重开媒体 |
+| 子 → 主 | `app.getLocale` | 启动时读取主窗口权威语言偏好 |
 | 主 → 子 | `player.ready` | 等待播放器窗口就绪 |
 | 主 → 子 | `player.replaceRequest` | 复用现有窗口播放新的请求 |
 | 主 → 子 | `player.activate` | 聚焦已有窗口 |

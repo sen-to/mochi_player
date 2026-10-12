@@ -1,20 +1,30 @@
 import 'package:flutter/widgets.dart';
 import 'package:mochi_player/core/ui/theme/app_icons.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 enum AppDestination {
-  home(pathSegment: 'home', title: '首页', icon: AppIcons.libraryHome, showsHeader: true),
-  movies(pathSegment: 'movies', title: '电影', icon: AppIcons.movies, showsHeader: true),
-  series(pathSegment: 'series', title: '剧集', icon: AppIcons.series, showsHeader: true),
-  fileBrowser(pathSegment: 'files', title: '文件浏览', icon: AppIcons.fileBrowser),
-  favorites(pathSegment: 'favorites', title: '收藏', icon: AppIcons.favorites, showsHeader: true),
-  settings(pathSegment: 'settings', title: '设置', icon: AppIcons.settings);
+  home(pathSegment: 'home', icon: AppIcons.libraryHome, showsHeader: true),
+  movies(pathSegment: 'movies', icon: AppIcons.movies, showsHeader: true),
+  series(pathSegment: 'series', icon: AppIcons.series, showsHeader: true),
+  fileBrowser(pathSegment: 'files', icon: AppIcons.fileBrowser),
+  favorites(pathSegment: 'favorites', icon: AppIcons.favorites, showsHeader: true),
+  settings(pathSegment: 'settings', icon: AppIcons.settings);
 
   final String pathSegment;
-  final String title;
+
   final IconData icon;
   final bool showsHeader;
 
-  const AppDestination({required this.pathSegment, required this.title, required this.icon, this.showsHeader = false});
+  const AppDestination({required this.pathSegment, required this.icon, this.showsHeader = false});
+
+  String title(BuildContext context) => switch (this) {
+    home => context.l10n.home,
+    movies => context.l10n.movies,
+    series => context.l10n.series,
+    fileBrowser => context.l10n.fileBrowser,
+    favorites => context.l10n.favorites,
+    settings => context.l10n.settings,
+  };
 
   String get path => '/$pathSegment';
 }

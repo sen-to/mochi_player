@@ -1,4 +1,3 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -6,9 +5,11 @@ import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/view_models/media_detail_view_model.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_detail/favorite_button.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_rating_tag.dart';
 import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 const double _detailReadableWidth = 820;
 
@@ -160,7 +161,7 @@ class _HeaderContent extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: _detailReadableWidth),
           child: Text(
-            viewModel.overview,
+            viewModel.overview ?? context.l10n.noOverview,
             maxLines: compact ? 2 : 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -197,12 +198,18 @@ class _PrimaryActionArea extends StatelessWidget {
     if (viewModel.isTVShow) {
       final target = EpisodePlaybackTargetResolver.resolveForShowPlayback(files);
       if (target == null) {
-        return const _PrimaryPlayAction(label: '不可播放', detail: '未找到可播放剧集', enabled: false);
+        return _PrimaryPlayAction(
+          label: context.l10n.unplayable,
+          detail: context.l10n.noPlayableEpisodes,
+          enabled: false,
+        );
       }
-      final verb = target.resumesCurrentEpisode ? '继续' : '播放';
+      final verb = target.resumesCurrentEpisode ? 'resume' : 'play';
       return _PrimaryPlayAction(
-        label: _episodeActionLabel(target.file, verb),
-        detail: target.resumesCurrentEpisode ? _resumeDetail(target.file) : _episodeCountDetail(files),
+        label: _episodeActionLabel(context, target.file, verb),
+        detail: target.resumesCurrentEpisode
+            ? _resumeDetail(context, target.file)
+            : _episodeCountDetail(context, files),
         onPressed: () => PlaybackLauncher.playFile(context, target.file, contextTitle: viewModel.title),
       );
     }
@@ -211,8 +218,8 @@ class _PrimaryActionArea extends StatelessWidget {
 
     if (resumeFile != null) {
       return _PrimaryPlayAction(
-        label: '继续播放',
-        detail: _resumeDetail(resumeFile),
+        label: context.l10n.resumePlayback,
+        detail: _resumeDetail(context, resumeFile),
         onPressed: () => PlaybackLauncher.playFile(context, resumeFile),
       );
     }
@@ -220,13 +227,13 @@ class _PrimaryActionArea extends StatelessWidget {
     final movie = viewModel.movie;
     if (movie != null) {
       return _PrimaryPlayAction(
-        label: '播放',
+        label: context.l10n.play,
         enabled: files.isNotEmpty,
         onPressed: files.isEmpty ? null : () => PlaybackLauncher.playMovie(context, movie),
       );
     }
 
-    return const _PrimaryPlayAction(label: '不可播放', enabled: false);
+    return _PrimaryPlayAction(label: context.l10n.unplayable, enabled: false);
   }
 
   MediaFile? _latestResumeFile(List<MediaFile> files) {
@@ -236,21 +243,21 @@ class _PrimaryActionArea extends StatelessWidget {
     return candidates.first;
   }
 
-  String _episodeActionLabel(MediaFile file, String verb) {
+  String _episodeActionLabel(BuildContext context, MediaFile file, String verb) {
     final episode = file.parsedEpisode;
-    if (episode != null) return '$verb第 $episode 集';
+    if (episode != null) return context.l10n.episodeAction(verb, episode);
 
-    return '$verb第 ?? 集';
+    return context.l10n.episodeActionUnknown(verb);
   }
 
-  String _resumeDetail(MediaFile file) {
-    if (file.duration <= 0) return '从上次进度继续';
-    return '从 ${MediaFormat.clockDuration(Duration(milliseconds: file.position))} 继续';
+  String _resumeDetail(BuildContext context, MediaFile file) {
+    if (file.duration <= 0) return context.l10n.resumeLastPosition;
+    return context.l10n.resumeFrom(MediaFormat.clockDuration(Duration(milliseconds: file.position)));
   }
 
-  String _episodeCountDetail(List<MediaFile> files) {
+  String _episodeCountDetail(BuildContext context, List<MediaFile> files) {
     final count = files.where((file) => file.mediaType == MediaType.episode).length;
-    return count == 1 ? '1 集可播放' : '$count 集可播放';
+    return context.l10n.playableEpisodeCount(count);
   }
 }
 
@@ -275,7 +282,7 @@ class _MetadataStrip extends StatelessWidget {
     if (viewModel.isTVShow) {
       final totalSeasonCount = viewModel.totalSeasonCount;
       if (totalSeasonCount != null && totalSeasonCount > 0) {
-        items.add(AppTag(text: '共 $totalSeasonCount 季', appearance: AppAppearance.overlay));
+        items.add(AppTag(text: context.l10n.totalSeasonCount(totalSeasonCount), appearance: AppAppearance.overlay));
       }
     }
     items.addAll(viewModel.genres.take(3).map((genre) => AppTag(text: genre, appearance: AppAppearance.overlay)));

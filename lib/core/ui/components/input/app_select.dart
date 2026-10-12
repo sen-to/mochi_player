@@ -6,6 +6,7 @@ import 'package:mochi_player/core/ui/theme/app_icons.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 import 'package:mochi_player/core/ui/theme/app_typography.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class AppSelectOption<T> {
   final T value;
@@ -18,15 +19,15 @@ class AppSelect<T> extends StatelessWidget {
   static const double _height = 32;
 
   final T? value;
-  final String placeholder;
+  final String? placeholder;
   final List<AppSelectOption<T>> options;
   final ValueChanged<T>? onChanged;
 
-  const AppSelect({super.key, required this.value, required this.options, this.onChanged, this.placeholder = '选择'});
+  const AppSelect({super.key, required this.value, required this.options, this.onChanged, this.placeholder});
 
   @override
   Widget build(BuildContext context) {
-    final selectedLabel = _labelFor(value) ?? placeholder;
+    final selectedLabel = _labelFor(value) ?? placeholder ?? context.l10n.select;
     final foreground = AppColors.textPrimary(context).withAlpha(230);
     final isEnabled = onChanged != null;
 

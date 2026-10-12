@@ -5,6 +5,7 @@ import 'package:mochi_player/features/home/presentation/widgets/home_content.dar
 import 'package:mochi_player/features/library/presentation/pages/file_browser_page.dart';
 import 'package:mochi_player/features/library/presentation/pages/library_page.dart';
 import 'package:mochi_player/features/settings/presentation/pages/settings_page.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class AppDestinationRootPage extends StatelessWidget {
   const AppDestinationRootPage({super.key, required this.destination});
@@ -65,11 +66,11 @@ class _HomeDestinationPageState extends State<_HomeDestinationPage> {
           right: 0,
           height: AppHeader.height,
           child: AppHeader(
-            title: AppDestination.home.title,
+            title: AppDestination.home.title(context),
             trailing: SizedBox(
               width: 240,
               child: AppSearchInput(
-                placeholder: '搜索媒体库…',
+                placeholder: context.l10n.searchLibrary,
                 onChanged: (query) {
                   if (query == _searchQuery) return;
                   setState(() => _searchQuery = query);
@@ -111,7 +112,7 @@ class _LibraryDestinationPageState extends State<_LibraryDestinationPage> {
             right: 0,
             height: AppHeader.height,
             child: AppHeader(
-              title: widget.destination.title,
+              title: widget.destination.title(context),
               trailing: SizedBox(
                 width: 240,
                 child: AppSearchInput(
@@ -130,9 +131,9 @@ class _LibraryDestinationPageState extends State<_LibraryDestinationPage> {
 
   String _searchHint(LibraryCategory category) {
     return switch (category) {
-      LibraryCategory.movies => '搜索电影…',
-      LibraryCategory.series => '搜索剧集…',
-      LibraryCategory.favorites => '搜索收藏…',
+      LibraryCategory.movies => context.l10n.searchMovies,
+      LibraryCategory.series => context.l10n.searchSeries,
+      LibraryCategory.favorites => context.l10n.searchFavorites,
     };
   }
 }

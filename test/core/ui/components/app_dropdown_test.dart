@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('opens the anchored menu and selects an option', (tester) async {
@@ -10,6 +11,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: Center(
@@ -43,6 +47,9 @@ void main() {
   testWidgets('stays open when the pointer moves from trigger to an option', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: Center(
@@ -81,6 +88,9 @@ void main() {
   testWidgets('can align an action menu to the trigger trailing edge', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: Center(

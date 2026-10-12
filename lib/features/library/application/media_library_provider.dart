@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/features/library/application/library_sync_controller.dart';
@@ -12,6 +14,7 @@ class MediaLibraryProvider extends ChangeNotifier {
     repository = LibraryRepository(_db);
     _sync = LibrarySyncController(database: _db)..addListener(_relay);
   }
+
   final DatabaseService _db;
   late final LibraryRepository repository;
   late final LibrarySyncController _sync;
@@ -19,6 +22,7 @@ class MediaLibraryProvider extends ChangeNotifier {
   Future<void>? _loading;
   bool _initialized = false;
   bool _disposed = false;
+
   void beginShutdown() {
     _disposed = true;
     _sync.beginShutdown();
@@ -32,20 +36,26 @@ class MediaLibraryProvider extends ChangeNotifier {
     await _sync.shutdown();
   }
 
-  String? _loadError;
+  AppFailure? _loadError;
   int totalFiles = 0;
   List<LibraryItem> recentlyAddedContent = const [];
   List<MediaCardViewData> continueWatchingItems = const [];
   LibraryItem? _hero;
 
   bool get isLoading => !_initialized || _sync.isLoading;
-  String? get error => _loadError ?? _sync.error;
+
+  AppFailure? get error => _loadError ?? _sync.error;
+
   double? get scrapeProgress => _sync.scrapeProgress;
-  String? get libraryActivityMessage => _sync.activityMessage;
+
+  LibraryActivity? get libraryActivity => _sync.activity;
+
   bool get hasLibraryContent => recentlyAddedContent.isNotEmpty || continueWatchingItems.isNotEmpty;
+
   LibraryItem? get heroItem => _hero;
 
   Future<void> loadFromDatabase() => _loading ??= _load();
+
   Future<void> _load() async {
     try {
       await _db.init();
@@ -62,7 +72,7 @@ class MediaLibraryProvider extends ChangeNotifier {
               _relay();
             },
             onError: (Object error, StackTrace stack) {
-              _loadError = '$error';
+              _loadError = AppFailure.contentLoad;
               if (!ready.isCompleted) ready.completeError(error, stack);
               _relay();
             },
@@ -79,7 +89,7 @@ class MediaLibraryProvider extends ChangeNotifier {
       subscribe(repository.watchHero(), (value) => _hero = value);
       await Future.wait(initial);
     } catch (error) {
-      _loadError = '$error';
+      _loadError = AppFailure.contentLoad;
     } finally {
       _initialized = true;
       _relay();
@@ -87,20 +97,26 @@ class MediaLibraryProvider extends ChangeNotifier {
   }
 
   Future<List<MediaFile>> getVersions(String id) => repository.getVersions(id);
+
   Future<List<MediaFile>> getPlaybackQueue(MediaFile file) => repository.getPlaybackQueue(file);
+
   Future<MediaFile?> getEpisodeFile(String id) => repository.getEpisodeFile(id);
+
   Future<MediaFile?> getLatestMediaFile(MediaFile file) => _db.getMediaFile(file.sourceId, file.path);
+
   Future<void> refreshPlaybackState(Iterable<({String sourceId, String path})> changed) async {
     if (changed.isNotEmpty) _db.invalidatePlaybackQueries();
   }
 
   Future<MediaSourceScanSummary?> scanMediaSources() => _sync.scanEnabledMediaSources();
+
   Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {
     final latest = await getLatestMediaFile(file);
     if (latest != null) await _db.updateProgress(latest, position, duration: duration);
   }
 
   Future<bool> setFavorite(String id, {required bool isFavorite}) => _db.setTitleFavorite(id, isFavorite);
+
   Future<void> clearLibrary() async {
     await _db.clearLibrary();
     _sync.reset();

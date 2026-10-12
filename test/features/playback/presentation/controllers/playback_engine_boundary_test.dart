@@ -10,18 +10,23 @@ import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 import '../../../../support/fake_playback_engine.dart';
 
 class _Store implements PlaybackMediaStore {
   _Store(this.item, this.events);
+
   final MediaFile item;
   final List<String> events;
   int? savedPosition;
+
   @override
   Iterable<PlaybackMediaKey> get changedMedia => const [];
+
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async => item;
+
   @override
   Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {
     events.add('save');
@@ -121,6 +126,9 @@ void main() {
     engine.state = const PlaybackState(position: Duration(seconds: 30), duration: Duration(minutes: 2));
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: PlayerControls(engine: engine, isVisible: true, isFullScreen: false, onToggleFullScreen: () {}),
         ),

@@ -1,13 +1,14 @@
 import 'dart:io';
-import 'package:drift/native.dart';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/database/app_database.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
-import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
+import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
 
 MediaFile file(String path, {String source = 'nas'}) => MediaFile(
   id: 0,
@@ -18,6 +19,7 @@ MediaFile file(String path, {String source = 'nas'}) => MediaFile(
   mediaType: MediaType.movie,
   addedAt: DateTime.utc(2026, 10, 11, 1, 2, 3, 4, 5),
 );
+
 StorageSourceRow source(String id) => StorageSourceRow(
   id: 0,
   sourceId: id,
@@ -242,6 +244,7 @@ void main() {
 class _BatchRecorder extends QueryInterceptor {
   final List<BatchedStatements> batches = [];
   final List<String> selects = [];
+
   @override
   Future<void> runBatched(QueryExecutor executor, BatchedStatements statements) {
     batches.add(statements);

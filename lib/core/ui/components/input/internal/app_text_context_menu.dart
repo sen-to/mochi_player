@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// Internal adapter from Flutter text-editing actions to the application menu.
 class AppTextContextMenu extends StatelessWidget {
@@ -33,7 +34,7 @@ class AppTextContextMenu extends StatelessWidget {
               child: MenuPanel(
                 children: [
                   for (final item in buttonItems)
-                    MenuOptionRow(onPressed: item.onPressed, child: Text(_labelFor(item))),
+                    MenuOptionRow(onPressed: item.onPressed, child: Text(_labelFor(context, item))),
                 ],
               ),
             ),
@@ -74,18 +75,18 @@ class AppTextContextMenu extends StatelessWidget {
     return items;
   }
 
-  static String _labelFor(ContextMenuButtonItem item) {
+  static String _labelFor(BuildContext context, ContextMenuButtonItem item) {
     return switch (item.type) {
-      ContextMenuButtonType.cut => '剪切',
-      ContextMenuButtonType.copy => '复制',
-      ContextMenuButtonType.paste => '粘贴',
-      ContextMenuButtonType.selectAll => '全选',
-      ContextMenuButtonType.delete => '删除',
-      ContextMenuButtonType.lookUp => '查询',
-      ContextMenuButtonType.searchWeb => '网页搜索',
-      ContextMenuButtonType.share => '分享',
-      ContextMenuButtonType.liveTextInput => '实况文本',
-      ContextMenuButtonType.custom => item.label ?? '操作',
+      ContextMenuButtonType.cut => MaterialLocalizations.of(context).cutButtonLabel,
+      ContextMenuButtonType.copy => MaterialLocalizations.of(context).copyButtonLabel,
+      ContextMenuButtonType.paste => MaterialLocalizations.of(context).pasteButtonLabel,
+      ContextMenuButtonType.selectAll => MaterialLocalizations.of(context).selectAllButtonLabel,
+      ContextMenuButtonType.delete => MaterialLocalizations.of(context).deleteButtonTooltip,
+      ContextMenuButtonType.lookUp => MaterialLocalizations.of(context).lookUpButtonLabel,
+      ContextMenuButtonType.searchWeb => MaterialLocalizations.of(context).searchWebButtonLabel,
+      ContextMenuButtonType.share => MaterialLocalizations.of(context).shareButtonLabel,
+      ContextMenuButtonType.liveTextInput => context.l10n.liveTextInput,
+      ContextMenuButtonType.custom => item.label ?? context.l10n.action,
     };
   }
 }

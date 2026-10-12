@@ -1,12 +1,13 @@
-import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
-import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:mochi_player/features/library/presentation/pages/media_detail_page.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_item_poster_card.dart';
+import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_card.dart';
 import 'package:mochi_player/features/library/presentation/widgets/media_poster_grid.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 enum LibraryCategory { movies, series, favorites }
 
@@ -58,7 +59,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildMovieGrid(BuildContext context, List<LibraryItem> items) {
     if (items.isEmpty) {
-      return _buildEmptyState('电影', hasQuery: _hasSearchQuery);
+      return _buildEmptyState(context.l10n.movies, hasQuery: _hasSearchQuery);
     }
 
     return _buildGridView(
@@ -71,7 +72,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildTVShowGrid(BuildContext context, List<LibraryItem> items) {
     if (items.isEmpty) {
-      return _buildEmptyState('剧集', hasQuery: _hasSearchQuery);
+      return _buildEmptyState(context.l10n.series, hasQuery: _hasSearchQuery);
     }
 
     return _buildGridView(
@@ -84,7 +85,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildFavoritesGrid(BuildContext context, List<MediaCardViewData> items) {
     if (items.isEmpty) {
-      return _buildEmptyState('收藏', hasQuery: _hasSearchQuery);
+      return _buildEmptyState(context.l10n.favorites, hasQuery: _hasSearchQuery);
     }
 
     return _buildGridView(
@@ -123,8 +124,8 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget _buildEmptyState(String category, {required bool hasQuery}) {
     return AppResult(
       status: AppResultStatus.empty,
-      title: hasQuery ? '没有匹配的$category' : '没有找到$category',
-      subtitle: hasQuery ? '请尝试其他关键词' : '请先扫描媒体库以发现资源',
+      title: hasQuery ? context.l10n.noMatchingCategory(category) : context.l10n.noCategoryFound(category),
+      subtitle: hasQuery ? context.l10n.tryOtherKeywords : context.l10n.scanToDiscover,
     );
   }
 }

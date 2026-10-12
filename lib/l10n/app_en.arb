@@ -1,0 +1,1312 @@
+{
+  "@@locale": "en",
+  "languageSystem": "Follow system",
+  "languageChinese": "简体中文",
+  "languageEnglish": "English",
+  "resumeFrom": "Resume from {position}",
+  "@resumeFrom": {
+    "description": "Application UI: Resume from {position}",
+    "placeholders": {
+      "position": {
+        "type": "String"
+      }
+    }
+  },
+  "select": "Select",
+  "@select": {
+    "description": "Application UI: Select"
+  },
+  "search": "Search…",
+  "@search": {
+    "description": "Application UI: Search…"
+  },
+  "decrease": "Decrease",
+  "@decrease": {
+    "description": "Application UI: Decrease"
+  },
+  "increase": "Increase",
+  "@increase": {
+    "description": "Application UI: Increase"
+  },
+  "action": "Action",
+  "@action": {
+    "description": "Application UI: Action"
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Application UI: Back"
+  },
+  "confirm": "Confirm",
+  "@confirm": {
+    "description": "Application UI: Confirm"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Application UI: Cancel"
+  },
+  "closeDialog": "Close dialog",
+  "@closeDialog": {
+    "description": "Application UI: Close dialog"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Application UI: Home"
+  },
+  "movies": "Movies",
+  "@movies": {
+    "description": "Application UI: Movies"
+  },
+  "series": "Series",
+  "@series": {
+    "description": "Application UI: Series"
+  },
+  "fileBrowser": "File browser",
+  "@fileBrowser": {
+    "description": "Application UI: File browser"
+  },
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Application UI: Favorites"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Application UI: Settings"
+  },
+  "searchLibrary": "Search library…",
+  "@searchLibrary": {
+    "description": "Application UI: Search library…"
+  },
+  "searchMovies": "Search movies…",
+  "@searchMovies": {
+    "description": "Application UI: Search movies…"
+  },
+  "searchSeries": "Search series…",
+  "@searchSeries": {
+    "description": "Application UI: Search series…"
+  },
+  "searchFavorites": "Search favorites…",
+  "@searchFavorites": {
+    "description": "Application UI: Search favorites…"
+  },
+  "library": "Library",
+  "@library": {
+    "description": "Application UI: Library"
+  },
+  "sources": "Sources",
+  "@sources": {
+    "description": "Application UI: Sources"
+  },
+  "lists": "Lists",
+  "@lists": {
+    "description": "Application UI: Lists"
+  },
+  "general": "General",
+  "@general": {
+    "description": "Application UI: General"
+  },
+  "mediaSources": "Media sources",
+  "@mediaSources": {
+    "description": "Application UI: Media sources"
+  },
+  "metadata": "Metadata",
+  "@metadata": {
+    "description": "Application UI: Metadata"
+  },
+  "playback": "Playback",
+  "@playback": {
+    "description": "Application UI: Playback"
+  },
+  "appearanceLanguageDescription": "Customize appearance and language",
+  "@appearanceLanguageDescription": {
+    "description": "Application UI: Customize appearance and language"
+  },
+  "interfaceTheme": "Theme",
+  "@interfaceTheme": {
+    "description": "Application UI: Theme"
+  },
+  "preferences": "Preferences",
+  "@preferences": {
+    "description": "Application UI: Preferences"
+  },
+  "accentColor": "Accent color",
+  "@accentColor": {
+    "description": "Application UI: Accent color"
+  },
+  "accentDescription": "Used for buttons, selections and progress",
+  "@accentDescription": {
+    "description": "Application UI: Used for buttons, selections and progress"
+  },
+  "applicationLanguage": "Application language",
+  "@applicationLanguage": {
+    "description": "Application UI: Application language"
+  },
+  "mediaSourcesDescription": "Manage local and network sources for browsing, scanning and playback",
+  "@mediaSourcesDescription": {
+    "description": "Application UI: Manage local and network sources for browsing, scanning and playback"
+  },
+  "noMediaSources": "No media sources added",
+  "@noMediaSources": {
+    "description": "Application UI: No media sources added"
+  },
+  "addSourceDescription": "Add a local folder or network source to browse media",
+  "@addSourceDescription": {
+    "description": "Application UI: Add a local folder or network source to browse media"
+  },
+  "scanSources": "Scan media sources",
+  "@scanSources": {
+    "description": "Application UI: Scan media sources"
+  },
+  "scanDescription": "Scan enabled sources, add new files and remove missing local indexes",
+  "@scanDescription": {
+    "description": "Application UI: Scan enabled sources, add new files and remove missing local indexes"
+  },
+  "scanning": "Scanning",
+  "@scanning": {
+    "description": "Application UI: Scanning"
+  },
+  "startScan": "Start scan",
+  "@startScan": {
+    "description": "Application UI: Start scan"
+  },
+  "clearLibrary": "Clear library",
+  "@clearLibrary": {
+    "description": "Application UI: Clear library"
+  },
+  "clearLibraryDescription": "Delete local indexes, metadata, progress and favorites. Remote files are kept.",
+  "@clearLibraryDescription": {
+    "description": "Application UI: Delete local indexes, metadata, progress and favorites. Remote files are kept."
+  },
+  "clear": "Clear",
+  "@clear": {
+    "description": "Application UI: Clear"
+  },
+  "add": "Add",
+  "@add": {
+    "description": "Application UI: Add"
+  },
+  "addMediaSource": "Add media source",
+  "@addMediaSource": {
+    "description": "Application UI: Add media source"
+  },
+  "localFolder": "Local folder",
+  "@localFolder": {
+    "description": "Application UI: Local folder"
+  },
+  "disabledEndpoint": "Disabled · {endpoint}",
+  "@disabledEndpoint": {
+    "description": "Application UI: Disabled · {endpoint}",
+    "placeholders": {
+      "endpoint": {
+        "type": "String"
+      }
+    }
+  },
+  "editMediaSource": "Edit media source",
+  "@editMediaSource": {
+    "description": "Application UI: Edit media source"
+  },
+  "deleteMediaSource": "Delete media source",
+  "@deleteMediaSource": {
+    "description": "Application UI: Delete media source"
+  },
+  "sourcesLoadFailed": "Could not load media sources",
+  "@sourcesLoadFailed": {
+    "description": "Application UI: Could not load media sources"
+  },
+  "selectLocalFolder": "Select a local folder",
+  "@selectLocalFolder": {
+    "description": "Application UI: Select a local folder"
+  },
+  "directoryAccessible": "Folder is accessible ({count, plural, one{1 item} other{{count} items}})",
+  "@directoryAccessible": {
+    "description": "Application UI: Folder is accessible ({count} items)",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "directoryAccessFailed": "Could not access the folder. Check its location and permissions.",
+  "@directoryAccessFailed": {
+    "description": "Application UI: Could not access the folder. Check its location and permissions."
+  },
+  "addLocalFolder": "Add local folder",
+  "@addLocalFolder": {
+    "description": "Application UI: Add local folder"
+  },
+  "editLocalFolder": "Edit local folder",
+  "@editLocalFolder": {
+    "description": "Application UI: Edit local folder"
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Application UI: Save"
+  },
+  "name": "Name",
+  "@name": {
+    "description": "Application UI: Name"
+  },
+  "libraryNameExample": "Example: Home library",
+  "@libraryNameExample": {
+    "description": "Application UI: Example: Home library"
+  },
+  "selectFolderDescription": "Select a folder for browsing and scanning",
+  "@selectFolderDescription": {
+    "description": "Application UI: Select a folder for browsing and scanning"
+  },
+  "chooseFolder": "Choose folder",
+  "@chooseFolder": {
+    "description": "Application UI: Choose folder"
+  },
+  "changeFolder": "Change folder",
+  "@changeFolder": {
+    "description": "Application UI: Change folder"
+  },
+  "enableSource": "Enable this media source",
+  "@enableSource": {
+    "description": "Application UI: Enable this media source"
+  },
+  "disableSourceDescription": "Disabled sources are excluded from browsing, scanning and playback",
+  "@disableSourceDescription": {
+    "description": "Application UI: Disabled sources are excluded from browsing, scanning and playback"
+  },
+  "connectionTest": "Connection test",
+  "@connectionTest": {
+    "description": "Application UI: Connection test"
+  },
+  "folderTestDescription": "Check whether the selected folder can be read",
+  "@folderTestDescription": {
+    "description": "Application UI: Check whether the selected folder can be read"
+  },
+  "testing": "Testing",
+  "@testing": {
+    "description": "Application UI: Testing"
+  },
+  "testFolder": "Test folder",
+  "@testFolder": {
+    "description": "Application UI: Test folder"
+  },
+  "folderUnavailable": "The selected folder does not exist or cannot be accessed",
+  "@folderUnavailable": {
+    "description": "Application UI: The selected folder does not exist or cannot be accessed"
+  },
+  "localFolderSaveFailed": "Could not save the local folder",
+  "@localFolderSaveFailed": {
+    "description": "Application UI: Could not save the local folder"
+  },
+  "localFolderAdded": "Local folder added",
+  "@localFolderAdded": {
+    "description": "Application UI: Local folder added"
+  },
+  "sourceSavedReopen": "Media source saved. Reopen it to apply the new configuration.",
+  "@sourceSavedReopen": {
+    "description": "Application UI: Media source saved. Reopen it to apply the new configuration."
+  },
+  "sourceSaved": "Media source saved",
+  "@sourceSaved": {
+    "description": "Application UI: Media source saved"
+  },
+  "smbHostRequired": "Enter an SMB host",
+  "@smbHostRequired": {
+    "description": "Application UI: Enter an SMB host"
+  },
+  "smbShareRequired": "Enter a share name without slashes",
+  "@smbShareRequired": {
+    "description": "Application UI: Enter a share name without slashes"
+  },
+  "connectionAccessible": "Connected. Folder is accessible ({count, plural, one{1 item} other{{count} items}}).",
+  "@connectionAccessible": {
+    "description": "Application UI: Connected. Folder is accessible ({count} items).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "connectionFailedDetail": "Connection failed: {reason}",
+  "@connectionFailedDetail": {
+    "description": "Application UI: Connection failed: {reason}",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "addSmbSource": "Add SMB media source",
+  "@addSmbSource": {
+    "description": "Application UI: Add SMB media source"
+  },
+  "editSmbSource": "Edit SMB media source",
+  "@editSmbSource": {
+    "description": "Application UI: Edit SMB media source"
+  },
+  "nasNameExample": "Example: Home NAS",
+  "@nasNameExample": {
+    "description": "Application UI: Example: Home NAS"
+  },
+  "host": "Host",
+  "@host": {
+    "description": "Application UI: Host"
+  },
+  "smbHostExample": "Example: 192.168.1.20",
+  "@smbHostExample": {
+    "description": "Application UI: Example: 192.168.1.20"
+  },
+  "shareName": "Share name",
+  "@shareName": {
+    "description": "Application UI: Share name"
+  },
+  "shareNameExample": "Example: Media",
+  "@shareNameExample": {
+    "description": "Application UI: Example: Media"
+  },
+  "sharePath": "Path within share",
+  "@sharePath": {
+    "description": "Application UI: Path within share"
+  },
+  "sharePathExample": "/Movies (optional)",
+  "@sharePathExample": {
+    "description": "Application UI: /Movies (optional)"
+  },
+  "username": "Username",
+  "@username": {
+    "description": "Application UI: Username"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Application UI: Password"
+  },
+  "hidePassword": "Hide password",
+  "@hidePassword": {
+    "description": "Application UI: Hide password"
+  },
+  "showPassword": "Show password",
+  "@showPassword": {
+    "description": "Application UI: Show password"
+  },
+  "smbTestDescription": "Test SMB using the current connection details",
+  "@smbTestDescription": {
+    "description": "Application UI: Test SMB using the current connection details"
+  },
+  "testConnection": "Test connection",
+  "@testConnection": {
+    "description": "Application UI: Test connection"
+  },
+  "smbSourceSaveFailed": "Could not save the SMB media source",
+  "@smbSourceSaveFailed": {
+    "description": "Application UI: Could not save the SMB media source"
+  },
+  "smbSourceAdded": "SMB media source added",
+  "@smbSourceAdded": {
+    "description": "Application UI: SMB media source added"
+  },
+  "webdavHostRequired": "Enter a WebDAV host first",
+  "@webdavHostRequired": {
+    "description": "Application UI: Enter a WebDAV host first"
+  },
+  "portRangeError": "Port must be between 1 and 65535",
+  "@portRangeError": {
+    "description": "Application UI: Port must be between 1 and 65535"
+  },
+  "addWebdavSource": "Add WebDAV media source",
+  "@addWebdavSource": {
+    "description": "Application UI: Add WebDAV media source"
+  },
+  "webdavHostExample": "Example: 127.0.0.1",
+  "@webdavHostExample": {
+    "description": "Application UI: Example: 127.0.0.1"
+  },
+  "webdavPath": "WebDAV path",
+  "@webdavPath": {
+    "description": "Application UI: WebDAV path"
+  },
+  "port": "Port",
+  "@port": {
+    "description": "Application UI: Port"
+  },
+  "httpsPortExample": "443 (optional)",
+  "@httpsPortExample": {
+    "description": "Application UI: 443 (optional)"
+  },
+  "httpPortExample": "80 (optional)",
+  "@httpPortExample": {
+    "description": "Application UI: 80 (optional)"
+  },
+  "webdavTestDescription": "Test WebDAV using the current connection details",
+  "@webdavTestDescription": {
+    "description": "Application UI: Test WebDAV using the current connection details"
+  },
+  "webdavHostInvalid": "Enter a valid WebDAV host",
+  "@webdavHostInvalid": {
+    "description": "Application UI: Enter a valid WebDAV host"
+  },
+  "sourceSaveFailed": "Could not save the media source",
+  "@sourceSaveFailed": {
+    "description": "Application UI: Could not save the media source"
+  },
+  "sourceAdded": "Media source added",
+  "@sourceAdded": {
+    "description": "Application UI: Media source added"
+  },
+  "authenticationFailed": "Authentication failed. Check your username and password.",
+  "@authenticationFailed": {
+    "description": "Application UI: Authentication failed. Check your username and password."
+  },
+  "permissionDenied": "Access denied. Check folder permissions.",
+  "@permissionDenied": {
+    "description": "Application UI: Access denied. Check folder permissions."
+  },
+  "webdavPathMissing": "The WebDAV path was not found",
+  "@webdavPathMissing": {
+    "description": "Application UI: The WebDAV path was not found"
+  },
+  "httpsMismatch": "HTTPS configuration mismatch. Check whether HTTPS is enabled on the server.",
+  "@httpsMismatch": {
+    "description": "Application UI: HTTPS configuration mismatch. Check whether HTTPS is enabled on the server."
+  },
+  "serverUnavailable": "Could not connect to the server. Check the host and port.",
+  "@serverUnavailable": {
+    "description": "Application UI: Could not connect to the server. Check the host and port."
+  },
+  "webdavConnectionAdvice": "Check the host, port, path and network connection",
+  "@webdavConnectionAdvice": {
+    "description": "Application UI: Check the host, port, path and network connection"
+  },
+  "smbShareMissing": "The share or path within the share was not found",
+  "@smbShareMissing": {
+    "description": "Application UI: The share or path within the share was not found"
+  },
+  "smbServerUnavailable": "Could not connect to SMB. Check the host, share and network.",
+  "@smbServerUnavailable": {
+    "description": "Application UI: Could not connect to SMB. Check the host, share and network."
+  },
+  "smbConnectionAdvice": "Check the host, share, path and credentials",
+  "@smbConnectionAdvice": {
+    "description": "Application UI: Check the host, share, path and credentials"
+  },
+  "deleteSourceConfirm": "Delete media source?",
+  "@deleteSourceConfirm": {
+    "description": "Application UI: Delete media source?"
+  },
+  "deleteSourceDescription": "Connection details and scanned local media, progress and favorites for “{sourceName}” will be deleted. Remote files are kept.",
+  "@deleteSourceDescription": {
+    "description": "Application UI: Connection details and scanned local media, progress and favorites for “{sourceName}” will be deleted. Remote files are kept.",
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "sourceMissing": "The media source no longer exists",
+  "@sourceMissing": {
+    "description": "Application UI: The media source no longer exists"
+  },
+  "sourceDeleted": "Media source deleted; {count, plural, one{1 media file removed} other{{count} media files removed}} from the library",
+  "@sourceDeleted": {
+    "description": "Application UI: Media source deleted; {count} media files removed from the library",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "sourceDeleteFailed": "Could not delete the media source",
+  "@sourceDeleteFailed": {
+    "description": "Application UI: Could not delete the media source"
+  },
+  "metadataDescription": "Configure metadata retrieval and network access",
+  "@metadataDescription": {
+    "description": "Application UI: Configure metadata retrieval and network access"
+  },
+  "tmdbConfiguration": "TMDB configuration",
+  "@tmdbConfiguration": {
+    "description": "Application UI: TMDB configuration"
+  },
+  "apiUrl": "API URL",
+  "@apiUrl": {
+    "description": "Application UI: API URL"
+  },
+  "apiKey": "API key",
+  "@apiKey": {
+    "description": "Application UI: API key"
+  },
+  "tmdbUseProxy": "Use a proxy for TMDB",
+  "@tmdbUseProxy": {
+    "description": "Application UI: Use a proxy for TMDB"
+  },
+  "tmdbProxyDescription": "Applies to TMDB API requests and image downloads",
+  "@tmdbProxyDescription": {
+    "description": "Application UI: Applies to TMDB API requests and image downloads"
+  },
+  "httpProxy": "HTTP proxy",
+  "@httpProxy": {
+    "description": "Application UI: HTTP proxy"
+  },
+  "connectionStatus": "Connection status",
+  "@connectionStatus": {
+    "description": "Application UI: Connection status"
+  },
+  "tmdbTestDescription": "Check the current TMDB configuration",
+  "@tmdbTestDescription": {
+    "description": "Application UI: Check the current TMDB configuration"
+  },
+  "playbackDescription": "Configure caching, decoding and subtitles",
+  "@playbackDescription": {
+    "description": "Application UI: Configure caching, decoding and subtitles"
+  },
+  "cacheSettings": "Cache settings",
+  "@cacheSettings": {
+    "description": "Application UI: Cache settings"
+  },
+  "cacheSize": "Cache size",
+  "@cacheSize": {
+    "description": "Application UI: Cache size"
+  },
+  "readahead": "Read ahead",
+  "@readahead": {
+    "description": "Application UI: Read ahead"
+  },
+  "secondsUnit": "seconds",
+  "@secondsUnit": {
+    "description": "Application UI: seconds"
+  },
+  "playbackSettings": "Playback settings",
+  "@playbackSettings": {
+    "description": "Application UI: Playback settings"
+  },
+  "hardwareDecoding": "Hardware decoding",
+  "@hardwareDecoding": {
+    "description": "Application UI: Hardware decoding"
+  },
+  "subtitleSettings": "Subtitle settings",
+  "@subtitleSettings": {
+    "description": "Application UI: Subtitle settings"
+  },
+  "subtitleLanguage": "Preferred subtitle languages",
+  "@subtitleLanguage": {
+    "description": "Application UI: Preferred subtitle languages"
+  },
+  "subtitleSize": "Subtitle size",
+  "@subtitleSize": {
+    "description": "Application UI: Subtitle size"
+  },
+  "tmdbConnected": "Connected to TMDB",
+  "@tmdbConnected": {
+    "description": "Application UI: Connected to TMDB"
+  },
+  "tmdbConnectionFailed": "Could not connect to TMDB",
+  "@tmdbConnectionFailed": {
+    "description": "Application UI: Could not connect to TMDB"
+  },
+  "scanConfirm": "Scan all media sources?",
+  "@scanConfirm": {
+    "description": "Application UI: Scan all media sources?"
+  },
+  "scanConfirmDescription": "Scan all enabled sources recursively, add discovered videos and remove indexes of missing files. Metadata is fetched when a TMDB API key is configured. Remote files are kept.",
+  "@scanConfirmDescription": {
+    "description": "Application UI: Scan all enabled sources recursively, add discovered videos and remove indexes of missing files. Metadata is fetched when a TMDB API key is configured. Remote files are kept."
+  },
+  "scanFailed": "Could not scan media sources",
+  "@scanFailed": {
+    "description": "Application UI: Could not scan media sources"
+  },
+  "scanSummary": "Scan complete: {discovered, plural, one{1 video found} other{{discovered} videos found}}, {added} added, {removed} removed",
+  "@scanSummary": {
+    "description": "Application UI: Scan complete: {discovered} videos found, {added} added, {removed} removed",
+    "placeholders": {
+      "discovered": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "added": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "removed": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "metadataSummary": "TMDB: {matched} matched, {unmatched} unmatched",
+  "@metadataSummary": {
+    "description": "Application UI: TMDB: {matched} matched, {unmatched} unmatched",
+    "placeholders": {
+      "matched": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "unmatched": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "metadataSkipped": "No TMDB API key configured; metadata retrieval skipped",
+  "@metadataSkipped": {
+    "description": "Application UI: No TMDB API key configured; metadata retrieval skipped"
+  },
+  "scanPartialFailure": "{summary}; {failedSources, plural, one{1 media source failed to scan} other{{failedSources} media sources failed to scan}}; {metadata}",
+  "@scanPartialFailure": {
+    "description": "Application UI: {summary}; {failedSources} media sources failed to scan; {metadata}",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "failedSources": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "metadata": {
+        "type": "String"
+      }
+    }
+  },
+  "clearLibraryConfirm": "Clear library?",
+  "@clearLibraryConfirm": {
+    "description": "Application UI: Clear library?"
+  },
+  "clearLibraryConfirmDescription": "Delete local indexes, metadata, progress and favorites. Files on media sources are kept.",
+  "@clearLibraryConfirmDescription": {
+    "description": "Application UI: Delete local indexes, metadata, progress and favorites. Files on media sources are kept."
+  },
+  "libraryCleared": "Library cleared",
+  "@libraryCleared": {
+    "description": "Application UI: Library cleared"
+  },
+  "hide": "Hide",
+  "@hide": {
+    "description": "Application UI: Hide"
+  },
+  "show": "Show",
+  "@show": {
+    "description": "Application UI: Show"
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "Application UI: Light"
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Application UI: Dark"
+  },
+  "themeLabel": "{theme} theme",
+  "@themeLabel": {
+    "description": "Application UI: {theme} theme",
+    "placeholders": {
+      "theme": {
+        "type": "String"
+      }
+    }
+  },
+  "details": "Details",
+  "@details": {
+    "description": "Application UI: Details"
+  },
+  "libraryEmpty": "Library is empty",
+  "@libraryEmpty": {
+    "description": "Application UI: Library is empty"
+  },
+  "scanToDiscover": "Scan your media sources to discover content",
+  "@scanToDiscover": {
+    "description": "Application UI: Scan your media sources to discover content"
+  },
+  "continueWatching": "Continue watching",
+  "@continueWatching": {
+    "description": "Application UI: Continue watching"
+  },
+  "recentlyAdded": "Recently added",
+  "@recentlyAdded": {
+    "description": "Application UI: Recently added"
+  },
+  "tmdbTrending": "Trending on TMDB",
+  "@tmdbTrending": {
+    "description": "Application UI: Trending on TMDB"
+  },
+  "noMatchingMedia": "No matching media",
+  "@noMatchingMedia": {
+    "description": "Application UI: No matching media"
+  },
+  "tryOtherKeywords": "Try other search terms",
+  "@tryOtherKeywords": {
+    "description": "Application UI: Try other search terms"
+  },
+  "viewAll": "View all",
+  "@viewAll": {
+    "description": "Application UI: View all"
+  },
+  "trendingMovies": "Trending movies",
+  "@trendingMovies": {
+    "description": "Application UI: Trending movies"
+  },
+  "worldwideTopThree": "Worldwide top three",
+  "@worldwideTopThree": {
+    "description": "Application UI: Worldwide top three"
+  },
+  "trendingSeries": "Trending series",
+  "@trendingSeries": {
+    "description": "Application UI: Trending series"
+  },
+  "mostWatched": "Most watched",
+  "@mostWatched": {
+    "description": "Application UI: Most watched"
+  },
+  "topRated": "Top rated",
+  "@topRated": {
+    "description": "Application UI: Top rated"
+  },
+  "highestRated": "Highest rated",
+  "@highestRated": {
+    "description": "Application UI: Highest rated"
+  },
+  "noData": "No data",
+  "@noData": {
+    "description": "Application UI: No data"
+  },
+  "noOverview": "No overview available",
+  "@noOverview": {
+    "description": "Application UI: No overview available"
+  },
+  "noMatchingCategory": "No matching {category}",
+  "@noMatchingCategory": {
+    "description": "Application UI: No matching {category}",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "noCategoryFound": "No {category} found",
+  "@noCategoryFound": {
+    "description": "Application UI: No {category} found",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "playableVersions": "Playable versions",
+  "@playableVersions": {
+    "description": "Application UI: Playable versions"
+  },
+  "fileCount": "{count, plural, one{1 file} other{{count} files}}",
+  "@fileCount": {
+    "description": "Localized count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "noPlayableLocalFiles": "No playable local files found",
+  "@noPlayableLocalFiles": {
+    "description": "Application UI: No playable local files found"
+  },
+  "overview": "Overview",
+  "@overview": {
+    "description": "Application UI: Overview"
+  },
+  "categoryEmpty": "{category} is empty",
+  "@categoryEmpty": {
+    "description": "Application UI: {category} is empty",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "searchDirectory": "Search this folder…",
+  "@searchDirectory": {
+    "description": "Application UI: Search this folder…"
+  },
+  "sourceConnectionFailed": "Could not connect to “{sourceName}”",
+  "@sourceConnectionFailed": {
+    "description": "Application UI: Could not connect to “{sourceName}”",
+    "placeholders": {
+      "sourceName": {
+        "type": "String"
+      }
+    }
+  },
+  "fetchingPlaybackLink": "Getting playback link: {fileName}",
+  "@fetchingPlaybackLink": {
+    "description": "Application UI: Getting playback link: {fileName}",
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "playbackLinkFailed": "Could not get the playback link. Check your source configuration and network.",
+  "@playbackLinkFailed": {
+    "description": "Application UI: Could not get the playback link. Check your source configuration and network."
+  },
+  "addSourcesInSettings": "Add a media source in Settings to start browsing",
+  "@addSourcesInSettings": {
+    "description": "Application UI: Add a media source in Settings to start browsing"
+  },
+  "location": "Location",
+  "@location": {
+    "description": "Application UI: Location"
+  },
+  "selectMediaSource": "Select a media source",
+  "@selectMediaSource": {
+    "description": "Application UI: Select a media source"
+  },
+  "noMatchingFiles": "No matching files",
+  "@noMatchingFiles": {
+    "description": "Application UI: No matching files"
+  },
+  "filesLoadFailed": "Could not load files",
+  "@filesLoadFailed": {
+    "description": "Application UI: Could not load files"
+  },
+  "folderEmpty": "This folder is empty",
+  "@folderEmpty": {
+    "description": "Application UI: This folder is empty"
+  },
+  "folder": "Folder",
+  "@folder": {
+    "description": "Application UI: Folder"
+  },
+  "video": "Video",
+  "@video": {
+    "description": "Application UI: Video"
+  },
+  "file": "File",
+  "@file": {
+    "description": "Application UI: File"
+  },
+  "contentLoadFailed": "Could not load content",
+  "@contentLoadFailed": {
+    "description": "Application UI: Could not load content"
+  },
+  "listView": "List view",
+  "@listView": {
+    "description": "Application UI: List view"
+  },
+  "gridView": "Grid view",
+  "@gridView": {
+    "description": "Application UI: Grid view"
+  },
+  "refreshFolder": "Refresh folder",
+  "@refreshFolder": {
+    "description": "Application UI: Refresh folder"
+  },
+  "rootFolder": "Root",
+  "@rootFolder": {
+    "description": "Application UI: Root"
+  },
+  "size": "Size",
+  "@size": {
+    "description": "Application UI: Size"
+  },
+  "modifiedAt": "Modified",
+  "@modifiedAt": {
+    "description": "Application UI: Modified"
+  },
+  "ascending": "Ascending",
+  "@ascending": {
+    "description": "Application UI: Ascending"
+  },
+  "descending": "Descending",
+  "@descending": {
+    "description": "Application UI: Descending"
+  },
+  "sortDescription": "Sort: {field}, {direction}",
+  "@sortDescription": {
+    "description": "Application UI: Sort: {field}, {direction}",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "folderCount": "{count, plural, one{1 folder} other{{count} folders}}",
+  "@folderCount": {
+    "description": "Localized count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "zeroItems": "0 items",
+  "@zeroItems": {
+    "description": "Application UI: 0 items"
+  },
+  "moreActions": "More actions",
+  "@moreActions": {
+    "description": "Application UI: More actions"
+  },
+  "open": "Open",
+  "@open": {
+    "description": "Application UI: Open"
+  },
+  "copyPath": "Copy path",
+  "@copyPath": {
+    "description": "Application UI: Copy path"
+  },
+  "noSeasonInfo": "No season information",
+  "@noSeasonInfo": {
+    "description": "Application UI: No season information"
+  },
+  "missing": "Missing",
+  "@missing": {
+    "description": "Application UI: Missing"
+  },
+  "watched": "Watched",
+  "@watched": {
+    "description": "Application UI: Watched"
+  },
+  "selectSeason": "Select season",
+  "@selectSeason": {
+    "description": "Application UI: Select season"
+  },
+  "seasonLabel": "Season {season}",
+  "@seasonLabel": {
+    "description": "Application UI: Season {season}",
+    "placeholders": {
+      "season": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "unplayable": "Unavailable",
+  "@unplayable": {
+    "description": "Application UI: Unavailable"
+  },
+  "noPlayableEpisodes": "No playable episodes found",
+  "@noPlayableEpisodes": {
+    "description": "Application UI: No playable episodes found"
+  },
+  "resume": "Resume",
+  "@resume": {
+    "description": "Application UI: Resume"
+  },
+  "resumePlayback": "Resume playback",
+  "@resumePlayback": {
+    "description": "Application UI: Resume playback"
+  },
+  "episodeAction": "{action, select, resume{Resume episode {episode}} other{Play episode {episode}}}",
+  "@episodeAction": {
+    "description": "Application UI: {action} episode {episode}",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "episode": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "episodeActionUnknown": "{action, select, resume{Resume episode} other{Play episode}}",
+  "@episodeActionUnknown": {
+    "description": "Application UI: {action} episode ??",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "resumeLastPosition": "Resume from your last position",
+  "@resumeLastPosition": {
+    "description": "Application UI: Resume from your last position"
+  },
+  "playableEpisodeCount": "{count, plural, one{1 playable episode} other{{count} playable episodes}}",
+  "@playableEpisodeCount": {
+    "description": "Localized count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "totalSeasonCount": "{count, plural, one{1 season} other{{count} seasons}}",
+  "@totalSeasonCount": {
+    "description": "Localized count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "favorited": "In favorites",
+  "@favorited": {
+    "description": "Application UI: In favorites"
+  },
+  "addFavorite": "Add to favorites",
+  "@addFavorite": {
+    "description": "Application UI: Add to favorites"
+  },
+  "removeFavorite": "Remove from favorites",
+  "@removeFavorite": {
+    "description": "Application UI: Remove from favorites"
+  },
+  "cast": "Cast",
+  "@cast": {
+    "description": "Application UI: Cast"
+  },
+  "unsupportedPlayback": "This item cannot be played",
+  "@unsupportedPlayback": {
+    "description": "Application UI: This item cannot be played"
+  },
+  "movieFileMissing": "No local file found for this movie",
+  "@movieFileMissing": {
+    "description": "Application UI: No local file found for this movie"
+  },
+  "episodeFileMissing": "No local file found for this episode",
+  "@episodeFileMissing": {
+    "description": "Application UI: No local file found for this episode"
+  },
+  "openingPlayer": "Opening player…",
+  "@openingPlayer": {
+    "description": "Application UI: Opening player…"
+  },
+  "playerLaunchFailed": "Could not open the player. Check your media sources and network.",
+  "@playerLaunchFailed": {
+    "description": "Application UI: Could not open the player. Check your media sources and network."
+  },
+  "selectVersion": "Select version",
+  "@selectVersion": {
+    "description": "Application UI: Select version"
+  },
+  "playerUnavailable": "Could not open the player",
+  "@playerUnavailable": {
+    "description": "Application UI: Could not open the player"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Application UI: Close"
+  },
+  "seasonEpisodeLabel": "Season {season} · Episode {episode}",
+  "@seasonEpisodeLabel": {
+    "description": "Application UI: Season {season} · Episode {episode}",
+    "placeholders": {
+      "season": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "episode": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "resumedPlayback": "Resumed from {position}",
+  "@resumedPlayback": {
+    "description": "Application UI: Resumed from {position}",
+    "placeholders": {
+      "position": {
+        "type": "String"
+      }
+    }
+  },
+  "subtitleFiles": "Subtitle files",
+  "@subtitleFiles": {
+    "description": "Application UI: Subtitle files"
+  },
+  "subtitleLoadFailed": "Could not load the selected subtitle file",
+  "@subtitleLoadFailed": {
+    "description": "Application UI: Could not load the selected subtitle file"
+  },
+  "playbackSpeed": "Playback speed",
+  "@playbackSpeed": {
+    "description": "Application UI: Playback speed"
+  },
+  "audioTrackLabel": "Audio track {trackId}",
+  "@audioTrackLabel": {
+    "description": "Application UI: Audio track {trackId}",
+    "placeholders": {
+      "trackId": {
+        "type": "String"
+      }
+    }
+  },
+  "audioTracks": "Audio tracks",
+  "@audioTracks": {
+    "description": "Application UI: Audio tracks"
+  },
+  "subtitlesOff": "Subtitles off",
+  "@subtitlesOff": {
+    "description": "Application UI: Subtitles off"
+  },
+  "subtitleTrackLabel": "Subtitle {trackId}",
+  "@subtitleTrackLabel": {
+    "description": "Application UI: Subtitle {trackId}",
+    "placeholders": {
+      "trackId": {
+        "type": "String"
+      }
+    }
+  },
+  "subtitles": "Subtitles",
+  "@subtitles": {
+    "description": "Application UI: Subtitles"
+  },
+  "loadExternalSubtitle": "Load external subtitles…",
+  "@loadExternalSubtitle": {
+    "description": "Application UI: Load external subtitles…"
+  },
+  "mochiSubtitleStyle": "Use Mochi subtitle style",
+  "@mochiSubtitleStyle": {
+    "description": "Application UI: Use Mochi subtitle style"
+  },
+  "mochiSubtitleStyleDescription": "Ignore fonts and colors in the subtitle file",
+  "@mochiSubtitleStyleDescription": {
+    "description": "Application UI: Ignore fonts and colors in the subtitle file"
+  },
+  "languageSaveFailed": "Could not save language preference",
+  "@languageSaveFailed": {
+    "description": "Could not save language preference"
+  },
+  "selectSourceFirst": "Select a media source first",
+  "@selectSourceFirst": {
+    "description": "Select a media source first"
+  },
+  "settingsLoadFailed": "Could not load settings",
+  "@settingsLoadFailed": {
+    "description": "Could not load settings"
+  },
+  "settingsSaveFailed": "Could not save settings",
+  "@settingsSaveFailed": {
+    "description": "Could not save settings"
+  },
+  "scanSourceRequired": "Add and enable at least one media source before scanning",
+  "@scanSourceRequired": {
+    "description": "Add and enable at least one media source before scanning"
+  },
+  "scrapeFailed": "Could not retrieve metadata",
+  "@scrapeFailed": {
+    "description": "Could not retrieve metadata"
+  },
+  "playerMediaMissing": "The requested media file was not found",
+  "@playerMediaMissing": {
+    "description": "The requested media file was not found"
+  },
+  "playerTargetFailed": "Could not resolve the playback source",
+  "@playerTargetFailed": {
+    "description": "Could not resolve the playback source"
+  },
+  "playerBootstrapFailed": "Could not initialize the player",
+  "@playerBootstrapFailed": {
+    "description": "Could not initialize the player"
+  },
+  "liveTextInput": "Live Text",
+  "accentBlue": "Blue",
+  "accentGreen": "Green",
+  "accentPurple": "Purple",
+  "accentOrange": "Orange",
+  "accentRed": "Red",
+  "playbackOpenFailed": "Could not play this media. Check the file and media source.",
+  "@playbackOpenFailed": {
+    "description": "Could not play this media. Check the file and media source."
+  },
+  "scanActivity": "Scanning {completed}/{total}: {title}",
+  "@scanActivity": {
+    "description": "Scanning {completed}/{total}: {title}",
+    "placeholders": {
+      "completed": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "scrapeActivity": "Fetching metadata {completed}/{total}: {title} · {success} matched, {failed} failed",
+  "@scrapeActivity": {
+    "description": "Fetching metadata {completed}/{total}: {title} · {success} matched, {failed} failed",
+    "placeholders": {
+      "completed": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "success": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "failed": {
+        "type": "int",
+        "format": "decimalPattern"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Delete",
+  "play": "Play",
+  "unknownLibrarySection": "Unknown library section",
+  "missingMediaDetails": "Missing media details",
+  "pageUnavailable": "Could not open this page",
+  "minutesDuration": "{minutes} min",
+  "@minutesDuration": {
+    "description": "{minutes} min",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "browserBack": "Back",
+  "filteredDirectorySummary": "Found {summary} ({total, plural, one{1 item in total} other{{total} items in total}})",
+  "@filteredDirectorySummary": {
+    "description": "Filtered directory contents and total count",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "total": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "scanResultWithMetadata": "{summary}; {metadata}",
+  "scanResultWithError": "{summary}; {reason}",
+  "@scanResultWithMetadata": {
+    "description": "Complete scan result with metadata",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "metadata": {
+        "type": "String"
+      }
+    }
+  },
+  "@scanResultWithError": {
+    "description": "Complete scan result with reason",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -19,6 +19,7 @@ class Season {
     this.numberOfEpisodes,
     this.episodes = const [],
   });
+
   Season withEpisodes(List<Episode> episodes) => Season(
     seasonKey: seasonKey,
     seasonNumber: seasonNumber,

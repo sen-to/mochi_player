@@ -15,10 +15,12 @@ import 'package:mochi_player/features/library/application/media_library_provider
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
+import 'package:mochi_player/features/settings/presentation/widgets/language_preference_control.dart';
 import 'package:mochi_player/features/settings/presentation/widgets/settings_section.dart';
 import 'package:mochi_player/features/settings/presentation/widgets/settings_switch_item.dart';
 import 'package:mochi_player/features/settings/presentation/widgets/settings_text_field.dart';
 import 'package:mochi_player/features/settings/presentation/widgets/theme_preference_controls.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -106,9 +108,9 @@ class _SettingsPageState extends State<SettingsPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          const SizedBox(
+          SizedBox(
             height: AppHeader.height,
-            child: AppHeader(title: '设置'),
+            child: AppHeader(title: context.l10n.settings),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
@@ -119,11 +121,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: AppTabs<_SettingsTab>(
                   value: _selectedTab,
                   onChanged: (tab) => setState(() => _selectedTab = tab),
-                  tabs: const [
-                    AppTab(value: _SettingsTab.general, label: '通用', icon: Icons.tune_rounded),
-                    AppTab(value: _SettingsTab.mediaSource, label: '媒体源', icon: Icons.storage_outlined),
-                    AppTab(value: _SettingsTab.metadata, label: '元数据', icon: Icons.sell_outlined),
-                    AppTab(value: _SettingsTab.playback, label: '播放', icon: Icons.play_circle_outline_rounded),
+                  tabs: [
+                    AppTab(value: _SettingsTab.general, label: context.l10n.general, icon: Icons.tune_rounded),
+                    AppTab(
+                      value: _SettingsTab.mediaSource,
+                      label: context.l10n.mediaSources,
+                      icon: Icons.storage_outlined,
+                    ),
+                    AppTab(value: _SettingsTab.metadata, label: context.l10n.metadata, icon: Icons.sell_outlined),
+                    AppTab(
+                      value: _SettingsTab.playback,
+                      label: context.l10n.playback,
+                      icon: Icons.play_circle_outline_rounded,
+                    ),
                   ],
                 ),
               ),
@@ -162,11 +172,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return SettingsSection(
-          title: '通用',
-          subtitle: '调整应用的外观与语言偏好',
+          title: context.l10n.general,
+          subtitle: context.l10n.appearanceLanguageDescription,
           groups: [
             AppFormGroup(
-              title: '界面主题',
+              title: context.l10n.interfaceTheme,
               children: [
                 ThemeModePicker(
                   value: themeProvider.themeMode,
@@ -176,26 +186,19 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             AppFormGroup(
-              title: '偏好',
+              title: context.l10n.preferences,
               children: [
                 AppFormItem(
-                  label: '强调色',
-                  subtitle: '用于按钮、选中项和进度',
+                  label: context.l10n.accentColor,
+                  subtitle: context.l10n.accentDescription,
                   labelWidth: null,
                   control: AccentColorPicker(value: themeProvider.accentColor, onChanged: themeProvider.setAccentColor),
                   expandControl: false,
                 ),
                 AppFormItem(
-                  label: '应用语言',
+                  label: context.l10n.applicationLanguage,
                   labelWidth: null,
-                  control: SizedBox(
-                    width: 120,
-                    child: AppSelect<String>(
-                      value: 'zh-CN',
-                      options: [AppSelectOption(value: 'zh-CN', label: '简体中文')],
-                      onChanged: (_) {},
-                    ),
-                  ),
+                  control: const LanguagePreferenceControl(),
                   expandControl: false,
                 ),
               ],
@@ -208,19 +211,19 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildWebDavSettings(BuildContext context) {
     return SettingsSection(
-      title: '媒体源',
-      subtitle: '管理用于浏览、扫描与播放的本地和网络媒体源',
+      title: context.l10n.mediaSources,
+      subtitle: context.l10n.mediaSourcesDescription,
       groups: [
         AppFormGroup(
-          title: '媒体源',
+          title: context.l10n.mediaSources,
           trailing: _buildAddStorageSourceMenu(),
           children: [
             if (_isLoadingStorageSources)
               const SizedBox(height: 88, child: Center(child: CircularProgressIndicator.adaptive()))
             else if (_storageSources.isEmpty)
-              const AppFormItem(
-                label: '尚未添加媒体源',
-                subtitle: '添加本地目录或 WebDAV 服务器后即可浏览媒体文件',
+              AppFormItem(
+                label: context.l10n.noMediaSources,
+                subtitle: context.l10n.addSourceDescription,
                 labelWidth: null,
                 expandControl: false,
                 control: SizedBox.shrink(),
@@ -232,29 +235,29 @@ class _SettingsPageState extends State<SettingsPage> {
         Selector<MediaLibraryProvider, bool>(
           selector: (context, provider) => provider.isLoading,
           builder: (context, isBusy, child) => AppFormGroup(
-            title: '媒体库',
+            title: context.l10n.library,
             children: [
               AppFormItem(
-                label: '扫描媒体源',
-                subtitle: '扫描全部启用的媒体源，新增文件并清理已删除的本地索引',
+                label: context.l10n.scanSources,
+                subtitle: context.l10n.scanDescription,
                 labelWidth: null,
                 expandControl: false,
                 control: _SettingsActionButton(
                   onPressed: isBusy ? null : _confirmScanMediaSources,
                   icon: Icons.manage_search_outlined,
-                  label: isBusy ? '扫描中' : '开始扫描',
+                  label: isBusy ? context.l10n.scanning : context.l10n.startScan,
                   busy: isBusy,
                 ),
               ),
               AppFormItem(
-                label: '清空媒体库',
-                subtitle: '删除本地索引、元数据、播放进度和收藏，不会删除远程文件',
+                label: context.l10n.clearLibrary,
+                subtitle: context.l10n.clearLibraryDescription,
                 labelWidth: null,
                 expandControl: false,
                 control: _SettingsActionButton(
                   onPressed: isBusy ? null : _confirmClearLibrary,
                   icon: Icons.delete_sweep_outlined,
-                  label: '清空',
+                  label: context.l10n.clear,
                   destructive: true,
                 ),
               ),
@@ -282,7 +285,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(Icons.add_rounded, size: 16, color: AppColors.textPrimary(context)),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                '添加',
+                context.l10n.add,
                 style: TextStyle(color: AppColors.textPrimary(context), fontSize: 13, fontWeight: FontWeight.w600),
               ),
               const SizedBox(width: AppSpacing.xs),
@@ -290,7 +293,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
         ),
-        tooltip: '添加媒体源',
+        tooltip: context.l10n.addMediaSource,
         menuWidth: 152,
         menuAlignment: AppDropdownMenuAlignment.end,
         onSelected: _isLoadingStorageSources
@@ -300,8 +303,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 _StorageSourceAddOption.webDav => _showStorageSourceEditor(),
                 _StorageSourceAddOption.smb => _showSmbSourceEditor(),
               },
-        options: const [
-          AppDropdownOption(value: _StorageSourceAddOption.local, label: '本地目录', icon: Icons.folder_outlined),
+        options: [
+          AppDropdownOption(
+            value: _StorageSourceAddOption.local,
+            label: context.l10n.localFolder,
+            icon: Icons.folder_outlined,
+          ),
           AppDropdownOption(value: _StorageSourceAddOption.webDav, label: 'WebDAV', icon: Icons.language_rounded),
           AppDropdownOption(value: _StorageSourceAddOption.smb, label: 'SMB', icon: Icons.lan_outlined),
         ],
@@ -312,7 +319,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildStorageSourceItem(BuildContext context, StorageSource source) {
     return AppFormItem(
       label: source.name,
-      subtitle: source.enabled ? source.endpoint : '已停用 · ${source.endpoint}',
+      subtitle: source.enabled ? source.endpoint : context.l10n.disabledEndpoint(source.endpoint),
       icon: switch (source.type) {
         StorageSourceType.local => Icons.folder_outlined,
         StorageSourceType.webDav => Icons.dns_outlined,
@@ -330,14 +337,14 @@ class _SettingsPageState extends State<SettingsPage> {
               StorageSourceType.smb => _showSmbSourceEditor(source: source),
             },
             icon: Icons.edit_outlined,
-            tooltip: '编辑媒体源',
+            tooltip: context.l10n.editMediaSource,
             size: AppButtonSize.compact,
           ),
           const SizedBox(width: AppSpacing.xs),
           AppButton.icon(
             onPressed: () => _confirmDeleteStorageSource(source),
             icon: Icons.delete_outline_rounded,
-            tooltip: '删除媒体源',
+            tooltip: context.l10n.deleteMediaSource,
             size: AppButtonSize.compact,
           ),
         ],
@@ -356,7 +363,7 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLoadingStorageSources = false);
-      AppMessage.error('加载媒体源失败');
+      AppMessage.error(context.l10n.sourcesLoadFailed);
     }
   }
 
@@ -400,7 +407,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     Future<void> testConnection() async {
       if (directoryPath.isEmpty) {
-        showFormError('请选择本地目录');
+        showFormError(context.l10n.selectLocalFolder);
         return;
       }
       updateModal?.call(() {
@@ -422,13 +429,13 @@ class _SettingsPageState extends State<SettingsPage> {
         final entries = await connection.readDirectory('/');
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = '目录可访问（${entries.length} 项）';
+          connectionTestResult = context.l10n.directoryAccessible(entries.length);
         });
       } catch (error, stackTrace) {
         debugPrint('测试本地目录失败: $error\n$stackTrace');
         updateModal?.call(() {
           connectionTestSucceeded = false;
-          connectionTestResult = '无法访问该目录，请检查目录是否存在及授权是否允许';
+          connectionTestResult = context.l10n.directoryAccessFailed;
         });
       } finally {
         updateModal?.call(() => isTestingConnection = false);
@@ -438,24 +445,28 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final saved = await AppModal.show(
         context: context,
-        title: source == null ? '添加本地目录' : '编辑本地目录',
+        title: source == null ? context.l10n.addLocalFolder : context.l10n.editLocalFolder,
         icon: Icons.folder_outlined,
-        confirmLabel: source == null ? '添加' : '保存',
+        confirmLabel: source == null ? context.l10n.add : context.l10n.save,
         content: StatefulBuilder(
           builder: (context, setModalState) {
             updateModal = setModalState;
             return AppFormGroup(
               children: [
-                _buildStorageSourceFormItem(label: '名称', controller: nameController, placeholder: '例如：家庭媒体库'),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.name,
+                  controller: nameController,
+                  placeholder: context.l10n.libraryNameExample,
+                ),
                 AppFormItem(
-                  label: '本地目录',
-                  subtitle: directoryPath.isEmpty ? '请选择要用于浏览和扫描的目录' : directoryPath,
+                  label: context.l10n.localFolder,
+                  subtitle: directoryPath.isEmpty ? context.l10n.selectFolderDescription : directoryPath,
                   labelWidth: 104,
                   control: Align(
                     alignment: Alignment.centerRight,
                     child: AppButton(
                       onPressed: chooseDirectory,
-                      label: directoryPath.isEmpty ? '选择目录' : '更改目录',
+                      label: directoryPath.isEmpty ? context.l10n.chooseFolder : context.l10n.changeFolder,
                       icon: Icons.folder_open_outlined,
                       variant: AppButtonVariant.secondary,
                       size: AppButtonSize.compact,
@@ -464,8 +475,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 if (source != null)
                   AppFormItem(
-                    label: '启用此媒体源',
-                    subtitle: '停用后不会显示在文件浏览中，也不会参与扫描和播放',
+                    label: context.l10n.enableSource,
+                    subtitle: context.l10n.disableSourceDescription,
                     labelWidth: 104,
                     control: Align(
                       alignment: Alignment.centerRight,
@@ -473,8 +484,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 AppFormItem(
-                  label: '连接测试',
-                  subtitle: connectionTestResult ?? '验证是否能读取所选目录',
+                  label: context.l10n.connectionTest,
+                  subtitle: connectionTestResult ?? context.l10n.folderTestDescription,
                   subtitleColor: connectionTestSucceeded == null
                       ? null
                       : connectionTestSucceeded!
@@ -485,7 +496,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: Alignment.centerRight,
                     child: AppButton(
                       onPressed: isTestingConnection ? null : testConnection,
-                      label: isTestingConnection ? '测试中' : '测试目录',
+                      label: isTestingConnection ? context.l10n.testing : context.l10n.testFolder,
                       icon: Icons.wifi_tethering_outlined,
                       variant: AppButtonVariant.secondary,
                       size: AppButtonSize.compact,
@@ -507,11 +518,12 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         onConfirm: () async {
           if (directoryPath.isEmpty) {
-            showFormError('请选择本地目录');
+            showFormError(context.l10n.selectLocalFolder);
             return false;
           }
           if (!await Directory(directoryPath).exists()) {
-            showFormError('所选目录不存在或不可访问');
+            if (!mounted) return false;
+            showFormError(context.l10n.folderUnavailable);
             return false;
           }
           try {
@@ -528,7 +540,8 @@ class _SettingsPageState extends State<SettingsPage> {
             return true;
           } catch (error, stackTrace) {
             debugPrint('保存本地目录失败: $error\n$stackTrace');
-            showFormError('保存本地目录失败：$error');
+            if (!mounted) return false;
+            showFormError(context.l10n.localFolderSaveFailed);
             return false;
           }
         },
@@ -546,10 +559,10 @@ class _SettingsPageState extends State<SettingsPage> {
         if (mounted) {
           AppMessage.success(
             source == null
-                ? '本地目录已添加'
+                ? context.l10n.localFolderAdded
                 : clearedActiveSource
-                ? '媒体源已保存，请重新打开以应用新配置'
-                : '媒体源已保存',
+                ? context.l10n.sourceSavedReopen
+                : context.l10n.sourceSaved,
           );
         }
       }
@@ -595,11 +608,11 @@ class _SettingsPageState extends State<SettingsPage> {
       final host = hostController.text.trim();
       final share = shareController.text.trim().replaceAll(RegExp(r'^/+|/+$'), '');
       if (host.isEmpty) {
-        showFormError('请填写 SMB 主机地址');
+        showFormError(context.l10n.smbHostRequired);
         return null;
       }
       if (share.isEmpty || share.contains('/')) {
-        showFormError('请填写共享名，不能包含斜杠');
+        showFormError(context.l10n.smbShareRequired);
         return null;
       }
       final rootPath = SmbSourceLocation.normalizeRootPath(rootPathController.text);
@@ -632,13 +645,13 @@ class _SettingsPageState extends State<SettingsPage> {
         final entries = await connection.readDirectory('/');
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = '连接成功，可访问此目录（${entries.length} 项）';
+          connectionTestResult = context.l10n.connectionAccessible(entries.length);
         });
       } catch (error, stackTrace) {
         debugPrint('测试 SMB 连接失败: $error\n$stackTrace');
         updateModal?.call(() {
           connectionTestSucceeded = false;
-          connectionTestResult = '连接失败：${_describeSmbConnectionError(error)}';
+          connectionTestResult = context.l10n.connectionFailedDetail(_describeSmbConnectionError(error));
         });
       } finally {
         if (smbConnection != null) {
@@ -651,44 +664,60 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final saved = await AppModal.show(
         context: context,
-        title: source == null ? '添加 SMB 媒体源' : '编辑 SMB 媒体源',
+        title: source == null ? context.l10n.addSmbSource : context.l10n.editSmbSource,
         icon: Icons.lan_outlined,
-        confirmLabel: source == null ? '添加' : '保存',
+        confirmLabel: source == null ? context.l10n.add : context.l10n.save,
         content: StatefulBuilder(
           builder: (context, setModalState) {
             updateModal = setModalState;
             return AppFormGroup(
               children: [
-                _buildStorageSourceFormItem(label: '名称', controller: nameController, placeholder: '例如：家庭 NAS'),
-                _buildStorageSourceFormItem(label: '主机', controller: hostController, placeholder: '例如：192.168.1.20'),
-                _buildStorageSourceFormItem(label: '共享名', controller: shareController, placeholder: '例如：Media'),
-                _buildStorageSourceFormItem(label: '共享内路径', controller: rootPathController, placeholder: '/电影（可选）'),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.name,
+                  controller: nameController,
+                  placeholder: context.l10n.nasNameExample,
+                ),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.host,
+                  controller: hostController,
+                  placeholder: context.l10n.smbHostExample,
+                ),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.shareName,
+                  controller: shareController,
+                  placeholder: context.l10n.shareNameExample,
+                ),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.sharePath,
+                  controller: rootPathController,
+                  placeholder: context.l10n.sharePathExample,
+                ),
                 if (source != null)
                   AppFormItem(
-                    label: '启用此媒体源',
-                    subtitle: '停用后不会显示在文件浏览中，也不会参与扫描和播放',
+                    label: context.l10n.enableSource,
+                    subtitle: context.l10n.disableSourceDescription,
                     labelWidth: 104,
                     control: Align(
                       alignment: Alignment.centerRight,
                       child: AppSwitch(value: isEnabled, onChanged: (value) => setModalState(() => isEnabled = value)),
                     ),
                   ),
-                _buildStorageSourceFormItem(label: '用户名', controller: usernameController),
+                _buildStorageSourceFormItem(label: context.l10n.username, controller: usernameController),
                 _buildStorageSourceFormItem(
-                  label: '密码',
+                  label: context.l10n.password,
                   controller: passwordController,
                   obscureText: !showPassword,
                   suffix: AppButton.icon(
                     onPressed: () => setModalState(() => showPassword = !showPassword),
                     icon: showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    tooltip: showPassword ? '隐藏密码' : '显示密码',
+                    tooltip: showPassword ? context.l10n.hidePassword : context.l10n.showPassword,
                     variant: AppButtonVariant.ghost,
                     size: AppButtonSize.compact,
                   ),
                 ),
                 AppFormItem(
-                  label: '连接测试',
-                  subtitle: connectionTestResult ?? '使用当前填写的信息验证 SMB 连接',
+                  label: context.l10n.connectionTest,
+                  subtitle: connectionTestResult ?? context.l10n.smbTestDescription,
                   subtitleColor: connectionTestSucceeded == null
                       ? null
                       : connectionTestSucceeded!
@@ -699,7 +728,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: Alignment.centerRight,
                     child: AppButton(
                       onPressed: isTestingConnection ? null : testConnection,
-                      label: isTestingConnection ? '测试中' : '测试连接',
+                      label: isTestingConnection ? context.l10n.testing : context.l10n.testConnection,
                       icon: Icons.wifi_tethering_outlined,
                       variant: AppButtonVariant.secondary,
                       size: AppButtonSize.compact,
@@ -740,7 +769,8 @@ class _SettingsPageState extends State<SettingsPage> {
             return true;
           } catch (error, stackTrace) {
             debugPrint('保存 SMB 媒体源失败: $error\n$stackTrace');
-            showFormError('保存 SMB 媒体源失败：$error');
+            if (!mounted) return false;
+            showFormError(context.l10n.smbSourceSaveFailed);
             return false;
           }
         },
@@ -758,10 +788,10 @@ class _SettingsPageState extends State<SettingsPage> {
         if (mounted) {
           AppMessage.success(
             source == null
-                ? 'SMB 媒体源已添加'
+                ? context.l10n.smbSourceAdded
                 : clearedActiveSource
-                ? '媒体源已保存，请重新打开以应用新配置'
-                : '媒体源已保存',
+                ? context.l10n.sourceSavedReopen
+                : context.l10n.sourceSaved,
           );
         }
       }
@@ -814,13 +844,13 @@ class _SettingsPageState extends State<SettingsPage> {
     Future<void> testConnection() async {
       final host = hostController.text.trim();
       if (host.isEmpty) {
-        showFormError('请先填写 WebDAV 主机地址');
+        showFormError(context.l10n.webdavHostRequired);
         return;
       }
       final portText = portController.text.trim();
       final port = portText.isEmpty ? null : int.tryParse(portText);
       if (portText.isNotEmpty && (port == null || port < 1 || port > 65535)) {
-        showFormError('端口应在 1 到 65535 之间');
+        showFormError(context.l10n.portRangeError);
         return;
       }
 
@@ -849,13 +879,13 @@ class _SettingsPageState extends State<SettingsPage> {
         final entries = await connection.readDirectory('/');
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = '连接成功，可访问此目录（${entries.length} 项）';
+          connectionTestResult = context.l10n.connectionAccessible(entries.length);
         });
       } catch (error, stackTrace) {
         debugPrint('测试 WebDAV 连接失败: $error\n$stackTrace');
         updateModal?.call(() {
           connectionTestSucceeded = false;
-          connectionTestResult = '连接失败：${_describeConnectionError(error)}';
+          connectionTestResult = context.l10n.connectionFailedDetail(_describeConnectionError(error));
         });
       } finally {
         updateModal?.call(() => isTestingConnection = false);
@@ -865,21 +895,33 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final saved = await AppModal.show(
         context: context,
-        title: source == null ? '添加 WebDAV 媒体源' : '编辑媒体源',
+        title: source == null ? context.l10n.addWebdavSource : context.l10n.editMediaSource,
         icon: Icons.dns_outlined,
-        confirmLabel: source == null ? '添加' : '保存',
+        confirmLabel: source == null ? context.l10n.add : context.l10n.save,
         content: StatefulBuilder(
           builder: (context, setModalState) {
             updateModal = setModalState;
             return AppFormGroup(
               children: [
-                _buildStorageSourceFormItem(label: '名称', controller: nameController, placeholder: '例如：家庭 NAS'),
-                _buildStorageSourceFormItem(label: '主机', controller: hostController, placeholder: '例如：127.0.0.1'),
-                _buildStorageSourceFormItem(label: 'WebDAV 路径', controller: pathController, placeholder: '/dav/quark'),
                 _buildStorageSourceFormItem(
-                  label: '端口',
+                  label: context.l10n.name,
+                  controller: nameController,
+                  placeholder: context.l10n.nasNameExample,
+                ),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.host,
+                  controller: hostController,
+                  placeholder: context.l10n.webdavHostExample,
+                ),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.webdavPath,
+                  controller: pathController,
+                  placeholder: '/dav/quark',
+                ),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.port,
                   controller: portController,
-                  placeholder: useHttps ? '443（可选）' : '80（可选）',
+                  placeholder: useHttps ? context.l10n.httpsPortExample : context.l10n.httpPortExample,
                   keyboardType: TextInputType.number,
                 ),
                 AppFormItem(
@@ -893,30 +935,30 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 if (source != null)
                   AppFormItem(
-                    label: '启用此媒体源',
-                    subtitle: '停用后不会显示在文件浏览中，也不会参与扫描和播放',
+                    label: context.l10n.enableSource,
+                    subtitle: context.l10n.disableSourceDescription,
                     labelWidth: 104,
                     control: Align(
                       alignment: Alignment.centerRight,
                       child: AppSwitch(value: isEnabled, onChanged: (value) => setModalState(() => isEnabled = value)),
                     ),
                   ),
-                _buildStorageSourceFormItem(label: '用户名', controller: usernameController),
+                _buildStorageSourceFormItem(label: context.l10n.username, controller: usernameController),
                 _buildStorageSourceFormItem(
-                  label: '密码',
+                  label: context.l10n.password,
                   controller: passwordController,
                   obscureText: !showPassword,
                   suffix: AppButton.icon(
                     onPressed: () => setModalState(() => showPassword = !showPassword),
                     icon: showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    tooltip: showPassword ? '隐藏密码' : '显示密码',
+                    tooltip: showPassword ? context.l10n.hidePassword : context.l10n.showPassword,
                     variant: AppButtonVariant.ghost,
                     size: AppButtonSize.compact,
                   ),
                 ),
                 AppFormItem(
-                  label: '连接测试',
-                  subtitle: connectionTestResult ?? '使用当前填写的信息验证 WebDAV 连接',
+                  label: context.l10n.connectionTest,
+                  subtitle: connectionTestResult ?? context.l10n.webdavTestDescription,
                   subtitleColor: connectionTestSucceeded == null
                       ? null
                       : connectionTestSucceeded!
@@ -927,7 +969,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: Alignment.centerRight,
                     child: AppButton(
                       onPressed: isTestingConnection ? null : testConnection,
-                      label: isTestingConnection ? '测试中' : '测试连接',
+                      label: isTestingConnection ? context.l10n.testing : context.l10n.testConnection,
                       icon: Icons.wifi_tethering_outlined,
                       variant: AppButtonVariant.secondary,
                       size: AppButtonSize.compact,
@@ -950,20 +992,20 @@ class _SettingsPageState extends State<SettingsPage> {
         onConfirm: () async {
           final host = hostController.text.trim();
           if (host.isEmpty) {
-            showFormError('请填写 WebDAV 主机地址');
+            showFormError(context.l10n.webdavHostRequired);
             return false;
           }
           final portText = portController.text.trim();
           final port = portText.isEmpty ? null : int.tryParse(portText);
           if (portText.isNotEmpty && (port == null || port < 1 || port > 65535)) {
-            showFormError('端口应在 1 到 65535 之间');
+            showFormError(context.l10n.portRangeError);
             return false;
           }
           final path = _normalizeWebDavPath(pathController.text);
           final endpoint = Uri(scheme: useHttps ? 'https' : 'http', host: host, port: port, path: path).toString();
           final uri = Uri.tryParse(endpoint);
           if (uri == null || uri.host.isEmpty) {
-            showFormError('请输入有效的 WebDAV 主机地址');
+            showFormError(context.l10n.webdavHostInvalid);
             return false;
           }
           try {
@@ -984,7 +1026,8 @@ class _SettingsPageState extends State<SettingsPage> {
             return true;
           } catch (error, stackTrace) {
             debugPrint('保存媒体源失败: $error\n$stackTrace');
-            showFormError('保存媒体源失败：$error');
+            if (!mounted) return false;
+            showFormError(context.l10n.sourceSaveFailed);
             return false;
           }
         },
@@ -1002,10 +1045,10 @@ class _SettingsPageState extends State<SettingsPage> {
         if (mounted) {
           AppMessage.success(
             source == null
-                ? '媒体源已添加'
+                ? context.l10n.sourceAdded
                 : clearedActiveSource
-                ? '媒体源已保存，请重新打开以应用新配置'
-                : '媒体源已保存',
+                ? context.l10n.sourceSavedReopen
+                : context.l10n.sourceSaved,
           );
         }
       }
@@ -1028,28 +1071,28 @@ class _SettingsPageState extends State<SettingsPage> {
 
   String _describeConnectionError(Object error) {
     final message = error.toString();
-    if (message.contains('401')) return '认证失败，请检查用户名或密码';
-    if (message.contains('403')) return '服务器拒绝访问，请检查目录权限';
-    if (message.contains('404')) return '找不到该 WebDAV 路径';
+    if (message.contains('401')) return context.l10n.authenticationFailed;
+    if (message.contains('403')) return context.l10n.permissionDenied;
+    if (message.contains('404')) return context.l10n.webdavPathMissing;
     if (message.contains('HandshakeException') || message.contains('WRONG_VERSION_NUMBER')) {
-      return 'HTTPS 设置不匹配，请确认服务器是否启用了 HTTPS';
+      return context.l10n.httpsMismatch;
     }
-    if (message.contains('SocketException')) return '无法连接到服务器，请检查主机和端口';
-    return '请检查主机、端口、路径和网络连接';
+    if (message.contains('SocketException')) return context.l10n.serverUnavailable;
+    return context.l10n.webdavConnectionAdvice;
   }
 
   String _describeSmbConnectionError(Object error) {
     final message = error.toString().toLowerCase();
     if (message.contains('auth') || message.contains('logon') || message.contains('access denied')) {
-      return '认证失败，请检查用户名或密码';
+      return context.l10n.authenticationFailed;
     }
     if (message.contains('not found') || message.contains('no such')) {
-      return '找不到共享名或共享内路径';
+      return context.l10n.smbShareMissing;
     }
     if (message.contains('connection') || message.contains('socket') || message.contains('timeout')) {
-      return '无法连接到 SMB 服务器，请检查主机、共享名和网络';
+      return context.l10n.smbServerUnavailable;
     }
-    return '请检查主机、共享名、路径和登录信息';
+    return context.l10n.smbConnectionAdvice;
   }
 
   String _combineWebDavPaths(String? endpointPath, String? rootPath) {
@@ -1085,9 +1128,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _confirmDeleteStorageSource(StorageSource source) async {
     final confirmed = await AppModal.confirm(
       context: context,
-      title: '删除媒体源？',
-      message: '“${source.name}”的连接信息及其已扫描的本地媒体数据、播放进度和收藏状态将被删除，不会删除远程文件。',
-      confirmLabel: '删除',
+      title: context.l10n.deleteSourceConfirm,
+      message: context.l10n.deleteSourceDescription(source.name),
+      confirmLabel: context.l10n.delete,
       icon: Icons.delete_outline_rounded,
       destructive: true,
     );
@@ -1095,7 +1138,8 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final deletedFileCount = await _storageSourceService.deleteWithMedia(source.id);
       if (deletedFileCount == null) {
-        AppMessage.error('媒体源不存在或已被删除');
+        if (!mounted) return;
+        AppMessage.error(context.l10n.sourceMissing);
         return;
       }
       if (!mounted) return;
@@ -1105,11 +1149,11 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       await _loadStorageSources();
       if (mounted) {
-        AppMessage.success('媒体源已删除，已清理 $deletedFileCount 个媒体文件');
+        AppMessage.success(context.l10n.sourceDeleted(deletedFileCount));
       }
     } catch (error, stackTrace) {
       debugPrint('删除媒体源失败: $error\n$stackTrace');
-      if (mounted) AppMessage.error('删除媒体源失败：$error');
+      if (mounted) AppMessage.error(context.l10n.sourceDeleteFailed);
     }
   }
 
@@ -1118,22 +1162,22 @@ class _SettingsPageState extends State<SettingsPage> {
       selector: (context, provider) => provider.isSaving,
       builder: (context, isBusy, child) {
         return SettingsSection(
-          title: '元数据',
-          subtitle: '配置媒体信息的获取方式与网络访问',
+          title: context.l10n.metadata,
+          subtitle: context.l10n.metadataDescription,
           groups: [
             AppFormGroup(
-              title: 'TMDB 配置',
+              title: context.l10n.tmdbConfiguration,
               children: [
                 SettingsTextField(
                   controller: _tmdbApiBaseUrlController,
                   keyboardType: TextInputType.url,
-                  label: 'API 地址',
+                  label: context.l10n.apiUrl,
                   onFocusLost: _commitNetworkSettings,
                 ),
                 SettingsTextField(
                   controller: _tmdbApiKeyController,
                   obscureText: !_showTmdbApiKey,
-                  label: 'API 密钥',
+                  label: context.l10n.apiKey,
                   onFocusLost: _commitNetworkSettings,
                   inputSuffix: _VisibilityToggle(
                     visible: _showTmdbApiKey,
@@ -1145,8 +1189,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 SettingsSwitchItem(
-                  label: '使用代理访问 TMDB',
-                  subtitle: '用于 TMDB API 和图片下载',
+                  label: context.l10n.tmdbUseProxy,
+                  subtitle: context.l10n.tmdbProxyDescription,
                   value: _tmdbProxyEnabled,
                   onChanged: (value) {
                     setState(() {
@@ -1159,15 +1203,18 @@ class _SettingsPageState extends State<SettingsPage> {
                   SettingsTextField(
                     controller: _tmdbProxyUrlController,
                     keyboardType: TextInputType.url,
-                    label: 'HTTP 代理',
+                    label: context.l10n.httpProxy,
                     onFocusLost: _commitNetworkSettings,
                   ),
                 AppFormItem(
-                  label: '连接状态',
-                  subtitle: '检查当前 TMDB 配置是否可用',
+                  label: context.l10n.connectionStatus,
+                  subtitle: context.l10n.tmdbTestDescription,
                   labelWidth: null,
                   expandControl: false,
-                  control: _SettingsActionButton(onPressed: isBusy ? null : _testTmdbConnection, label: '测试连接'),
+                  control: _SettingsActionButton(
+                    onPressed: isBusy ? null : _testTmdbConnection,
+                    label: context.l10n.testConnection,
+                  ),
                 ),
               ],
             ),
@@ -1179,33 +1226,33 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildPlaybackSettings(BuildContext context) {
     return SettingsSection(
-      title: '播放',
-      subtitle: '调整缓存、解码与字幕偏好',
+      title: context.l10n.playback,
+      subtitle: context.l10n.playbackDescription,
       groups: [
         AppFormGroup(
-          title: '缓存设置',
+          title: context.l10n.cacheSettings,
           children: [
             SettingsTextField(
               controller: _playbackCacheSizeMbController,
               keyboardType: TextInputType.number,
-              label: '缓存大小',
+              label: context.l10n.cacheSize,
               suffixText: 'MB',
               maxWidth: 120,
             ),
             SettingsTextField(
               controller: _playbackReadaheadSecondsController,
               keyboardType: TextInputType.number,
-              label: '预读',
-              suffixText: '秒',
+              label: context.l10n.readahead,
+              suffixText: context.l10n.secondsUnit,
               maxWidth: 120,
             ),
           ],
         ),
         AppFormGroup(
-          title: '播放设置',
+          title: context.l10n.playbackSettings,
           children: [
             SettingsSwitchItem(
-              label: '硬件解码',
+              label: context.l10n.hardwareDecoding,
               value: _enableHardwareAcceleration,
               onChanged: (value) {
                 setState(() {
@@ -1217,11 +1264,11 @@ class _SettingsPageState extends State<SettingsPage> {
           ],
         ),
         AppFormGroup(
-          title: '字幕设置',
+          title: context.l10n.subtitleSettings,
           children: [
-            SettingsTextField(controller: _subtitleLanguagePriorityController, label: '默认字幕语言'),
+            SettingsTextField(controller: _subtitleLanguagePriorityController, label: context.l10n.subtitleLanguage),
             AppFormItem(
-              label: '字幕大小',
+              label: context.l10n.subtitleSize,
               control: Align(
                 alignment: Alignment.centerRight,
                 child: SizedBox(
@@ -1298,18 +1345,18 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) return;
 
     if (isConnected) {
-      AppMessage.success('TMDB 连接成功');
+      AppMessage.success(context.l10n.tmdbConnected);
     } else {
-      AppMessage.error('TMDB 连接失败');
+      AppMessage.error(context.l10n.tmdbConnectionFailed);
     }
   }
 
   Future<void> _confirmScanMediaSources() async {
     final confirmed = await AppModal.confirm(
       context: context,
-      title: '扫描全部媒体源？',
-      message: '这会递归扫描全部启用的媒体源，新增发现的视频，并清理已从来源删除的文件索引。配置 TMDB API Key 后还会自动刮削媒体信息。不会删除远程文件。',
-      confirmLabel: '开始扫描',
+      title: context.l10n.scanConfirm,
+      message: context.l10n.scanConfirmDescription,
+      confirmLabel: context.l10n.startScan,
       icon: Icons.manage_search_rounded,
     );
 
@@ -1321,32 +1368,35 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final error = mediaLibraryProvider.error;
     if (summary == null) {
-      AppMessage.error(error ?? '扫描媒体源失败');
+      AppMessage.error(error == null ? context.l10n.scanFailed : context.l10n.failure(error));
       return;
     }
-    final message =
-        '扫描完成：发现 ${summary.discoveredFileCount} 个视频，新增 ${summary.newFileCount} 个，移除 ${summary.removedFileCount} 个';
+    final message = context.l10n.scanSummary(
+      summary.discoveredFileCount,
+      summary.newFileCount,
+      summary.removedFileCount,
+    );
     final metadataMessage = switch ((summary.metadataMatchedCount, summary.metadataFailedCount)) {
-      (final int matched, final int failed) => 'TMDB：已匹配 $matched 个，未匹配 $failed 个',
-      _ => '未配置 TMDB API Key，已跳过元数据刮削',
+      (final int matched, final int failed) => context.l10n.metadataSummary(matched, failed),
+      _ => context.l10n.metadataSkipped,
     };
     if (error != null) {
-      AppMessage.error('$message；$error');
+      AppMessage.error(context.l10n.scanResultWithError(message, context.l10n.failure(error)));
     } else if (summary.failedSourceCount > 0) {
-      AppMessage.error('$message；${summary.failedSourceCount} 个媒体源扫描失败；$metadataMessage');
+      AppMessage.error(context.l10n.scanPartialFailure(message, summary.failedSourceCount, metadataMessage));
     } else if (summary.metadataFailedCount case final failed? when failed > 0) {
-      AppMessage.warning('$message；$metadataMessage');
+      AppMessage.warning(context.l10n.scanResultWithMetadata(message, metadataMessage));
     } else {
-      AppMessage.success('$message；$metadataMessage');
+      AppMessage.success(context.l10n.scanResultWithMetadata(message, metadataMessage));
     }
   }
 
   Future<void> _confirmClearLibrary() async {
     final confirmed = await AppModal.confirm(
       context: context,
-      title: '清空媒体库？',
-      message: '这会清空本地扫描文件、元数据、播放进度和收藏，不会删除 WebDAV 上的文件。',
-      confirmLabel: '清空',
+      title: context.l10n.clearLibraryConfirm,
+      message: context.l10n.clearLibraryConfirmDescription,
+      confirmLabel: context.l10n.clear,
       icon: Icons.delete_sweep_rounded,
       destructive: true,
     );
@@ -1358,7 +1408,7 @@ class _SettingsPageState extends State<SettingsPage> {
     await mediaLibraryProvider.clearLibrary();
     if (!mounted) return;
 
-    AppMessage.success('媒体库已清空');
+    AppMessage.success(context.l10n.libraryCleared);
   }
 
   Future<bool> _persistSettings({bool applyRuntime = false, bool syncControllers = true}) async {
@@ -1383,7 +1433,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final error = settingsProvider.error;
     if (error != null) {
-      AppMessage.error(error);
+      AppMessage.error(context.l10n.failure(error));
       return false;
     }
 
@@ -1446,7 +1496,7 @@ class _VisibilityToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: visible ? '隐藏' : '显示',
+      message: visible ? context.l10n.hide : context.l10n.show,
       child: AppClickableArea(
         width: 22,
         height: 22,

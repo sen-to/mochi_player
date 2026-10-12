@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
@@ -16,9 +17,11 @@ class AppSettingsProvider extends ChangeNotifier {
   bool _isSaving = false;
   bool _shuttingDown = false;
   Future<void> _pendingSave = Future<void>.value();
+
   void beginShutdown() => _shuttingDown = true;
+
   Future<void> waitForPendingSave() => _pendingSave;
-  String? _error;
+  AppFailure? _error;
 
   AppSettings get settings => _settings;
 
@@ -28,7 +31,7 @@ class AppSettingsProvider extends ChangeNotifier {
 
   bool get isSaving => _isSaving;
 
-  String? get error => _error;
+  AppFailure? get error => _error;
 
   String get tmdbApiKey => _settings.tmdbApiKey;
 
@@ -59,7 +62,7 @@ class AppSettingsProvider extends ChangeNotifier {
       _settings = await _settingsService.load();
       await _applyRuntimeSettings();
     } catch (e) {
-      _error = '加载设置失败: $e';
+      _error = AppFailure.settingsLoad;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -126,7 +129,7 @@ class AppSettingsProvider extends ChangeNotifier {
       _settings = await _settingsService.save(nextSettings);
       if (applyRuntime) await _applyRuntimeSettings();
     } catch (e) {
-      _error = '保存设置失败: $e';
+      _error = AppFailure.settingsSave;
     } finally {
       _isSaving = false;
       notifyListeners();

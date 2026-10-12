@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/core/ui/components/input/internal/app_text_context_menu.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('uses a subtle neutral surface when disabled in dark mode', (tester) async {
@@ -13,6 +14,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: Scaffold(
           body: SizedBox(width: 320, child: AppInput(controller: controller, enabled: false)),
@@ -44,6 +48,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: Scaffold(
           body: StatefulBuilder(
@@ -81,6 +88,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: SizedBox(width: 320, child: AppInput(controller: controller)),
@@ -101,6 +111,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: AppInput(controller: controller, focusNode: focusNode, onFocusLost: () => focusLostCount++),
@@ -126,6 +139,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(body: AppInput(controller: controller)),
       ),
@@ -173,6 +189,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.darkTheme,
         home: Scaffold(body: AppInput(controller: controller, obscureText: true)),
       ),
@@ -199,6 +218,9 @@ void main() {
   testWidgets('search input composes the shared input', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const Scaffold(
           body: Align(child: SizedBox(width: 280, child: AppSearchInput())),
@@ -223,6 +245,9 @@ void main() {
   testWidgets('search input focuses itself with Ctrl+K', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: const Scaffold(body: SizedBox(width: 240, child: AppSearchInput())),
       ),
@@ -244,6 +269,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: Scaffold(
           body: SizedBox(

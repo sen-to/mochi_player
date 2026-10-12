@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/components/basic/app_clickable_area.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
-import 'package:mochi_player/core/platform/window_service.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 class _SidebarMetrics {
   const _SidebarMetrics._();
@@ -50,17 +51,17 @@ class Sidebar extends StatelessWidget {
               child: const SizedBox(height: _SidebarMetrics.topDragAreaHeight, width: double.infinity),
             ),
 
-          _buildSectionTitle("媒体库", context),
+          _buildSectionTitle(context.l10n.library, context),
           _buildGroup([AppDestination.home, AppDestination.movies, AppDestination.series]),
 
           const SizedBox(height: _SidebarMetrics.sectionGap),
 
-          _buildSectionTitle("来源", context),
+          _buildSectionTitle(context.l10n.sources, context),
           _buildGroup([AppDestination.fileBrowser]),
 
           const SizedBox(height: _SidebarMetrics.sectionGap),
 
-          _buildSectionTitle("列表", context),
+          _buildSectionTitle(context.l10n.lists, context),
           _buildGroup([AppDestination.favorites]),
 
           const Spacer(),
@@ -142,7 +143,7 @@ class _SidebarItem extends StatelessWidget {
           Icon(destination.icon, size: _SidebarMetrics.itemIconSize, color: foregroundColor),
           const SizedBox(width: _SidebarMetrics.itemIconLabelGap),
           Text(
-            destination.title,
+            destination.title(context),
             style: TextStyle(
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

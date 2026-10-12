@@ -13,8 +13,8 @@ class MediaDetailViewModel {
 
   String get title => _item.title;
 
-  String get overview {
-    return _item.overview ?? '暂无简介';
+  String? get overview {
+    return _item.overview;
   }
 
   String get backdropUrl {

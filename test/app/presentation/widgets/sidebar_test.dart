@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
 import 'package:mochi_player/app/presentation/widgets/sidebar.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
   testWidgets('selects destinations by identity instead of numeric indexes', (tester) async {
@@ -10,6 +11,9 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.lightTheme,
         home: StatefulBuilder(
           builder: (context, setState) => Sidebar(
@@ -22,7 +26,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text(AppDestination.movies.title));
+    await tester.tap(find.text('电影'));
     await tester.pump();
 
     expect(selectedDestination, AppDestination.movies);

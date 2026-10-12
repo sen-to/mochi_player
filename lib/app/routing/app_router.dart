@@ -7,6 +7,7 @@ import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/presentation/pages/library_section_page.dart';
 import 'package:mochi_player/features/library/presentation/pages/media_detail_page.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 GoRouter createAppRouter() {
   return GoRouter(
@@ -36,7 +37,7 @@ StatefulShellBranch _buildDestinationBranch(AppDestination destination) {
               pageBuilder: (context, state) {
                 final section = LibrarySection.values.asNameMap()[state.pathParameters['section']];
                 if (section == null) {
-                  return _errorPage(state, '未知的媒体库分区');
+                  return _errorPage(state, (l10n) => l10n.unknownLibrarySection);
                 }
                 return _appTransitionPage(
                   state: state,
@@ -50,7 +51,7 @@ StatefulShellBranch _buildDestinationBranch(AppDestination destination) {
               pageBuilder: (context, state) {
                 final item = state.extra;
                 if (item is! LibraryItem) {
-                  return _errorPage(state, '缺少媒体详情参数');
+                  return _errorPage(state, (l10n) => l10n.missingMediaDetails);
                 }
                 return _appTransitionPage(
                   state: state,
@@ -93,11 +94,17 @@ CustomTransitionPage<void> _appTransitionPage({required GoRouterState state, req
   );
 }
 
-MaterialPage<void> _errorPage(GoRouterState state, String message) {
+MaterialPage<void> _errorPage(GoRouterState state, String Function(AppLocalizations) message) {
   return MaterialPage<void>(
     key: state.pageKey,
     child: Scaffold(
-      body: AppResult(status: AppResultStatus.error, title: '页面无法打开', subtitle: message),
+      body: Builder(
+        builder: (context) => AppResult(
+          status: AppResultStatus.error,
+          title: context.l10n.pageUnavailable,
+          subtitle: message(context.l10n),
+        ),
+      ),
     ),
   );
 }

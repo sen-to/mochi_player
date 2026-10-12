@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mochi_player/core/ui/components/input/app_input.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
+import 'package:mochi_player/l10n/l10n.dart';
 
 /// A search-specific composition of [AppInput].
 class AppSearchInput extends StatefulWidget {
-  const AppSearchInput({super.key, this.placeholder = '搜索...', this.onChanged, this.focusNode});
+  const AppSearchInput({super.key, this.placeholder, this.onChanged, this.focusNode});
 
-  final String placeholder;
+  final String? placeholder;
   final ValueChanged<String>? onChanged;
   final FocusNode? focusNode;
 
@@ -98,7 +99,7 @@ class _AppSearchInputState extends State<AppSearchInput> {
       child: AppInput.search(
         controller: _controller,
         focusNode: _focusNode,
-        placeholder: widget.placeholder,
+        placeholder: widget.placeholder ?? context.l10n.search,
         onChanged: widget.onChanged,
         prefix: Icon(
           CupertinoIcons.search,
