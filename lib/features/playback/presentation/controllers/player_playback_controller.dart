@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:media_kit/media_kit.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:mochi_player/features/playback/application/playback_engine.dart';
+import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
@@ -13,7 +13,7 @@ import 'package:mochi_player/features/playback/domain/playback_resume_policy.dar
 import 'package:mochi_player/features/playback/infrastructure/libmpv_log_buffer.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 
-/// Owns media_kit and the playback state presented by [PlayerPage].
+/// Owns the playback engine and the playback state presented by [PlayerPage].
 ///
 /// Queue and URL resolution remain in [PlaybackSessionController]. Window
 /// modes and widget-only interaction state deliberately remain outside.
@@ -27,6 +27,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     required MediaFile initialItem,
     required List<MediaFile> queueItems,
     required PlaybackTarget initialTarget,
+    required this.engine,
     this.onPlaybackActivity,
   }) : _settings = settings,
        _session = PlaybackSessionController(
@@ -35,18 +36,6 @@ class PlayerPlaybackController extends ChangeNotifier {
          queueItems: queueItems,
          initialTarget: initialTarget,
        ) {
-    player = Player(
-      configuration: PlayerConfiguration(
-        title: 'Mochi Player',
-        bufferSize: settings.playbackCacheMaxBytes,
-        libass: true,
-        logLevel: MPVLogLevel.info,
-      ),
-    );
-    videoController = VideoController(
-      player,
-      configuration: VideoControllerConfiguration(enableHardwareAcceleration: settings.enableHardwareAcceleration),
-    );
     _bindPlayerStreams();
   }
 
@@ -56,8 +45,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   final LibmpvLogBuffer _libmpvLogs = LibmpvLogBuffer();
 
-  late final Player player;
-  late final VideoController videoController;
+  final PlaybackEngine engine;
 
   Timer? _progressSaveTimer;
   Timer? _resumeNoticeTimer;
@@ -80,10 +68,10 @@ class PlayerPlaybackController extends ChangeNotifier {
   String? _pendingExternalSubtitlePath;
   final Map<String, _LoadedExternalSubtitle> _loadedExternalSubtitles = {};
   List<String> _subtitle = const [];
-  List<AudioTrack> _audioTracks = const [];
-  List<SubtitleTrack> _subtitleTracks = const [];
-  AudioTrack _selectedAudioTrack = const AudioTrack('auto', null, null);
-  SubtitleTrack _selectedSubtitleTrack = const SubtitleTrack('auto', null, null);
+  List<PlaybackAudioTrack> _audioTracks = const [];
+  List<PlaybackSubtitleTrack> _subtitleTracks = const [];
+  PlaybackAudioTrack _selectedAudioTrack = const PlaybackAudioTrack.automatic();
+  PlaybackSubtitleTrack _selectedSubtitleTrack = const PlaybackSubtitleTrack.automatic();
 
   MediaFile get currentItem => _session.currentItem;
 
@@ -109,13 +97,13 @@ class PlayerPlaybackController extends ChangeNotifier {
 
   List<String> get subtitle => _subtitle;
 
-  List<AudioTrack> get audioTracks => _audioTracks;
+  List<PlaybackAudioTrack> get audioTracks => _audioTracks;
 
-  List<SubtitleTrack> get subtitleTracks => _subtitleTracks;
+  List<PlaybackSubtitleTrack> get subtitleTracks => _subtitleTracks;
 
-  AudioTrack get selectedAudioTrack => _selectedAudioTrack;
+  PlaybackAudioTrack get selectedAudioTrack => _selectedAudioTrack;
 
-  SubtitleTrack get selectedSubtitleTrack => _selectedSubtitleTrack;
+  PlaybackSubtitleTrack get selectedSubtitleTrack => _selectedSubtitleTrack;
 
   Future<void> initialize() => _openMedia(_nextMediaOpenGeneration());
 
@@ -136,8 +124,8 @@ class PlayerPlaybackController extends ChangeNotifier {
 
     final move = await _session.moveBy(
       offset,
-      positionMs: player.state.position.inMilliseconds,
-      durationMs: player.state.duration.inMilliseconds,
+      positionMs: engine.state.position.inMilliseconds,
+      durationMs: engine.state.duration.inMilliseconds,
     );
     if (!_canUsePlayer(generation)) return;
 
@@ -159,12 +147,12 @@ class PlayerPlaybackController extends ChangeNotifier {
     await _openMedia(generation);
   }
 
-  Future<bool> setAudioTrack(AudioTrack track) async {
+  Future<bool> setAudioTrack(PlaybackAudioTrack track) async {
     if (_isDisposed || _isClosing) return false;
     _selectedAudioTrack = track;
     notifyListeners();
     try {
-      await player.setAudioTrack(track);
+      await engine.setAudioTrack(track);
     } catch (error) {
       debugPrint('切换音轨失败: $error');
       return false;
@@ -174,13 +162,13 @@ class PlayerPlaybackController extends ChangeNotifier {
     return true;
   }
 
-  Future<void> setSubtitleTrack(SubtitleTrack track) async {
+  Future<void> setSubtitleTrack(PlaybackSubtitleTrack track) async {
     if (_isDisposed || _isClosing) return;
     _didAutoSelectSubtitle = true;
     _selectedSubtitleTrack = track;
     notifyListeners();
     try {
-      await player.setSubtitleTrack(track);
+      await engine.setSubtitleTrack(track);
       await _applySubtitleStyleMode();
     } catch (error) {
       debugPrint('切换字幕失败: $error');
@@ -211,9 +199,9 @@ class PlayerPlaybackController extends ChangeNotifier {
     _loadedExternalSubtitles[normalizedPath] = _LoadedExternalSubtitle(title: track.title!);
     _pendingExternalSubtitlePath = normalizedPath;
     try {
-      await player.setSubtitleTrack(track);
+      await engine.setSubtitleTrack(track);
       if (_isDisposed || _isClosing) return false;
-      _subtitleTracks = _normalizeSubtitleTracks(player.state.tracks.subtitle);
+      _subtitleTracks = _normalizeSubtitleTracks(engine.state.tracks.subtitle);
       _syncPendingExternalSubtitleSelection();
       await _applySubtitleStyleMode();
       notifyListeners();
@@ -254,37 +242,37 @@ class PlayerPlaybackController extends ChangeNotifier {
 
   void adjustVolume(double delta) {
     if (_isDisposed || _isClosing) return;
-    final nextVolume = (player.state.volume + delta).clamp(0.0, 100.0);
-    player.setVolume(nextVolume);
+    final nextVolume = (engine.state.volume + delta).clamp(0.0, 100.0);
+    engine.setVolume(nextVolume);
     if (nextVolume > 0) _lastVolumeBeforeMute = nextVolume;
     onPlaybackActivity?.call();
   }
 
   void toggleMute() {
     if (_isDisposed || _isClosing) return;
-    final currentVolume = player.state.volume;
+    final currentVolume = engine.state.volume;
     if (currentVolume > 0) {
       _lastVolumeBeforeMute = currentVolume;
-      player.setVolume(0);
+      engine.setVolume(0);
     } else {
-      player.setVolume(_lastVolumeBeforeMute <= 0 ? 100 : _lastVolumeBeforeMute);
+      engine.setVolume(_lastVolumeBeforeMute <= 0 ? 100 : _lastVolumeBeforeMute);
     }
     onPlaybackActivity?.call();
   }
 
   void _bindPlayerStreams() {
     _subscriptions.addAll([
-      player.stream.error.listen((error) {
+      engine.stream.error.listen((error) {
         if (_isDisposed || _isClosing) return;
         debugPrint('播放器错误: ${LibmpvLogBuffer.sanitize(error)}');
         _dumpLibmpvLogs();
         _playerError = LibmpvLogBuffer.sanitize(error);
         notifyListeners();
       }),
-      player.stream.log.listen((log) {
+      engine.stream.log.listen((log) {
         if (!_isDisposed) _libmpvLogs.add(log);
       }),
-      player.stream.tracks.listen((tracks) {
+      engine.stream.tracks.listen((tracks) {
         if (_isDisposed || _isClosing) return;
         _audioTracks = _normalizeAudioTracks(tracks.audio);
         _subtitleTracks = _normalizeSubtitleTracks(tracks.subtitle);
@@ -294,29 +282,29 @@ class PlayerPlaybackController extends ChangeNotifier {
         notifyListeners();
         if (!_didAutoSelectSubtitle) _autoSelectSubtitle();
       }),
-      player.stream.track.listen((track) {
+      engine.stream.track.listen((track) {
         if (_isDisposed || _isClosing) return;
-        if (!_isAudioTrackAuto(track.audio)) {
+        if (!track.audio.isAutomatic) {
           _selectedAudioTrack = track.audio;
         }
-        if (!_isSubtitleTrackAuto(track.subtitle)) {
+        if (!track.subtitle.isAutomatic) {
           _selectedSubtitleTrack = _resolveDisplayedSubtitleTrack(track.subtitle, _subtitleTracks);
         }
         _syncPendingExternalSubtitleSelection();
         notifyListeners();
       }),
-      player.stream.buffering.listen((buffering) {
+      engine.stream.buffering.listen((buffering) {
         if (_isDisposed || _isClosing) return;
         _setBuffering(buffering);
         notifyListeners();
       }),
-      player.stream.playing.listen((_) {
+      engine.stream.playing.listen((_) {
         if (!_isDisposed) onPlaybackActivity?.call();
       }),
-      player.stream.completed.listen((completed) {
+      engine.stream.completed.listen((completed) {
         if (!_isDisposed && completed) unawaited(_handlePlaybackCompleted());
       }),
-      player.stream.subtitle.listen((subtitle) {
+      engine.stream.subtitle.listen((subtitle) {
         if (_isDisposed || _isClosing) return;
         _subtitle = subtitle;
         notifyListeners();
@@ -335,13 +323,8 @@ class PlayerPlaybackController extends ChangeNotifier {
     await _applySubtitleStyleMode(generation);
     if (!_canUsePlayer(generation)) return;
 
-    final media = Media(
-      _session.currentTarget.url,
-      httpHeaders: {'User-Agent': 'MochiPlayer/1.0.0', ..._session.currentTarget.httpHeaders},
-      start: resumePosition,
-    );
     try {
-      await player.open(media, play: true);
+      await engine.open(_session.currentTarget, start: resumePosition);
       if (!_canUsePlayer(generation)) return;
       await _applySubtitleStyleMode(generation);
       if (!_canUsePlayer(generation)) return;
@@ -371,56 +354,33 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   Future<void> _applyPlayerSettings([int? generation]) async {
-    if (!_canUsePlayer(generation) || player.platform is! NativePlayer) return;
-    final platform = player.platform as NativePlayer;
-    final properties = <String, String>{
-      'cache': 'yes',
-      'cache-pause': 'yes',
-      'cache-pause-wait': '3',
-      'cache-secs': _settings.playbackReadaheadSeconds.toString(),
-      'demuxer-readahead-secs': _settings.playbackReadaheadSeconds.toString(),
-      'demuxer-max-bytes': _settings.playbackCacheMaxBytes.toString(),
-      'demuxer-max-back-bytes': (_settings.playbackCacheMaxBytes ~/ 4).toString(),
-      'hwdec': _settings.enableHardwareAcceleration ? 'auto' : 'no',
-      'slang': _settings.normalizedSubtitleLanguagePriority,
-      'vo-profile': 'high-quality',
-    };
-    for (final entry in properties.entries) {
-      if (!_canUsePlayer(generation)) return;
-      try {
-        await platform.setProperty(entry.key, entry.value);
-      } catch (error) {
-        debugPrint('应用播放器设置失败 ${entry.key}=${entry.value}: $error');
-      }
-    }
+    if (!_canUsePlayer(generation)) return;
+    await engine.applyOptions(optionsFor(_settings));
   }
 
+  static PlaybackOptions optionsFor(AppSettings settings) => PlaybackOptions(
+    cacheMaxBytes: settings.playbackCacheMaxBytes,
+    readaheadSeconds: settings.playbackReadaheadSeconds,
+    hardwareAcceleration: settings.enableHardwareAcceleration,
+    subtitleLanguagePriority: settings.normalizedSubtitleLanguagePriority,
+  );
+
   Future<void> _applySubtitleStyleMode([int? generation]) async {
-    if (!_canUsePlayer(generation) || player.platform is! NativePlayer) return;
-    final platform = player.platform as NativePlayer;
-    final value = _overrideEmbeddedSubtitleStyle ? 'no' : 'yes';
-    final properties = <String, String>{'sub-ass': value, 'sub-visibility': value, 'secondary-sub-visibility': value};
-    for (final entry in properties.entries) {
-      if (!_canUsePlayer(generation)) return;
-      try {
-        await platform.setProperty(entry.key, entry.value);
-      } catch (error) {
-        debugPrint('应用字幕样式模式失败 ${entry.key}=${entry.value}: $error');
-      }
-    }
+    if (!_canUsePlayer(generation)) return;
+    await engine.setSubtitleStyleOverride(_overrideEmbeddedSubtitleStyle);
   }
 
   Future<void> _restoreProgressIfNeeded(Duration? resumePosition, int generation) async {
     if (_hasRestoredPosition || resumePosition == null) return;
     if (!_canUsePlayer(generation)) return;
     _hasRestoredPosition = true;
-    await player.seek(resumePosition);
+    await engine.seek(resumePosition);
     unawaited(
       Future<void>.delayed(const Duration(milliseconds: 500), () async {
         if (!_canUsePlayer(generation)) return;
-        final currentPosition = player.state.position;
+        final currentPosition = engine.state.position;
         if (currentPosition.inMilliseconds < resumePosition.inMilliseconds - 2000) {
-          await player.seek(resumePosition);
+          await engine.seek(resumePosition);
         }
       }),
     );
@@ -448,8 +408,8 @@ class PlayerPlaybackController extends ChangeNotifier {
 
   Future<void> _saveProgress({bool force = false, bool allowDisposed = false, bool propagateFailure = false}) async {
     if ((_isDisposed || _isClosing) && !allowDisposed) return;
-    final positionMs = player.state.position.inMilliseconds;
-    final durationMs = player.state.duration.inMilliseconds;
+    final positionMs = engine.state.position.inMilliseconds;
+    final durationMs = engine.state.duration.inMilliseconds;
     if (positionMs <= 0 && durationMs <= 0) return;
     try {
       await _session.saveProgress(positionMs: positionMs, durationMs: durationMs, force: force);
@@ -476,7 +436,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     // Pause before taking the final snapshot. In-flight open/seek callbacks are
     // invalidated above and cannot restart a session during shutdown.
     try {
-      await player.pause();
+      await engine.pause();
     } finally {
       await flushProgress();
     }
@@ -491,7 +451,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     _bufferingIndicatorTimer?.cancel();
     _resumeNoticeTimer?.cancel();
     await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
-    await player.dispose();
+    await engine.dispose();
   }
 
   Future<void> _handlePlaybackCompleted() async {
@@ -538,14 +498,14 @@ class PlayerPlaybackController extends ChangeNotifier {
     _subtitleTracks = const [];
     _pendingExternalSubtitlePath = null;
     _loadedExternalSubtitles.clear();
-    _selectedAudioTrack = const AudioTrack('auto', null, null);
-    _selectedSubtitleTrack = const SubtitleTrack('auto', null, null);
+    _selectedAudioTrack = const PlaybackAudioTrack.automatic();
+    _selectedSubtitleTrack = const PlaybackSubtitleTrack.automatic();
   }
 
-  List<SubtitleTrack> _normalizeSubtitleTracks(List<SubtitleTrack> tracks) {
-    final result = <SubtitleTrack>[const SubtitleTrack('no', null, null)];
+  List<PlaybackSubtitleTrack> _normalizeSubtitleTracks(List<PlaybackSubtitleTrack> tracks) {
+    final result = <PlaybackSubtitleTrack>[const PlaybackSubtitleTrack.disabled()];
     for (final track in tracks) {
-      if (_isSubtitleTrackAuto(track) || _isSubtitleTrackOff(track)) continue;
+      if (track.isAutomatic || track.isDisabled) continue;
       if (!result.contains(track)) result.add(track);
     }
     return result;
@@ -565,28 +525,31 @@ class PlayerPlaybackController extends ChangeNotifier {
     _pendingExternalSubtitlePath = null;
   }
 
-  SubtitleTrack? _findSubtitleTrackByTitle(String title, List<SubtitleTrack> tracks) {
+  PlaybackSubtitleTrack? _findSubtitleTrackByTitle(String title, List<PlaybackSubtitleTrack> tracks) {
     for (final track in tracks) {
       if (track.title?.trim() == title) return track;
     }
     return null;
   }
 
-  List<AudioTrack> _normalizeAudioTracks(List<AudioTrack> tracks) {
-    final result = <AudioTrack>[];
+  List<PlaybackAudioTrack> _normalizeAudioTracks(List<PlaybackAudioTrack> tracks) {
+    final result = <PlaybackAudioTrack>[];
     for (final track in tracks) {
-      if (_isAudioTrackAuto(track) || _isAudioTrackOff(track)) continue;
+      if (track.isAutomatic || track.isDisabled) continue;
       if (!result.contains(track)) result.add(track);
     }
     return result;
   }
 
-  AudioTrack _resolveDisplayedAudioTrack(AudioTrack selectedTrack, List<AudioTrack> tracks) {
+  PlaybackAudioTrack _resolveDisplayedAudioTrack(PlaybackAudioTrack selectedTrack, List<PlaybackAudioTrack> tracks) {
     if (tracks.isEmpty || tracks.contains(selectedTrack)) return selectedTrack;
     return tracks.firstWhere((track) => track.isDefault == true, orElse: () => tracks.first);
   }
 
-  SubtitleTrack _resolveDisplayedSubtitleTrack(SubtitleTrack selectedTrack, List<SubtitleTrack> tracks) {
+  PlaybackSubtitleTrack _resolveDisplayedSubtitleTrack(
+    PlaybackSubtitleTrack selectedTrack,
+    List<PlaybackSubtitleTrack> tracks,
+  ) {
     if (tracks.contains(selectedTrack)) return selectedTrack;
     final selectedTitle = selectedTrack.title?.trim();
     if (selectedTitle != null && selectedTitle.isNotEmpty) {
@@ -594,14 +557,11 @@ class PlayerPlaybackController extends ChangeNotifier {
         if (track.title?.trim() == selectedTitle) return track;
       }
     }
-    return tracks.firstWhere(
-      (track) => !_isSubtitleTrackOff(track) && track.isDefault == true,
-      orElse: () => tracks.first,
-    );
+    return tracks.firstWhere((track) => !track.isDisabled && track.isDefault == true, orElse: () => tracks.first);
   }
 
   void _autoSelectSubtitle() {
-    final availableTracks = _subtitleTracks.where((track) => !_isSubtitleTrackOff(track)).toList();
+    final availableTracks = _subtitleTracks.where((track) => !track.isDisabled).toList();
     if (availableTracks.isEmpty) return;
 
     final preferences = _settings.normalizedSubtitleLanguagePriority
@@ -618,7 +578,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     }
   }
 
-  bool _trackMatchesLanguage(SubtitleTrack track, String preference) {
+  bool _trackMatchesLanguage(PlaybackSubtitleTrack track, String preference) {
     final text = [track.language, track.title].whereType<String>().join(' ').toLowerCase();
     if (text.contains(preference)) return true;
     if (_isChineseLanguage(preference)) {
@@ -636,15 +596,10 @@ class PlayerPlaybackController extends ChangeNotifier {
   bool _isChineseLanguage(String value) =>
       const ['zh', 'chi', 'zho', 'chs', 'cht'].contains(value) || value.startsWith('zh-');
 
-  bool _isSubtitleTrackAuto(SubtitleTrack track) => track.id == 'auto' && !track.uri && !track.data;
-
-  bool _isSubtitleTrackOff(SubtitleTrack track) => track.id == 'no' && !track.uri && !track.data;
-
-  bool _isAudioTrackAuto(AudioTrack track) => track.id == 'auto' && !track.uri;
-
-  bool _isAudioTrackOff(AudioTrack track) => track.id == 'no' && !track.uri;
-
-  int _nextMediaOpenGeneration() => ++_mediaOpenGeneration;
+  int _nextMediaOpenGeneration() {
+    engine.cancelPendingCommands();
+    return ++_mediaOpenGeneration;
+  }
 
   bool _canUsePlayer([int? generation]) =>
       !_isDisposed && !_isClosing && (generation == null || generation == _mediaOpenGeneration);
@@ -677,5 +632,5 @@ class _LoadedExternalSubtitle {
   _LoadedExternalSubtitle({required this.title});
 
   final String title;
-  SubtitleTrack? track;
+  PlaybackSubtitleTrack? track;
 }

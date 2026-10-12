@@ -1,3 +1,4 @@
+import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -345,6 +346,7 @@ class _PlayerWindowHome extends StatelessWidget {
                   ? PlayerPage(
                       key: ValueKey(bootstrap.request.requestId),
                       videoItem: bootstrap.initialMedia!,
+                      engineFactory: MediaKitPlaybackEngine.new,
                       target: bootstrap.initialTarget!,
                       contextTitle: bootstrap.request.contextTitle,
                       playlist: bootstrap.queue,

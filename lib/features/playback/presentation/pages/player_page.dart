@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:media_kit_video/media_kit_video.dart';
+import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/media_type.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
@@ -21,6 +21,7 @@ import 'package:provider/provider.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 
 class PlayerPage extends StatefulWidget {
+  final PlaybackEngine Function(PlaybackOptions) engineFactory;
   final MediaFile videoItem;
   final PlaybackTarget target;
   final String? contextTitle;
@@ -32,6 +33,7 @@ class PlayerPage extends StatefulWidget {
   const PlayerPage({
     super.key,
     required this.videoItem,
+    required this.engineFactory,
     required this.target,
     this.contextTitle,
     this.playlist = const [],
@@ -84,6 +86,7 @@ class _PlayerPageState extends State<PlayerPage> {
     _playbackController = PlayerPlaybackController(
       mediaStore: widget.mediaStore,
       settings: _playbackSettings,
+      engine: widget.engineFactory(PlayerPlaybackController.optionsFor(_playbackSettings)),
       initialItem: widget.videoItem,
       queueItems: queueItems,
       initialTarget: widget.target,
@@ -168,7 +171,7 @@ class _PlayerPageState extends State<PlayerPage> {
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (_isDisposed || event is! KeyDownEvent) return KeyEventResult.handled;
 
-    final player = _playbackController.player;
+    final player = _playbackController.engine;
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.space || key == LogicalKeyboardKey.keyK) {
       player.playOrPause();
@@ -226,13 +229,7 @@ class _PlayerPageState extends State<PlayerPage> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Video(
-                controller: _playbackController.videoController,
-                controls: (state) => const SizedBox.shrink(),
-                subtitleViewConfiguration: const SubtitleViewConfiguration(
-                  style: TextStyle(fontSize: 0, color: Colors.transparent),
-                ),
-              ),
+              _playbackController.engine.buildVideoSurface(),
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
@@ -298,7 +295,7 @@ class _PlayerPageState extends State<PlayerPage> {
                   ),
                 ),
               PlayerControls(
-                player: _playbackController.player,
+                engine: _playbackController.engine,
                 title: _displayTitle,
                 secondaryTitle: _displaySecondaryTitle,
                 isVisible: _isControlsVisible,

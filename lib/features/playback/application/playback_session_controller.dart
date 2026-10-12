@@ -10,7 +10,7 @@ import 'package:mochi_player/features/playback/domain/playback_queue.dart';
 ///
 /// This controller deliberately has no dependency on Flutter widgets or the
 /// media backend. The page remains responsible for rendering and issuing the
-/// actual open/seek commands to media_kit.
+/// actual open/seek commands to PlaybackEngine.
 class PlaybackSessionController {
   PlaybackSessionController({
     required PlaybackMediaStore mediaStore,

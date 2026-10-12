@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 import 'package:mochi_player/app/routing/app_router.dart';
 import 'package:mochi_player/app/application/application_exit_coordinator.dart';
 import 'package:mochi_player/app/application/main_window_lifecycle.dart';
@@ -23,7 +23,7 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized();
+  MediaKitPlaybackEngine.initialize();
   final windows = WindowService.instance = DesktopWindowService();
   final currentWindow = await windows.current();
   final playerWindowRequest = PlayerWindowRequest.tryDecode(currentWindow.arguments);

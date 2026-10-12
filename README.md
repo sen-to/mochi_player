@@ -196,6 +196,8 @@ test/           与 lib/ 结构对应的单元测试与 Widget 测试
 windows/ macos/ 各平台 runner
 ```
 
+播放通过 `PlaybackEngine` 门面接入，当前唯一实现为 media_kit + libmpv。播放控制、状态订阅、音轨 / 字幕、缓存与硬解设置、视频视图均通过门面；mpv 属性读写集中在后端实现。实施状态和未来直接接 libmpv 的条件见 [播放引擎 ADR](docs/decisions/0002-playback-engine.md)。
+
 > Windows 上主窗口引擎显式使用 `RunOnSeparateThread`（见 `windows/runner/flutter_window.cpp`）。
 > 这不是可选项：默认策略会把 UI isolate 合并到 Win32 消息循环线程，导致窗口在特定交互下冻结。
 
@@ -209,6 +211,7 @@ windows/ macos/ 各平台 runner
 ## 📌 已知限制
 
 - 应用界面当前仅提供简体中文，更多语言将陆续加入。
+- media_kit 已明确有限维护，完整播放能力仍需两平台样片验收；目前通过播放引擎门面隔离后端，详见 [ADR 0002](docs/decisions/0002-playback-engine.md)。
 - TMDB 匹配依赖文件命名质量，少数作品可能需要后续手动处理。
 - SMB 媒体源可扫描和浏览；用户已实测当前捆绑播放器无法打开 / seek SMB 文件，本地 HTTP 回源尚未实现。请先在系统中挂载共享，再按本地目录添加播放。
 - 关闭媒体库主窗口会先保存进度、关闭播放器并退出整个应用；单独关闭播放器则保留媒体库窗口。希望继续观看时请最小化主窗口。正常清理有超时兜底，超时情况下不保证最后快照完整，见 [多窗口策略 ADR](docs/decisions/0001-multi-window-strategy.md)。

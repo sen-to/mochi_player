@@ -16,7 +16,7 @@ sequenceDiagram
     MW->>MW: 使用请求中的最小文件信息快照
   end
   MW->>MW: StorageSourcePlaybackResolver 解析播放目标
-  MW->>MPV: 打开 Media(url, headers, start)
+  MW->>MPV: PlaybackEngine.open(target, start)
   MW->>UI: player.ready
   loop 每 10 秒或位移超过 5 秒
     MW->>DB: 媒体已入库时写入播放进度
@@ -30,7 +30,7 @@ sequenceDiagram
 - 入口：`PlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[playback_launcher.dart](../../lib/features/playback/presentation/playback_launcher.dart)）。
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
 - 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，**版本化**，携带 `sourceId + path`；临时文件浏览项额外携带文件名、大小等最小回退信息，**不含 URL 与凭据**。
-- 窗口创建后由 [main.dart](../../lib/main.dart) 的入口分支识别并走 `runPlayerWindow`；播放器窗口自己初始化数据库与设置（[player_window_app.dart:369-391](../../lib/features/playback/presentation/player_window_app.dart#L369-L391)）。
+- 窗口创建后由 [main.dart](../../lib/main.dart) 的入口分支识别并走 `runPlayerWindow`；播放器窗口自己初始化数据库与设置（[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart)）。
 - 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
 ## 播放目标解析
@@ -49,7 +49,9 @@ sequenceDiagram
 
 ## 播放引擎
 
-`PlayerPlaybackController` 创建 `Player`（启用 libass）与 `VideoController`，打开媒体时传入 URL、请求头与续播起点。启动后会下发一组 mpv 专有参数（[player_playback_controller.dart:374-390](../../lib/features/playback/presentation/controllers/player_playback_controller.dart#L374-L390)）：
+窗口入口选择 `MediaKitPlaybackEngine` 工厂，页面创建引擎并注入 `PlayerPlaybackController`。控制器和控制栏通过 [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) 使用项目状态与轨道类型，执行播放控制、状态订阅、选轨、字幕覆盖和缓存速度查询；视频视图也由后端提供。
+
+[MediaKitPlaybackEngine](../../lib/features/playback/infrastructure/media_kit_playback_engine.dart) 内部创建 `Player`（启用 libass）与 `VideoController`，将 `PlaybackTarget` 的 URL、请求头与续播起点转换为后端媒体对象。以下 mpv 参数仅在此实现中下发：
 
 | 参数 | 取值来源 |
 | --- | --- |
@@ -60,7 +62,7 @@ sequenceDiagram
 | `slang` | 设置：字幕语言优先级 |
 | `vo-profile` | 固定 `high-quality` |
 
-这些参数属于 mpv 专有能力，计划收敛到统一的播放引擎门面，见 [0002](../decisions/0002-playback-engine.md)。
+门面不暴露任意属性读写；缓存速度通过 `readCacheBytesPerSecond` 返回数值，字幕模式经类型明确的方法设置。参数实现与维护风险见 [0002](../decisions/0002-playback-engine.md)。
 
 ## 窗口模式
 
@@ -111,9 +113,8 @@ sequenceDiagram
 | 问题 | 影响 |
 | --- | --- |
 | 窗口生命周期与平台交互 | Windows 输入冻结的完整根因与修复效果待验证；窗口退出协调已实施，Windows 原生交互与真实视频退出仍待运行时验收。两个 SQLite 连接当前保留，由 WAL 协调 |
-| 控制器体量大 | 设置、字幕、进度、日志、缓冲逻辑集中在一个近 700 行的控制器中 |
-| 跨窗口调用无超时 | 子窗口响应慢时主窗口可能长时间等待 |
-| mpv 参数硬编码 | 引擎抽象泄漏；`User-Agent` 等值散落 |
+| 控制器体量大 | 设置、字幕、进度、日志、缓冲逻辑集中在一个控制器中 |
+| media_kit 有限维护 | 关键修复发布时间不可保证；播放后端已通过门面隔离，但原生渲染与打包仍需验证 |
 | 播放中修改设置不生效 | 播放页初始化时读取一次设置 |
 | 完成阈值重复 | 95% 在多处独立出现，见 [data-model.md](data-model.md) |
 

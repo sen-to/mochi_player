@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:media_kit/media_kit.dart';
+import 'package:mochi_player/features/playback/application/playback_engine.dart';
 
 /// Keeps a bounded, sanitized snapshot of recent libmpv diagnostics.
 class LibmpvLogBuffer {
@@ -11,7 +11,7 @@ class LibmpvLogBuffer {
 
   LibmpvLogBuffer({this.capacity = defaultCapacity}) : assert(capacity > 0);
 
-  void add(PlayerLog log) {
+  void add(PlaybackLog log) {
     if (_entries.length == capacity) {
       _entries.removeFirst();
     }

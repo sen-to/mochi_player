@@ -1,14 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:mochi_player/features/playback/application/playback_engine.dart';
+import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_popup_menu.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_seek_time_preview.dart';
 
 class PlayerControls extends StatefulWidget {
-  final Player player;
+  final PlaybackEngine engine;
   final String title;
   final String? secondaryTitle;
   final bool isVisible;
@@ -22,12 +23,12 @@ class PlayerControls extends StatefulWidget {
   final VoidCallback? onPip;
   final VoidCallback? onToggleMiniPlayerAlwaysOnTop;
   final ValueChanged<Rect>? onControlBarBoundsChanged;
-  final List<AudioTrack> audioTracks;
-  final AudioTrack? selectedAudioTrack;
-  final ValueChanged<AudioTrack>? onAudioSelected;
-  final List<SubtitleTrack> subtitleTracks;
-  final SubtitleTrack? selectedSubtitleTrack;
-  final ValueChanged<SubtitleTrack>? onSubtitleSelected;
+  final List<PlaybackAudioTrack> audioTracks;
+  final PlaybackAudioTrack? selectedAudioTrack;
+  final ValueChanged<PlaybackAudioTrack>? onAudioSelected;
+  final List<PlaybackSubtitleTrack> subtitleTracks;
+  final PlaybackSubtitleTrack? selectedSubtitleTrack;
+  final ValueChanged<PlaybackSubtitleTrack>? onSubtitleSelected;
   final VoidCallback? onExternalSubtitleRequested;
   final bool overrideEmbeddedSubtitleStyle;
   final ValueChanged<bool>? onSubtitleStyleOverrideChanged;
@@ -41,7 +42,7 @@ class PlayerControls extends StatefulWidget {
 
   const PlayerControls({
     super.key,
-    required this.player,
+    required this.engine,
     this.title = '',
     this.secondaryTitle,
     required this.isVisible,
@@ -86,18 +87,18 @@ class _PlayerControlsState extends State<PlayerControls> {
   @override
   void initState() {
     super.initState();
-    _isPlaying = widget.player.state.playing;
-    _volume = widget.player.state.volume;
-    _rate = widget.player.state.rate;
+    _isPlaying = widget.engine.state.playing;
+    _volume = widget.engine.state.volume;
+    _rate = widget.engine.state.rate;
 
     _subscriptions.addAll([
-      widget.player.stream.playing.listen((v) {
+      widget.engine.stream.playing.listen((v) {
         if (mounted) setState(() => _isPlaying = v);
       }),
-      widget.player.stream.volume.listen((v) {
+      widget.engine.stream.volume.listen((v) {
         if (mounted) setState(() => _volume = v);
       }),
-      widget.player.stream.rate.listen((v) {
+      widget.engine.stream.rate.listen((v) {
         if (mounted) setState(() => _rate = v);
       }),
     ]);
@@ -127,11 +128,8 @@ class _PlayerControlsState extends State<PlayerControls> {
   }
 
   Future<void> _updateCacheSpeed() async {
-    final platform = widget.player.platform;
-    if (platform is! NativePlayer) return;
-
     try {
-      final bytesPerSecond = double.tryParse(await platform.getProperty('cache-speed'));
+      final bytesPerSecond = await widget.engine.readCacheBytesPerSecond();
       final cacheSpeed = bytesPerSecond == null || !bytesPerSecond.isFinite || bytesPerSecond <= 0
           ? ''
           : _formatCacheSpeed(bytesPerSecond);
@@ -200,7 +198,7 @@ class _PlayerControlsState extends State<PlayerControls> {
               visibility: t,
               isPlaying: _isPlaying,
               isAlwaysOnTop: widget.isMiniPlayerAlwaysOnTop,
-              onPlayPause: () => _onTap(widget.player.playOrPause),
+              onPlayPause: () => _onTap(widget.engine.playOrPause),
               onToggleAlwaysOnTop: () => _onTap(widget.onToggleMiniPlayerAlwaysOnTop ?? () {}),
               onRestoreWindow: () => _onTap(widget.onPip ?? () {}),
             ),
@@ -218,7 +216,7 @@ class _PlayerControlsState extends State<PlayerControls> {
       cacheSpeed: _cacheSpeed,
       isFullScreen: widget.isFullScreen,
     );
-    final progress = _VideoSeekBar(player: widget.player);
+    final progress = _VideoSeekBar(engine: widget.engine);
     final controls = Row(
       children: [
         // Keep the content aligned with the Slider track instead
@@ -226,7 +224,7 @@ class _PlayerControlsState extends State<PlayerControls> {
         const SizedBox(width: AppSpacing.md),
 
         // 1. 当前进度优先放在左侧，紧接着才是播放控制。
-        _DurationLabel(player: widget.player),
+        _DurationLabel(engine: widget.engine),
         const SizedBox(width: 16),
 
         // 2. 上一集
@@ -240,21 +238,21 @@ class _PlayerControlsState extends State<PlayerControls> {
 
         // 3. 快退
         PlayerControlButton(
-          onPressed: () => _onTap(() => widget.player.seek(widget.player.state.position - const Duration(seconds: 10))),
+          onPressed: () => _onTap(() => widget.engine.seek(widget.engine.state.position - const Duration(seconds: 10))),
           child: const Icon(Icons.replay_10_rounded, color: Colors.white, size: 21),
         ),
         const SizedBox(width: 4),
 
         // 4. 播放/暂停 (统一大小，但保留图标视觉差异)
         PlayerControlButton(
-          onPressed: () => _onTap(widget.player.playOrPause),
+          onPressed: () => _onTap(widget.engine.playOrPause),
           child: Icon(_isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 26),
         ),
         const SizedBox(width: 4),
 
         // 5. 快进
         PlayerControlButton(
-          onPressed: () => _onTap(() => widget.player.seek(widget.player.state.position + const Duration(seconds: 10))),
+          onPressed: () => _onTap(() => widget.engine.seek(widget.engine.state.position + const Duration(seconds: 10))),
           child: const Icon(Icons.forward_10_rounded, color: Colors.white, size: 21),
         ),
 
@@ -306,7 +304,7 @@ class _PlayerControlsState extends State<PlayerControls> {
           onMenuVisibilityChanged: widget.onMenuVisibilityChanged,
           onSelected: (rate) {
             widget.onInteraction?.call();
-            widget.player.setRate(rate);
+            widget.engine.setRate(rate);
           },
         ),
         const SizedBox(width: 4),
@@ -326,7 +324,7 @@ class _PlayerControlsState extends State<PlayerControls> {
             PlayerControlButton(
               onPressed: () => _onTap(() {
                 final newVol = _volume > 0 ? 0.0 : 100.0;
-                widget.player.setVolume(newVol);
+                widget.engine.setVolume(newVol);
               }),
               child: Icon(
                 _volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
@@ -352,7 +350,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                     value: _volume.clamp(0.0, 100.0),
                     min: 0.0,
                     max: 100.0,
-                    onChanged: widget.player.setVolume,
+                    onChanged: widget.engine.setVolume,
                   ),
                 ),
               ),
@@ -448,9 +446,9 @@ class _RateMenuButton extends StatelessWidget {
 }
 
 class _AudioMenuButton extends StatelessWidget {
-  final List<AudioTrack> tracks;
-  final AudioTrack? selectedTrack;
-  final ValueChanged<AudioTrack> onSelected;
+  final List<PlaybackAudioTrack> tracks;
+  final PlaybackAudioTrack? selectedTrack;
+  final ValueChanged<PlaybackAudioTrack> onSelected;
   final ValueChanged<bool>? onMenuVisibilityChanged;
 
   const _AudioMenuButton({
@@ -460,7 +458,7 @@ class _AudioMenuButton extends StatelessWidget {
     this.onMenuVisibilityChanged,
   });
 
-  String _labelFor(AudioTrack track) {
+  String _labelFor(PlaybackAudioTrack track) {
     final title = track.title?.trim();
     final language = track.language?.trim();
     final codec = track.codec?.trim();
@@ -518,11 +516,11 @@ class _AudioMenuButton extends StatelessWidget {
 }
 
 class _SubtitleMenuButton extends StatelessWidget {
-  final List<SubtitleTrack> tracks;
-  final SubtitleTrack? selectedTrack;
+  final List<PlaybackSubtitleTrack> tracks;
+  final PlaybackSubtitleTrack? selectedTrack;
   final VoidCallback? onExternalSubtitleRequested;
   final bool overrideEmbeddedStyle;
-  final ValueChanged<SubtitleTrack> onSelected;
+  final ValueChanged<PlaybackSubtitleTrack> onSelected;
   final ValueChanged<bool> onStyleOverrideChanged;
   final ValueChanged<bool>? onMenuVisibilityChanged;
 
@@ -536,9 +534,9 @@ class _SubtitleMenuButton extends StatelessWidget {
     this.onMenuVisibilityChanged,
   });
 
-  bool _isOff(SubtitleTrack track) => track.id == 'no' && !track.uri && !track.data;
+  bool _isOff(PlaybackSubtitleTrack track) => track.isDisabled;
 
-  String _labelFor(SubtitleTrack track) {
+  String _labelFor(PlaybackSubtitleTrack track) {
     if (_isOff(track)) return '关闭字幕';
 
     final title = track.title?.trim();
@@ -608,9 +606,9 @@ class _SubtitleMenuButton extends StatelessWidget {
 
 // ================== 进度条 ==================
 class _VideoSeekBar extends StatefulWidget {
-  final Player player;
+  final PlaybackEngine engine;
 
-  const _VideoSeekBar({required this.player});
+  const _VideoSeekBar({required this.engine});
 
   @override
   State<_VideoSeekBar> createState() => _VideoSeekBarState();
@@ -632,15 +630,15 @@ class _VideoSeekBarState extends State<_VideoSeekBar> {
   @override
   void initState() {
     super.initState();
-    _dur = widget.player.state.duration;
+    _dur = widget.engine.state.duration;
     _subs = [
-      widget.player.stream.position.listen((p) {
+      widget.engine.stream.position.listen((p) {
         if (!_dragging && mounted) setState(() => _pos = p);
       }),
-      widget.player.stream.duration.listen((d) {
+      widget.engine.stream.duration.listen((d) {
         if (mounted) setState(() => _dur = d);
       }),
-      widget.player.stream.buffer.listen((b) {
+      widget.engine.stream.buffer.listen((b) {
         if (mounted) setState(() => _buf = b);
       }),
     ];
@@ -745,7 +743,7 @@ class _VideoSeekBarState extends State<_VideoSeekBar> {
               onChangeEnd: (value) {
                 setState(() => _dragging = false);
                 _hidePreview();
-                widget.player.seek(Duration(milliseconds: value.toInt()));
+                widget.engine.seek(Duration(milliseconds: value.toInt()));
               },
             ),
           ),
@@ -763,17 +761,17 @@ String _formatPlaybackDuration(Duration duration) {
 }
 
 class _DurationLabel extends StatelessWidget {
-  final Player player;
+  final PlaybackEngine engine;
 
-  const _DurationLabel({required this.player});
+  const _DurationLabel({required this.engine});
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Duration>(
-      stream: player.stream.position,
+      stream: engine.stream.position,
       builder: (_, snap) => Text(
         '${_formatPlaybackDuration(snap.data ?? Duration.zero)} / '
-        '${_formatPlaybackDuration(player.state.duration)}',
+        '${_formatPlaybackDuration(engine.state.duration)}',
         style: const TextStyle(color: Colors.white70, fontSize: 12, fontFeatures: [FontFeature.tabularFigures()]),
       ),
     );

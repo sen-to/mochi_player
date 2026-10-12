@@ -1,4 +1,4 @@
-import 'package:media_kit/media_kit.dart';
+import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:path/path.dart' as path;
 
 /// Creates player tracks for subtitle files chosen outside the media source.
@@ -9,7 +9,7 @@ abstract final class ExternalSubtitleTrack {
   /// The format is deliberately left to libmpv. Its supported subtitle
   /// demuxers depend on the bundled FFmpeg build and are broader than a fixed
   /// UI extension list.
-  static SubtitleTrack fromPath(String value) {
+  static PlaybackSubtitleTrack fromPath(String value) {
     final path = normalizePath(value);
     if (path.isEmpty || path == '.') {
       throw ArgumentError.value(value, 'path', '字幕文件路径不能为空');
@@ -18,7 +18,7 @@ abstract final class ExternalSubtitleTrack {
     final fileName = path.split(RegExp(r'[/\\]')).last;
     final extension = _extension(fileName);
     final title = extension.isEmpty ? fileName : fileName.substring(0, fileName.length - extension.length - 1);
-    return SubtitleTrack.uri(path, title: title);
+    return PlaybackSubtitleTrack.externalFile(path, title: title);
   }
 
   static String _extension(String path) {
