@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.fengyuww" "\0"
+            VALUE "CompanyName", "com.Sento" "\0"
             VALUE "FileDescription", "Mochi Player" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "mochi_player" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.fengyuww. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.Sento. All rights reserved." "\0"
             VALUE "OriginalFilename", "mochi_player.exe" "\0"
             VALUE "ProductName", "Mochi Player" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
