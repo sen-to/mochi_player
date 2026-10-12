@@ -89,4 +89,4 @@ flowchart TD
 | media_kit 有限维护 | 播放后端已隔离，原生渲染、捆绑构建和关键补丁仍需自行验证 | [0002](../decisions/0002-playback-engine.md) |
 | SMB 直链依赖预编译产物是否含某协议 | 功能可用性不可控 | [0005](../decisions/0005-smb-playback-path.md) |
 | 媒体服务器包含目录浏览、播放协商与服务端会话，不能由文件系统源抽象完整表达 | 需独立的服务端接入与播放生命周期 | [0006](../decisions/0006-media-server-integration.md) |
-| 无本地化工具链，文案硬编码 | Material 系统文案为英文 | [0004](../decisions/0004-i18n-l10n.md) |
+| 无本地化工具链，文案硬编码；语言设置仅预留入口 | 语言偏好尚未持久化或同步到播放器，Material 系统文案为英文 | [0004](../decisions/0004-i18n-l10n.md) |
