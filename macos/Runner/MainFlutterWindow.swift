@@ -18,6 +18,10 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    AppDelegate.lifecycleChannel = FlutterMethodChannel(
+      name: "mochi_player/application_lifecycle",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
       RegisterGeneratedPlugins(registry: controller)
       Self.installChildWindowControls(for: controller)

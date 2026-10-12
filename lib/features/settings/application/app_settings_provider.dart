@@ -14,6 +14,10 @@ class AppSettingsProvider extends ChangeNotifier {
   AppSettings? _appliedRuntimeSettings;
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _shuttingDown = false;
+  Future<void> _pendingSave = Future<void>.value();
+  void beginShutdown() => _shuttingDown = true;
+  Future<void> waitForPendingSave() => _pendingSave;
   String? _error;
 
   AppSettings get settings => _settings;
@@ -63,6 +67,35 @@ class AppSettingsProvider extends ChangeNotifier {
   }
 
   Future<void> saveSettings({
+    required String tmdbApiKey,
+    required String tmdbApiBaseUrl,
+    required String tmdbProxyUrl,
+    required bool tmdbProxyEnabled,
+    required int playbackCacheSizeMb,
+    required int playbackReadaheadSeconds,
+    required bool enableHardwareAcceleration,
+    required String subtitleLanguagePriority,
+    required double subtitleFontSize,
+    bool applyRuntime = false,
+  }) {
+    if (_shuttingDown) return Future<void>.value();
+    return _pendingSave = _pendingSave.then(
+      (_) => _saveSettings(
+        tmdbApiKey: tmdbApiKey,
+        tmdbApiBaseUrl: tmdbApiBaseUrl,
+        tmdbProxyUrl: tmdbProxyUrl,
+        tmdbProxyEnabled: tmdbProxyEnabled,
+        playbackCacheSizeMb: playbackCacheSizeMb,
+        playbackReadaheadSeconds: playbackReadaheadSeconds,
+        enableHardwareAcceleration: enableHardwareAcceleration,
+        subtitleLanguagePriority: subtitleLanguagePriority,
+        subtitleFontSize: subtitleFontSize,
+        applyRuntime: applyRuntime,
+      ),
+    );
+  }
+
+  Future<void> _saveSettings({
     required String tmdbApiKey,
     required String tmdbApiBaseUrl,
     required String tmdbProxyUrl,

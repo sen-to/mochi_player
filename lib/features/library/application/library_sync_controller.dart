@@ -37,6 +37,27 @@ class LibrarySyncController extends ChangeNotifier {
   final StorageMediaScanner Function(StorageConnection connection) _storageScannerFactory;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
+  bool _shuttingDown = false;
+  bool _disposed = false;
+  Future<MediaSourceScanSummary?>? _activeScan;
+
+  void beginShutdown() => _shuttingDown = true;
+  Future<void> shutdown() async {
+    beginShutdown();
+    await _activeScan;
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    beginShutdown();
+    _disposed = true;
+    super.dispose();
+  }
+
   bool _isScanning = false;
   bool _isScraping = false;
   String? _error;
@@ -80,19 +101,23 @@ class LibrarySyncController extends ChangeNotifier {
   ///
   /// This workflow deliberately does not require a TMDB key. Metadata
   /// scraping is a separate optional step after files have been discovered.
-  Future<MediaSourceScanSummary?> scanEnabledMediaSources() async {
-    if (isLoading) return null;
+  Future<MediaSourceScanSummary?> scanEnabledMediaSources() {
+    if (_shuttingDown || isLoading) return Future.value(null);
+    return _activeScan = _scanEnabledMediaSources();
+  }
 
+  Future<MediaSourceScanSummary?> _scanEnabledMediaSources() async {
     _isScanning = true;
     _error = null;
     _scanCompletedSources = 0;
     _scanTotalSources = 0;
     _scanCurrentSource = null;
-    notifyListeners();
+    _notify();
 
     try {
       await _db.init();
 
+      if (_shuttingDown) return null;
       final sources = (await _storageSourceService.getAll())
           .where((source) => source.enabled && _storageProviderRegistry.supports(source.type))
           .toList(growable: false);
@@ -108,8 +133,9 @@ class LibrarySyncController extends ChangeNotifier {
       var newFileCount = 0;
       var removedFileCount = 0;
       for (final source in sources) {
+        if (_shuttingDown) break;
         _scanCurrentSource = source.name;
-        notifyListeners();
+        _notify();
         try {
           final credentials = await _storageSourceService.readCredentials(source.id);
           final connection = await _storageProviderRegistry.connect(source, credentials);
@@ -136,7 +162,7 @@ class LibrarySyncController extends ChangeNotifier {
           _logger.w('扫描媒体源 ${source.name} 失败: $error');
         } finally {
           _scanCompletedSources++;
-          notifyListeners();
+          _notify();
         }
       }
       _logger.i(
@@ -145,6 +171,7 @@ class LibrarySyncController extends ChangeNotifier {
         '发现 $discoveredFileCount 个视频，新增 $newFileCount 个，'
         '移除 $removedFileCount 个',
       );
+      if (_shuttingDown) return null;
       final scrapeResult = await _scrapeScannedMediaFiles();
       return MediaSourceScanSummary(
         enabledSourceCount: sources.length,
@@ -163,12 +190,12 @@ class LibrarySyncController extends ChangeNotifier {
     } finally {
       _isScanning = false;
       _scanCurrentSource = null;
-      notifyListeners();
+      _notify();
     }
   }
 
   Future<ScrapeResult?> _scrapeScannedMediaFiles() async {
-    if (!_tmdbService.isConfigured) return null;
+    if (_shuttingDown || !_tmdbService.isConfigured) return null;
     return _scrapeMetadata();
   }
 
@@ -184,11 +211,11 @@ class LibrarySyncController extends ChangeNotifier {
     _scanCompletedSources = 0;
     _scanTotalSources = 0;
     _scanCurrentSource = null;
-    notifyListeners();
+    _notify();
   }
 
   Future<ScrapeResult?> _scrapeMetadata() async {
-    if (_isScraping) return null;
+    if (_shuttingDown || _isScraping) return null;
 
     _isScraping = true;
     _scrapeCompleted = 0;
@@ -199,11 +226,12 @@ class LibrarySyncController extends ChangeNotifier {
     _scrapeSuccessCount = 0;
     _scrapeFailCount = 0;
     _scrapeCurrentTitle = null;
-    notifyListeners();
+    _notify();
 
     try {
       final result = await _metadataScraper.scrapeBatch(
         await LibraryRepository(_db).scrapeCandidates(),
+        shouldStop: () => _shuttingDown,
         onProgress: (progress) async {
           _scrapeCompleted = progress.completed;
           _scrapeTotal = progress.total;
@@ -211,7 +239,7 @@ class LibrarySyncController extends ChangeNotifier {
           _scrapeFailCount = progress.failCount;
           _scrapeCurrentTitle = progress.currentTitle;
 
-          notifyListeners();
+          _notify();
         },
       );
 
@@ -223,7 +251,7 @@ class LibrarySyncController extends ChangeNotifier {
     } finally {
       _isScraping = false;
       _scrapeCurrentTitle = null;
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -243,6 +271,7 @@ class LibrarySyncController extends ChangeNotifier {
     // Persist successful discoveries even when a later directory fails.
     try {
       await for (final file in scanner.scan()) {
+        if (_shuttingDown) break;
         discoveredCount++;
         if (scannedPaths.add(file.path) && !knownPaths.contains(file.path)) newCount++;
         pending.add(file);
@@ -251,7 +280,7 @@ class LibrarySyncController extends ChangeNotifier {
     } finally {
       await flush();
     }
-    final removedCount = scanner.hadReadError
+    final removedCount = (_shuttingDown || scanner.hadReadError)
         ? 0
         : await repository.removeMissingFiles(connection.source.id, scannedPaths);
 

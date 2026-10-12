@@ -18,7 +18,7 @@ import 'package:mochi_player/features/playback/presentation/widgets/player_overl
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 
 class PlayerPage extends StatefulWidget {
   final MediaFile videoItem;
@@ -89,7 +89,11 @@ class _PlayerPageState extends State<PlayerPage> {
       initialTarget: widget.target,
       onPlaybackActivity: _startHideControlsTimer,
     )..addListener(_handlePlaybackChanged);
-    widget.closeCoordinator.registerProgressFlusher(_playbackController.flushProgress);
+    widget.closeCoordinator.registerProgressFlusher(_playbackController.prepareClose);
+    widget.closeCoordinator.registerResourceReleaser(() async {
+      await _playbackController.shutdown();
+      await _windowModeController.restoreWindow();
+    });
     _windowModeController = PlayerWindowModeController(
       windowControlsController: context.read<WindowControlsController>(),
       regularMinimumWindowSize: widget.regularMinimumWindowSize,
@@ -196,6 +200,7 @@ class _PlayerPageState extends State<PlayerPage> {
     _hideControlsTimer?.cancel();
     _playbackController.removeListener(_handlePlaybackChanged);
     widget.closeCoordinator.unregisterProgressFlusher();
+    widget.closeCoordinator.unregisterResourceReleaser();
     _playbackController.dispose();
     _windowModeController.removeListener(_handleWindowModeChanged);
     unawaited(_windowModeController.restoreWindow().whenComplete(_windowModeController.dispose));
@@ -233,7 +238,7 @@ class _PlayerPageState extends State<PlayerPage> {
                   behavior: HitTestBehavior.translucent,
                   onPanStart: Theme.of(context).platform == TargetPlatform.windows
                       ? null
-                      : (_) => unawaited(windowManager.startDragging()),
+                      : (_) => unawaited(WindowService.instance.startDragging()),
                   onDoubleTap: _windowModeController.toggleFullScreen,
                   child: const ColoredBox(color: Colors.transparent),
                 ),

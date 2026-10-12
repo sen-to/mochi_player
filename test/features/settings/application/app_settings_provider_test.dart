@@ -4,6 +4,20 @@ import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('exit drains accepted settings saves and rejects new drafts', () async {
+    SharedPreferences.setMockInitialValues({});
+    final provider = AppSettingsProvider();
+    await provider.load();
+    final first = _save(provider, tmdbApiKey: 'first');
+    final second = _save(provider, tmdbApiKey: 'last-accepted');
+    provider.beginShutdown();
+    await _save(provider, tmdbApiKey: 'rejected');
+    await provider.waitForPendingSave();
+    await Future.wait([first, second]);
+    expect(provider.tmdbApiKey, 'last-accepted');
+    expect((await SharedPreferences.getInstance()).getString('tmdb_api_key'), 'last-accepted');
+  });
+
   test('persists drafts without applying network runtime configuration', () async {
     SharedPreferences.setMockInitialValues({});
     final provider = AppSettingsProvider();

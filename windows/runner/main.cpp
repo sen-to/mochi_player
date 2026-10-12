@@ -30,13 +30,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   if (!window.Create(L"Mochi Player", origin, size)) {
     return EXIT_FAILURE;
   }
-  // Suppress the WM_QUIT that this window's own WM_DESTROY would otherwise
-  // post. desktop_multi_window hosts child windows on this same Win32 message
-  // loop, so tearing the loop down here would leave a still-open player window
-  // without message dispatch. This flag only governs this window: the plugin's
-  // child windows already default to the same value, and the plugin posts
-  // WM_QUIT itself from MultiWindowManager::RemoveWindow once the last
-  // registered window is gone, so the process still exits normally.
+  // Dart intercepts main-window close and keeps this message loop alive while
+  // the player saves progress and closes. ApplicationExitCoordinator then ends
+  // the entire process, including an unresponsive child engine. Do not post
+  // WM_QUIT early and interrupt the child's shutdown RPC / native cleanup.
   window.SetQuitOnClose(false);
 
   ::MSG msg;

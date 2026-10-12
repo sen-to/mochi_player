@@ -10,11 +10,11 @@
 
 | 编号 | 决策 | 状态 | 日期 |
 | --- | --- | --- | --- |
-| [0001](decisions/0001-multi-window-strategy.md) | 多窗口策略：保留多窗口，把「引擎」从架构中摘除，目标迁移到官方单引擎多视图 | Accepted | 2026-10-05 |
+| [0001](decisions/0001-multi-window-strategy.md) | 多窗口策略：保留独立播放器，主窗口关闭即退出应用 | Accepted | 2026-10-11 |
 | [0002](decisions/0002-playback-engine.md) | 播放引擎：继续使用 libmpv（经 media_kit），收敛 mpv 交互门面 | Accepted | 2026-10-05 |
 | [0003](decisions/0003-persistence-migration.md) | 持久化：Isar 3 迁往 drift + SQLite | Accepted | 2026-10-11 |
 | [0004](decisions/0004-i18n-l10n.md) | 国际化与本地化：官方 gen-l10n + ARB（`app_en.arb` 模板 / `app_zh.arb` 译文） | Accepted | 2026-10-05 |
-| [0005](decisions/0005-smb-playback-path.md) | SMB 播放路径：不依赖 libmpv 的 `smb://`，改为本地 HTTP 回源 | Proposed | 2026-10-05 |
+| [0005](decisions/0005-smb-playback-path.md) | SMB 播放路径：当前直链实测不可用，改为本地 HTTP 回源 | Accepted | 2026-10-11 |
 | [0006](decisions/0006-media-server-integration.md) | 媒体服务器接入：以 Emby 为首个适配器，独立于文件系统媒体源 | Accepted | 2026-10-08 |
 
 状态含义：`Proposed` 已提出待确认；`Accepted` 已决定并按此执行；`Superseded by NNNN` 已被后续决策替代。

@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mochi_player/app/routing/app_router.dart';
+import 'package:mochi_player/app/application/application_exit_coordinator.dart';
+import 'package:mochi_player/app/application/main_window_lifecycle.dart';
+import 'package:mochi_player/core/platform/desktop_window_service.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
@@ -16,18 +20,18 @@ import 'package:mochi_player/features/playback/presentation/player_window_app.da
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
-  final currentWindow = await WindowController.fromCurrentEngine();
+  final windows = WindowService.instance = DesktopWindowService();
+  final currentWindow = await windows.current();
   final playerWindowRequest = PlayerWindowRequest.tryDecode(currentWindow.arguments);
   if (playerWindowRequest != null) {
     await runPlayerWindow(currentWindow, playerWindowRequest);
     return;
   }
-  await windowManager.ensureInitialized();
+  await windows.initialize();
 
   // 初始化数据库
   await DatabaseService().init();
@@ -35,7 +39,7 @@ void main() async {
   final appSettingsProvider = AppSettingsProvider();
   await appSettingsProvider.load();
   final mediaLibraryProvider = MediaLibraryProvider();
-  await PlayerWindow.installMainWindowHandler(
+  await PlayerWindow.coordinator.installMainWindowHandler(
     currentWindow,
     onPlaybackStateChanged: (changedMedia) => mediaLibraryProvider.refreshPlaybackState(
       changedMedia.map((key) => (sourceId: key.sourceId, path: key.path)).toList(growable: false),
@@ -43,37 +47,60 @@ void main() async {
   );
   final windowControlsController = WindowControlsController();
 
-  final windowOptions = WindowOptions(
-    size: const Size(1200, 800),
-    minimumSize: const Size(900, 600),
-    center: true,
-    title: 'Mochi Player',
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: Platform.isWindows ? TitleBarStyle.normal : TitleBarStyle.hidden,
-    windowButtonVisibility: Platform.isMacOS,
+  final themeProvider = ThemeProvider();
+  final exiting = ValueNotifier(false);
+  final exitCoordinator = ApplicationExitCoordinator(
+    beginShutdown: () {
+      exiting.value = true;
+      PlayerWindow.coordinator.beginShutdown();
+      mediaLibraryProvider.beginShutdown();
+      appSettingsProvider.beginShutdown();
+      themeProvider.beginShutdown();
+    },
+    closePlayers: PlayerWindow.coordinator.closeAll,
+    cleanUp: () async {
+      await Future.wait([
+        mediaLibraryProvider.shutdown(),
+        appSettingsProvider.waitForPendingSave(),
+        themeProvider.waitForPendingSave(),
+      ]);
+      await DatabaseService().close();
+    },
+    exitProcess: windows.exitApplication,
+    onFailure: (stage, _) => debugPrint('应用退出阶段失败或超时: $stage'),
   );
-
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-    if (Platform.isMacOS) {
-      await windowControlsController.positionNativeWindowButtons();
-    }
-  });
+  await MainWindowLifecycle(windows, exitCoordinator).install();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: appSettingsProvider),
         ChangeNotifierProvider.value(value: windowControlsController),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => FileBrowserProvider()),
         ChangeNotifierProvider.value(value: mediaLibraryProvider),
         ChangeNotifierProvider(create: (_) => TrendingMediaProvider()),
       ],
-      child: MochiPlayerApp(router: createAppRouter()),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: exiting,
+        child: MochiPlayerApp(router: createAppRouter()),
+        builder: (context, isExiting, child) => ExcludeFocus(
+          excluding: isExiting,
+          child: IgnorePointer(ignoring: isExiting, child: child),
+        ),
+      ),
     ),
+  );
+  unawaited(
+    windows
+        .configure(
+          const WindowSetup(size: Size(1200, 800), minimumSize: Size(900, 600), backgroundColor: Colors.transparent),
+        )
+        .then((_) async {
+          if (!exitCoordinator.isExiting && Platform.isMacOS) {
+            await windowControlsController.positionNativeWindowButtons();
+          }
+        }),
   );
 }
 

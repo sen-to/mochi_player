@@ -31,6 +31,10 @@ class PlaybackSessionController {
   PlaybackTarget _currentTarget;
   int _lastSavedPositionMs = -1;
   bool _isSwitching = false;
+  bool _closing = false;
+
+  void beginShutdown() => _closing = true;
+  Future<void> drainProgress() => _progressWriter.drain();
 
   MediaFile get currentItem => _queue.current;
 
@@ -63,7 +67,7 @@ class PlaybackSessionController {
   }
 
   Future<PlaybackQueueMoveResult?> moveBy(int offset, {required int positionMs, required int durationMs}) async {
-    if (_isSwitching) return null;
+    if (_closing || _isSwitching) return null;
     final targetItem = _queue.itemAtOffset(offset);
     if (targetItem == null) return null;
 
@@ -75,6 +79,7 @@ class PlaybackSessionController {
         // Playback can continue even when persistence is temporarily down.
       }
       final target = await _resolver.resolve(targetItem);
+      if (_closing) return null;
       if (target == null) {
         return PlaybackQueueMoveResult.failed(targetItem);
       }

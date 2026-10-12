@@ -62,6 +62,9 @@ class PlayerPlaybackController extends ChangeNotifier {
   Timer? _progressSaveTimer;
   Timer? _resumeNoticeTimer;
   bool _isDisposed = false;
+  bool _isClosing = false;
+  Future<void>? _flushInFlight;
+  Future<void>? _shutdown;
   bool _hasRestoredPosition = false;
   bool _hasFlushedProgress = false;
   bool _didAutoSelectSubtitle = false;
@@ -123,7 +126,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   Future<void> playQueueOffset(int offset) async {
-    if (_isDisposed || _session.isSwitching) return;
+    if (_isDisposed || _isClosing || _session.isSwitching) return;
 
     final generation = _nextMediaOpenGeneration();
     _setBuffering(true);
@@ -157,7 +160,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   Future<bool> setAudioTrack(AudioTrack track) async {
-    if (_isDisposed) return false;
+    if (_isDisposed || _isClosing) return false;
     _selectedAudioTrack = track;
     notifyListeners();
     try {
@@ -166,13 +169,13 @@ class PlayerPlaybackController extends ChangeNotifier {
       debugPrint('切换音轨失败: $error');
       return false;
     }
-    if (_isDisposed) return false;
+    if (_isDisposed || _isClosing) return false;
     onPlaybackActivity?.call();
     return true;
   }
 
   Future<void> setSubtitleTrack(SubtitleTrack track) async {
-    if (_isDisposed) return;
+    if (_isDisposed || _isClosing) return;
     _didAutoSelectSubtitle = true;
     _selectedSubtitleTrack = track;
     notifyListeners();
@@ -190,7 +193,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   /// The player publishes the loaded subtitle as a normal track update, which
   /// is the single source of truth for the subtitle menu.
   Future<bool> loadExternalSubtitle(String path) async {
-    if (_isDisposed || path.trim().isEmpty) return false;
+    if (_isDisposed || _isClosing || path.trim().isEmpty) return false;
 
     final normalizedPath = ExternalSubtitleTrack.normalizePath(path);
     final previousLoad = _loadedExternalSubtitles[normalizedPath];
@@ -209,7 +212,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     _pendingExternalSubtitlePath = normalizedPath;
     try {
       await player.setSubtitleTrack(track);
-      if (_isDisposed) return false;
+      if (_isDisposed || _isClosing) return false;
       _subtitleTracks = _normalizeSubtitleTracks(player.state.tracks.subtitle);
       _syncPendingExternalSubtitleSelection();
       await _applySubtitleStyleMode();
@@ -227,7 +230,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void setSubtitleStyleOverride(bool value) {
-    if (_isDisposed || _overrideEmbeddedSubtitleStyle == value) return;
+    if (_isDisposed || _isClosing || _overrideEmbeddedSubtitleStyle == value) return;
     _overrideEmbeddedSubtitleStyle = value;
     _subtitle = const [];
     notifyListeners();
@@ -236,21 +239,21 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void cycleSubtitleTrack() {
-    if (_isDisposed || _subtitleTracks.isEmpty) return;
+    if (_isDisposed || _isClosing || _subtitleTracks.isEmpty) return;
     final currentIndex = _subtitleTracks.indexOf(_selectedSubtitleTrack);
     final nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % _subtitleTracks.length;
     unawaited(setSubtitleTrack(_subtitleTracks[nextIndex]));
   }
 
   void cycleAudioTrack() {
-    if (_isDisposed || _audioTracks.isEmpty) return;
+    if (_isDisposed || _isClosing || _audioTracks.isEmpty) return;
     final currentIndex = _audioTracks.indexOf(_selectedAudioTrack);
     final nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % _audioTracks.length;
     unawaited(setAudioTrack(_audioTracks[nextIndex]));
   }
 
   void adjustVolume(double delta) {
-    if (_isDisposed) return;
+    if (_isDisposed || _isClosing) return;
     final nextVolume = (player.state.volume + delta).clamp(0.0, 100.0);
     player.setVolume(nextVolume);
     if (nextVolume > 0) _lastVolumeBeforeMute = nextVolume;
@@ -258,7 +261,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void toggleMute() {
-    if (_isDisposed) return;
+    if (_isDisposed || _isClosing) return;
     final currentVolume = player.state.volume;
     if (currentVolume > 0) {
       _lastVolumeBeforeMute = currentVolume;
@@ -272,7 +275,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   void _bindPlayerStreams() {
     _subscriptions.addAll([
       player.stream.error.listen((error) {
-        if (_isDisposed) return;
+        if (_isDisposed || _isClosing) return;
         debugPrint('播放器错误: ${LibmpvLogBuffer.sanitize(error)}');
         _dumpLibmpvLogs();
         _playerError = LibmpvLogBuffer.sanitize(error);
@@ -282,7 +285,7 @@ class PlayerPlaybackController extends ChangeNotifier {
         if (!_isDisposed) _libmpvLogs.add(log);
       }),
       player.stream.tracks.listen((tracks) {
-        if (_isDisposed) return;
+        if (_isDisposed || _isClosing) return;
         _audioTracks = _normalizeAudioTracks(tracks.audio);
         _subtitleTracks = _normalizeSubtitleTracks(tracks.subtitle);
         _selectedAudioTrack = _resolveDisplayedAudioTrack(_selectedAudioTrack, _audioTracks);
@@ -292,7 +295,7 @@ class PlayerPlaybackController extends ChangeNotifier {
         if (!_didAutoSelectSubtitle) _autoSelectSubtitle();
       }),
       player.stream.track.listen((track) {
-        if (_isDisposed) return;
+        if (_isDisposed || _isClosing) return;
         if (!_isAudioTrackAuto(track.audio)) {
           _selectedAudioTrack = track.audio;
         }
@@ -303,7 +306,7 @@ class PlayerPlaybackController extends ChangeNotifier {
         notifyListeners();
       }),
       player.stream.buffering.listen((buffering) {
-        if (_isDisposed) return;
+        if (_isDisposed || _isClosing) return;
         _setBuffering(buffering);
         notifyListeners();
       }),
@@ -314,7 +317,7 @@ class PlayerPlaybackController extends ChangeNotifier {
         if (!_isDisposed && completed) unawaited(_handlePlaybackCompleted());
       }),
       player.stream.subtitle.listen((subtitle) {
-        if (_isDisposed) return;
+        if (_isDisposed || _isClosing) return;
         _subtitle = subtitle;
         notifyListeners();
       }),
@@ -425,26 +428,26 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void _showResumePositionNotice(Duration position) {
-    if (_isDisposed) return;
+    if (_isDisposed || _isClosing) return;
     _resumeNoticeTimer?.cancel();
     _showResumeNotice = true;
     _resumePositionLabel = MediaFormat.clockDuration(position);
     notifyListeners();
     _resumeNoticeTimer = Timer(const Duration(seconds: 6), () {
-      if (_isDisposed) return;
+      if (_isDisposed || _isClosing) return;
       _showResumeNotice = false;
       notifyListeners();
     });
   }
 
   void _startProgressSaveTimer() {
-    if (_isDisposed) return;
+    if (_isDisposed || _isClosing) return;
     _progressSaveTimer?.cancel();
     _progressSaveTimer = Timer.periodic(_progressSaveInterval, (_) => unawaited(_saveProgress()));
   }
 
-  Future<void> _saveProgress({bool force = false, bool allowDisposed = false}) async {
-    if (_isDisposed && !allowDisposed) return;
+  Future<void> _saveProgress({bool force = false, bool allowDisposed = false, bool propagateFailure = false}) async {
+    if ((_isDisposed || _isClosing) && !allowDisposed) return;
     final positionMs = player.state.position.inMilliseconds;
     final durationMs = player.state.duration.inMilliseconds;
     if (positionMs <= 0 && durationMs <= 0) return;
@@ -452,16 +455,43 @@ class PlayerPlaybackController extends ChangeNotifier {
       await _session.saveProgress(positionMs: positionMs, durationMs: durationMs, force: force);
     } catch (error) {
       debugPrint('保存播放进度失败: $error');
+      if (propagateFailure) rethrow;
     }
   }
 
   /// Persists the latest player snapshot before a window is closed.
-  Future<void> flushProgress() async {
-    if (_hasFlushedProgress) return;
-    // Set the latch before awaiting I/O so disposal cannot schedule a second
-    // forced write while this final snapshot is still being persisted.
+  Future<void> flushProgress() => _flushInFlight ??= _flushProgress();
+
+  Future<void> _flushProgress() async {
     _hasFlushedProgress = true;
-    await _saveProgress(force: true);
+    await _saveProgress(force: true, allowDisposed: true, propagateFailure: true);
+    await _session.drainProgress();
+  }
+
+  Future<void> prepareClose() async {
+    _isClosing = true;
+    _session.beginShutdown();
+    _nextMediaOpenGeneration();
+    _progressSaveTimer?.cancel();
+    // Pause before taking the final snapshot. In-flight open/seek callbacks are
+    // invalidated above and cannot restart a session during shutdown.
+    try {
+      await player.pause();
+    } finally {
+      await flushProgress();
+    }
+  }
+
+  Future<void> shutdown() => _shutdown ??= _releasePlayer();
+
+  Future<void> _releasePlayer() async {
+    _isClosing = true;
+    _nextMediaOpenGeneration();
+    _progressSaveTimer?.cancel();
+    _bufferingIndicatorTimer?.cancel();
+    _resumeNoticeTimer?.cancel();
+    await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
+    await player.dispose();
   }
 
   Future<void> _handlePlaybackCompleted() async {
@@ -488,7 +518,7 @@ class PlayerPlaybackController extends ChangeNotifier {
 
     _isBufferingIndicatorVisible = false;
     _bufferingIndicatorTimer = Timer(delay, () {
-      if (_isDisposed || !_isBuffering) return;
+      if (_isDisposed || _isClosing || !_isBuffering) return;
       _isBufferingIndicatorVisible = true;
       notifyListeners();
     });
@@ -498,6 +528,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     _setBuffering(false);
     _hasRestoredPosition = false;
     _hasFlushedProgress = false;
+    _flushInFlight = null;
     _didAutoSelectSubtitle = false;
     _showResumeNotice = false;
     _resumePositionLabel = null;
@@ -615,7 +646,8 @@ class PlayerPlaybackController extends ChangeNotifier {
 
   int _nextMediaOpenGeneration() => ++_mediaOpenGeneration;
 
-  bool _canUsePlayer([int? generation]) => !_isDisposed && (generation == null || generation == _mediaOpenGeneration);
+  bool _canUsePlayer([int? generation]) =>
+      !_isDisposed && !_isClosing && (generation == null || generation == _mediaOpenGeneration);
 
   void _dumpLibmpvLogs() {
     final entries = _libmpvLogs.snapshot();
@@ -636,13 +668,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     if (!_hasFlushedProgress) {
       unawaited(_saveProgress(force: true, allowDisposed: true));
     }
-    _progressSaveTimer?.cancel();
-    _bufferingIndicatorTimer?.cancel();
-    _resumeNoticeTimer?.cancel();
-    for (final subscription in _subscriptions) {
-      unawaited(subscription.cancel());
-    }
-    unawaited(player.dispose());
+    unawaited(shutdown().catchError((Object error) => debugPrint('播放器资源释放失败: $error')));
     super.dispose();
   }
 }

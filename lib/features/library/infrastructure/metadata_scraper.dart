@@ -55,7 +55,11 @@ class MetadataScraper {
 
   /// 批量刮削文件
   /// 自动区分电影和剧集，处理并发和去重
-  Future<ScrapeResult> scrapeBatch(List<MediaFile> allFiles, {ScrapeProgressCallback? onProgress}) async {
+  Future<ScrapeResult> scrapeBatch(
+    List<MediaFile> allFiles, {
+    ScrapeProgressCallback? onProgress,
+    bool Function()? shouldStop,
+  }) async {
     final result = ScrapeResult();
     if (!_matchResolver.isConfigured) {
       _logger.w('⚠️ 未配置 TMDB API Key，跳过元数据刮削');
@@ -89,34 +93,44 @@ class MetadataScraper {
     );
 
     // 2. 刮削电影 (并发)
-    await _runWithConcurrency(movieFiles, (file) async {
-      await _scrapeMovieSingle(file, result);
-      completedCount++;
-      await onProgress?.call(
-        ScrapeProgress(
-          completed: completedCount,
-          total: totalCount,
-          successCount: result.successCount,
-          failCount: result.failCount,
-          currentTitle: file.parsedTitle,
-        ),
-      );
-    }, 5);
+    await _runWithConcurrency(
+      movieFiles,
+      (file) async {
+        await _scrapeMovieSingle(file, result);
+        completedCount++;
+        await onProgress?.call(
+          ScrapeProgress(
+            completed: completedCount,
+            total: totalCount,
+            successCount: result.successCount,
+            failCount: result.failCount,
+            currentTitle: file.parsedTitle,
+          ),
+        );
+      },
+      5,
+      shouldStop: shouldStop,
+    );
 
     // 3. 刮削剧集 (按剧名分组后并发)
-    await _runWithConcurrency(tvGroups.values.toList(), (group) async {
-      await _scrapeTVShowGroup(group.title, group.files, result);
-      completedCount += group.files.length;
-      await onProgress?.call(
-        ScrapeProgress(
-          completed: completedCount,
-          total: totalCount,
-          successCount: result.successCount,
-          failCount: result.failCount,
-          currentTitle: group.title,
-        ),
-      );
-    }, 5);
+    await _runWithConcurrency(
+      tvGroups.values.toList(),
+      (group) async {
+        await _scrapeTVShowGroup(group.title, group.files, result);
+        completedCount += group.files.length;
+        await onProgress?.call(
+          ScrapeProgress(
+            completed: completedCount,
+            total: totalCount,
+            successCount: result.successCount,
+            failCount: result.failCount,
+            currentTitle: group.title,
+          ),
+        );
+      },
+      5,
+      shouldStop: shouldStop,
+    );
 
     _logger.i('✅ 批量刮削完成: 新增电影 ${result.newMovieCount} 部, 新增剧集 ${result.newTVShowCount} 部');
     return result;
@@ -288,14 +302,19 @@ class MetadataScraper {
       )
       .join('\n');
 
-  Future<void> _runWithConcurrency<T>(List<T> tasks, Future<void> Function(T) action, int maxConcurrent) async {
+  Future<void> _runWithConcurrency<T>(
+    List<T> tasks,
+    Future<void> Function(T) action,
+    int maxConcurrent, {
+    bool Function()? shouldStop,
+  }) async {
     if (tasks.isEmpty) return;
 
     final workerCount = tasks.length < maxConcurrent ? tasks.length : maxConcurrent;
     var nextIndex = 0;
 
     Future<void> runWorker() async {
-      while (nextIndex < tasks.length) {
+      while (nextIndex < tasks.length && shouldStop?.call() != true) {
         final item = tasks[nextIndex];
         nextIndex++;
         await action(item);

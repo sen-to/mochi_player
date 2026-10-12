@@ -41,7 +41,7 @@ sequenceDiagram
 | --- | --- | --- |
 | 本地 | `file://` URL | 校验路径必须落在媒体源根目录内 |
 | WebDAV | HTTP(S) URL + `Authorization: Basic` 头 | 由 FFmpeg 的 http 协议与 Range 支撑 |
-| SMB | `smb://user:pass@host/share/...` | 当前实现会把直链交给 libmpv；捆绑版本是否支持打开及 seek 尚未验证，见 [0005](../decisions/0005-smb-playback-path.md) |
+| SMB | `smb://user:pass@host/share/...` | 当前实现会把直链交给 libmpv；用户已实测当前捆绑版本无法打开 / seek，HTTP 回源尚待实现，见 [0005](../decisions/0005-smb-playback-path.md) |
 
 验证完成前，文档不应承诺 SMB 直链播放。临时方案是先在操作系统中挂载 SMB 共享，再将挂载目录作为本地媒体源添加。
 
@@ -70,9 +70,9 @@ sequenceDiagram
 | mini 播放器 | 同一窗口缩至 480×300（最小 420×260），定位到屏幕右下角，默认置顶；macOS 下隐藏原生窗口按钮 |
 | 全屏 | 区分应用内全屏状态与系统全屏，退出时同步 |
 
-窗口的创建、激活、关闭、等待就绪由窗口层代码承担，长期要抽成窗口服务门面，见 [0001](../decisions/0001-multi-window-strategy.md)。
+窗口操作通过 `WindowService` / `WindowHandle`；`DesktopWindowService` 封装当前插件后端，`PlayerWindowCoordinator` 串行处理启动、复用、就绪和退役，见 [0001](../decisions/0001-multi-window-strategy.md)。
 
-产品规则为：关闭主窗口必须保存最终进度、关闭播放器并退出整个应用；单独关闭播放器不退出媒体库。主窗口退出协调尚未实现，当前仍可能留下播放器继续运行。后续退出协议须补充保存结果确认、超时与幂等处理，不能把 `player.closed` 变更通知直接当作完整退出确认。
+产品规则为：关闭主窗口必须保存最终进度、关闭播放器并退出整个应用；单独关闭播放器不退出媒体库。已接入 `ApplicationExitCoordinator`：退出开始即拒绝新播放请求，先请求播放器准备关闭并确认保存 / 释放结果，再关闭子窗口、收尾后台任务与设置写入、关闭主数据库并退出整个进程。各阶段有超时；`player.closed` 变更通知不作为保存成功确认。
 
 ### 跨窗口方法
 
@@ -81,8 +81,10 @@ sequenceDiagram
 | 主 → 子 | `player.ready` | 等待播放器窗口就绪 |
 | 主 → 子 | `player.replaceRequest` | 复用现有窗口播放新的请求 |
 | 主 → 子 | `player.activate` | 聚焦已有窗口 |
-| 主 → 子 | `player.close` | 关闭播放器窗口 |
-| 子 → 主 | `player.closed` | 携带变更的媒体键列表，触发主窗口刷新进度 |
+| 主 → 子 | `player.prepareClose` | 等待最后进度、资源释放及子数据库关闭，返回 `prepared`、`saved`、`released` 与 `failedStages` |
+| 主 → 子 | `player.close` | 回复后关闭已准备好的播放器窗口，主窗口继续等待其消失 |
+| 子 → 主 | `player.closed` | 携带窗口 ID 和变更的媒体键列表；正常关闭时刷新主窗口，应用退出期间跳过刷新 |
+| 原生 → 主 | `mochi_player/application_lifecycle.requestExit` | macOS 应用退出命令进入退出协调器 |
 | 主/子 → 原生 | `mochi_player/window_controls` | macOS 原生按钮定位与显隐、关闭播放器窗口 |
 
 ## 字幕
@@ -108,7 +110,7 @@ sequenceDiagram
 
 | 问题 | 影响 |
 | --- | --- |
-| 窗口生命周期与平台交互 | Windows 输入冻结的完整根因与修复效果待验证；主窗口关闭时协调播放器保存并退出应用的流程待实施。两个 SQLite 连接当前保留，由 WAL 协调 |
+| 窗口生命周期与平台交互 | Windows 输入冻结的完整根因与修复效果待验证；窗口退出协调已实施，Windows 原生交互与真实视频退出仍待运行时验收。两个 SQLite 连接当前保留，由 WAL 协调 |
 | 控制器体量大 | 设置、字幕、进度、日志、缓冲逻辑集中在一个近 700 行的控制器中 |
 | 跨窗口调用无超时 | 子窗口响应慢时主窗口可能长时间等待 |
 | mpv 参数硬编码 | 引擎抽象泄漏；`User-Agent` 等值散落 |

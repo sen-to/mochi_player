@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/basic/app_button.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 
 class AppHeader extends StatelessWidget {
   static const double height = 60;
@@ -43,7 +43,7 @@ class AppHeader extends StatelessWidget {
         opacity: clampedVisibility,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onPanStart: theme.platform == TargetPlatform.windows ? null : (_) => windowManager.startDragging(),
+          onPanStart: theme.platform == TargetPlatform.windows ? null : (_) => WindowService.instance.startDragging(),
           child: ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),

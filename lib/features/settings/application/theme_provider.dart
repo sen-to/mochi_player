@@ -19,6 +19,18 @@ enum AppAccentColor {
 }
 
 class ThemeProvider with ChangeNotifier {
+  bool _shuttingDown = false;
+  Future<void> _pendingSave = Future<void>.value();
+  void beginShutdown() => _shuttingDown = true;
+  Future<void> waitForPendingSave() => _pendingSave;
+
+  void _persist(String key, int value) {
+    _pendingSave = _pendingSave.then((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(key, value);
+    });
+  }
+
   ThemeMode _themeMode = ThemeMode.system; // 默认跟随系统
   AppAccentColor _accentColor = AppAccentColor.purple;
 
@@ -41,23 +53,21 @@ class ThemeProvider with ChangeNotifier {
   }
 
   // 切换主题并保存到 SharedPreferences
-  void setTheme(ThemeMode themeMode) async {
-    if (_themeMode == themeMode) return;
+  void setTheme(ThemeMode themeMode) {
+    if (_shuttingDown || _themeMode == themeMode) return;
 
     _themeMode = themeMode;
     notifyListeners();
 
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setInt(_themePrefKey, themeMode.index);
+    _persist(_themePrefKey, themeMode.index);
   }
 
-  void setAccentColor(AppAccentColor accentColor) async {
-    if (_accentColor == accentColor) return;
+  void setAccentColor(AppAccentColor accentColor) {
+    if (_shuttingDown || _accentColor == accentColor) return;
 
     _accentColor = accentColor;
     notifyListeners();
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_accentPrefKey, accentColor.index);
+    _persist(_accentPrefKey, accentColor.index);
   }
 }

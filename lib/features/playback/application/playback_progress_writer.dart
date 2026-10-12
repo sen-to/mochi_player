@@ -13,6 +13,8 @@ class PlaybackProgressWriter {
   final PersistPlaybackProgress _persist;
   Future<void> _tail = Future.value();
 
+  Future<void> drain() => _tail;
+
   Future<void> save(MediaFile file, int position, {int? duration}) {
     final operation = _tail.then((_) => _persist(file, position, duration: duration));
 

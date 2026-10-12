@@ -19,6 +19,19 @@ class MediaLibraryProvider extends ChangeNotifier {
   Future<void>? _loading;
   bool _initialized = false;
   bool _disposed = false;
+  void beginShutdown() {
+    _disposed = true;
+    _sync.beginShutdown();
+  }
+
+  Future<void> shutdown() async {
+    beginShutdown();
+    await _loading;
+    await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
+    _subscriptions.clear();
+    await _sync.shutdown();
+  }
+
   String? _loadError;
   int totalFiles = 0;
   List<LibraryItem> recentlyAddedContent = const [];

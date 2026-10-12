@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 
 /// Manages the desktop window modes used only by the playback experience.
 ///
 /// Playback state stays outside this controller. It owns the transitions and
 /// restoration data needed for fullscreen and mini-player window modes.
-class PlayerWindowModeController extends ChangeNotifier with WindowListener {
+class PlayerWindowModeController extends ChangeNotifier with WindowEvents {
   static const Size _miniPlayerSize = Size(480, 300);
   static const Size _miniPlayerMinimumSize = Size(420, 260);
 
@@ -26,6 +26,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
   Future<void>? _fullScreenTransition;
   Future<void>? _miniPlayerTransition;
   Future<void>? _miniAlwaysOnTopTransition;
+  Future<void>? _restoration;
 
   final WindowControlsController windowControlsController;
   final Size regularMinimumWindowSize;
@@ -37,7 +38,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
   bool get isMiniPlayerAlwaysOnTop => _isMiniPlayerAlwaysOnTop;
 
   PlayerWindowModeController({required this.windowControlsController, required this.regularMinimumWindowSize}) {
-    windowManager.addListener(this);
+    WindowService.instance.addListener(this);
   }
 
   Future<void> initialize() => _ensureInitialFullScreenStateCaptured();
@@ -67,7 +68,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
 
     final nextValue = !_isMiniPlayerAlwaysOnTop;
     _miniAlwaysOnTopTransition = () async {
-      await windowManager.setAlwaysOnTop(nextValue);
+      await WindowService.instance.setAlwaysOnTop(nextValue);
       if (_isDisposed) return;
       _isMiniPlayerAlwaysOnTop = nextValue;
       notifyListeners();
@@ -84,7 +85,9 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
   ///
   /// The page removes its listener before invoking this, so restoration does
   /// not try to rebuild a widget that is leaving the tree.
-  Future<void> restoreWindow() async {
+  Future<void> restoreWindow() => _restoration ??= _restoreWindow();
+
+  Future<void> _restoreWindow() async {
     await _miniPlayerTransition;
     await _exitMiniPlayer(notify: false);
     await _fullScreenTransition;
@@ -113,25 +116,25 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
       if (_isDisposed) return;
     }
 
-    _windowWasMaximizedBeforeMiniPlayer = await windowManager.isMaximized();
+    _windowWasMaximizedBeforeMiniPlayer = await WindowService.instance.isMaximized();
     if (_windowWasMaximizedBeforeMiniPlayer) {
-      await windowManager.unmaximize();
+      await WindowService.instance.unmaximize();
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
     if (_isDisposed) return;
 
-    final currentBounds = await windowManager.getBounds();
+    final currentBounds = await WindowService.instance.getBounds();
     _windowBoundsBeforeMiniPlayer = currentBounds;
-    _windowWasAlwaysOnTopBeforeMiniPlayer = await windowManager.isAlwaysOnTop();
+    _windowWasAlwaysOnTopBeforeMiniPlayer = await WindowService.instance.isAlwaysOnTop();
     await windowControlsController.setMiniPlayerMode(true);
 
     final targetPosition = Offset(
       (currentBounds.right - _miniPlayerSize.width).clamp(0.0, double.infinity),
       (currentBounds.bottom - _miniPlayerSize.height).clamp(0.0, double.infinity),
     );
-    await windowManager.setMinimumSize(_miniPlayerMinimumSize);
-    await windowManager.setBounds(targetPosition & _miniPlayerSize, animate: true);
-    await windowManager.setAlwaysOnTop(true);
+    await WindowService.instance.setMinimumSize(_miniPlayerMinimumSize);
+    await WindowService.instance.setBounds(targetPosition & _miniPlayerSize, animate: true);
+    await WindowService.instance.setAlwaysOnTop(true);
 
     if (_isDisposed) return;
     _isMiniPlayer = true;
@@ -145,13 +148,13 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
     await _miniAlwaysOnTopTransition;
     final previousBounds = _windowBoundsBeforeMiniPlayer;
     _windowBoundsBeforeMiniPlayer = null;
-    await windowManager.setAlwaysOnTop(_windowWasAlwaysOnTopBeforeMiniPlayer);
+    await WindowService.instance.setAlwaysOnTop(_windowWasAlwaysOnTopBeforeMiniPlayer);
     if (previousBounds != null) {
-      await windowManager.setBounds(previousBounds, animate: true);
+      await WindowService.instance.setBounds(previousBounds, animate: true);
     }
-    await windowManager.setMinimumSize(regularMinimumWindowSize);
+    await WindowService.instance.setMinimumSize(regularMinimumWindowSize);
     if (_windowWasMaximizedBeforeMiniPlayer) {
-      await windowManager.maximize();
+      await WindowService.instance.maximize();
     }
 
     _windowWasMaximizedBeforeMiniPlayer = false;
@@ -172,12 +175,12 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
     await _ensureInitialFullScreenStateCaptured();
     if (_isDisposed) return;
 
-    final windowIsFullScreen = await windowManager.isFullScreen();
+    final windowIsFullScreen = await WindowService.instance.isFullScreen();
     if (_isDisposed) return;
 
     if (!windowIsFullScreen) {
       _playerUsedWindowFullScreen = true;
-      await windowManager.setFullScreen(true);
+      await WindowService.instance.setFullScreen(true);
     } else {
       _playerUsedWindowFullScreen = false;
     }
@@ -193,13 +196,13 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
     _playerUsedWindowFullScreen = false;
 
     if (shouldRestoreWindow) {
-      await windowManager.setFullScreen(false);
+      await WindowService.instance.setFullScreen(false);
     }
   }
 
   Future<void> _ensureInitialFullScreenStateCaptured() {
     return _initialWindowFullScreenCapture ??= () async {
-      _windowWasFullScreenOnOpen = await windowManager.isFullScreen();
+      _windowWasFullScreenOnOpen = await WindowService.instance.isFullScreen();
     }();
   }
 
@@ -220,7 +223,7 @@ class PlayerWindowModeController extends ChangeNotifier with WindowListener {
   @override
   void dispose() {
     _isDisposed = true;
-    windowManager.removeListener(this);
+    WindowService.instance.removeListener(this);
     super.dispose();
   }
 }

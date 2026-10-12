@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
@@ -37,6 +39,34 @@ class _FakePlaybackTargetResolver implements PlaybackTargetResolver {
 }
 
 void main() {
+  test('exit during queue resolution cannot commit or start another media item', () async {
+    final store = _FakePlaybackMediaStore();
+    final first = _file(1, '/one.mkv');
+    final second = _file(2, '/two.mkv');
+    final resolving = Completer<void>();
+    final link = Completer<PlaybackTarget?>();
+    final session = PlaybackSessionController(
+      mediaStore: store,
+      initialItem: first,
+      queueItems: [first, second],
+      initialTarget: const PlaybackTarget(url: 'file:///one.mkv'),
+      resolver: _FakePlaybackTargetResolver((_) {
+        resolving.complete();
+        return link.future;
+      }),
+    );
+    final move = session.moveBy(1, positionMs: 10000, durationMs: 100000);
+    await resolving.future;
+    session.beginShutdown();
+    await session.saveProgress(positionMs: 12000, durationMs: 100000, force: true);
+    link.complete(const PlaybackTarget(url: 'file:///two.mkv'));
+    expect(await move, isNull);
+    expect(session.currentItem, first);
+    expect(session.currentTarget.url, 'file:///one.mkv');
+    expect(await session.moveBy(1, positionMs: 0, durationMs: 0), isNull);
+    expect(store.progressWrites, [10000, 12000]);
+  });
+
   test('saves current progress before resolving and committing a queue move', () async {
     final library = _FakePlaybackMediaStore();
     final first = _file(1, '/media/one.mkv');

@@ -5,7 +5,7 @@
 - 测试包含 SQLite 数据层与查询订阅测试，目录与 `lib/` 大体对应：
   - `test/core/**` —— 设计系统组件、存储解析器、TMDB 匹配与映射、格式化的单元与 Widget 测试；
   - `test/features/**` —— 媒体库查询、文件浏览、播放队列与进度写入、设置；
-  - `test/app/**` —— 外壳组件。
+  - `test/app/**` —— 外壳组件、应用退出协调与退出时的 SQLite 持久化。
 - 两个测试位于 `test/` 根目录（`filename_parser_test.dart`、`scrape_plan_test.dart`），与镜像结构不一致，属于待整理项。
 - 数据层依赖注入到位：`DatabaseService`、`TmdbService`、存储扫描器等都可从构造函数替换，因此多数测试不触碰真实数据库或网络。
 
@@ -42,3 +42,20 @@ fvm flutter analyze                           # 静态检查
 `test/features/library/application/library_repository_test.dart` 验证 SQL 可用性筛选、分页、Unicode 搜索排序、剧集详情范围、队列、收藏去重、续播与领域策略一致性、订阅失效和刮削候选。旧 Catalog 查询测试和 Entity 映射测试已移除。
 
 修改表定义后执行 `fvm dart run build_runner build`。schema 版本从 1 开始，尚未发布 Release，因此不提供 Isar 旧数据导入；后续 SQLite schema 变更需提升版本并提供版本间迁移测试。
+
+## 窗口退出回归
+
+`test/app/application/` 覆盖退出顺序、重复请求、播放器 / 主窗口清理失败与超时，以及排队周期保存和最终快照在 SQLite 关闭重开后的持久化。`player_window_coordinator_test.dart` 覆盖退出期间的原生创建竞争、拒绝排队启动、旧窗口退役和过期关闭通知；`player_window_close_coordinator_test.dart` 验证保存 / 释放结果确认及失败后继续清理。播放会话与设置测试补充切集期间退出、等待已接受保存并拒绝新保存。
+
+手工验收在 macOS / Windows 分别执行：
+
+1. 无播放器时关闭主窗口，确认窗口消失且进程结束；macOS 另测菜单退出、Cmd+Q 与 Dock 退出。
+2. 播放后单独关闭播放器，确认最后进度保存，主窗口继续可操作并可再次启动播放器。
+3. 播放过程中关闭主窗口，确认最后进度保存、全部窗口关闭，进程结束；重新启动检查续播位置。
+4. 在 mini、置顶、全屏状态分别重复第 2、3 项。
+5. 连续点击关闭、启动 / 切集期间退出，确认没有残留窗口或重复播放。
+6. 模拟子窗口或写入无响应，确认退出有界；查看失败阶段日志，不把超时退出当作最后快照成功保存。
+
+构建和单元测试不替代视频渲染、原生窗口及进程退出的手工验收。
+
+2026-10-11 验证记录：`flutter analyze` 无问题，全部 186 项测试通过，macOS Debug 构建成功。macOS 使用临时检查入口、隔离 SQLite 和模拟播放资源验证了原生双窗口 / RPC：子窗口独立关闭并重新创建、带子窗口关闭主窗口、子窗口聚焦时 Cmd+Q；记录确认最终进度写入后才释放资源、关闭子数据库，随后关闭主数据库并结束进程。临时入口不随项目交付。真实视频 mini / 全屏、Windows 原生运行时及无响应注入仍待验收。
