@@ -24,6 +24,8 @@ migrate_working_dir/
 #.vscode/
 # Ignore this machine-specific workspace setting; shared launch/tasks can still be committed.
 .vscode/settings.json
+# Local TRAE/VS Code run configuration.
+.vscode/launch.json
 
 # Flutter/Dart/Pub related
 **/doc/api/

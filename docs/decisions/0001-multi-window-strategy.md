@@ -20,7 +20,16 @@
 2. 主窗口与播放器分别初始化后台 drift + SQLite 连接，使用 WAL、`busy_timeout` 和字段级更新协调访问。多连接是当前支持的实现；跨独立连接的 drift 查询订阅不会自动共享失效通知，播放器目前在关闭或切换时回传变更键，由主窗口显式刷新。
 3. 本轮实施前，窗口启动串行化、就绪等待、旧窗口退役与业务播放流程集中在 `player_window_app.dart`。本轮已抽取窗口服务和播放器窗口协调器，实施状态见下文。
 
-Flutter 官方 Desktop Windowing API 提供单引擎多视图方向。[官方公告](https://flutter.dev/blog/desktop-windowing-apis) 将其列为 main 通道的实验能力；项目锁定的 Flutter 3.47.2 SDK 也只在 master 通道配置该功能。当前不直接切换生产实现，可以进行独立原型验证，不能仅凭 API 出现就认定可用于本项目。
+Flutter 官方 Desktop Windowing API 提供单引擎多视图方向。[官方公告](https://flutter.dev/blog/desktop-windowing-apis) 将其列为 main 通道的实验能力。2026-10-12～13 的独立原型已验证 macOS 基础窗口、media_kit 纹理、输入、生命周期和 Release 基础运行，详见 [实验记录与证据](../experiments/official-single-engine-windowing.md)。当前不直接切换生产实现，基础验证成功不等于完整业务与双平台迁移通过。
+
+### SDK 与小窗的重构依据（2026-10-13 补充）
+
+- **底层能力与 Dart 窗口 API 分开判断**：stable SDK 已包含多视图底层接口；项目 3.47.2 的 macOS `FlutterViewController` 可连接现有引擎。但官方 `WindowController` 等实验 API 的正常启用仍受通道限制，不据此声称 stable 完全不支持单引擎多窗口，也不声称 stable 下的新 API 已验收。
+- **通道限制有源码依据**：项目 3.47.2 的 `features.dart` 中 `windowingFeature` 只设置开发侧 `master.available=true`，stable / beta 默认为 false；`flutter_features.dart` 的 `isEnabled` 在通道不可用时先返回 false，然后才读取开关。main 与固定提交快照按该 SDK 的通道映射处理；不是在 stable 的启动命令上追加普通参数就能获得这套 API。
+- **FVM 可管理实验 SDK**：下载方式不改变功能开放状态。后续采用 main API 时，在 `.fvmrc` 用已验证提交号固定 SDK，例如本次 `b314ad53146b1bde55b60197a35183fb530aac0a`，避免仅写 `main` 导致更新后 API 漂移。团队与 CI 均按固定版本复现。无需自行编译 Flutter 引擎，正常 SDK 工具下载对应预编译产物。
+- **实验开关不限制 Release**：原型使用自己的 `flutter.config.enable-windowing=true`，Debug 与 macOS Release 均成功；Release `.app` 可直接运行，使用者无需 Flutter SDK。正式项目的 SDK 升级、全部依赖、Windows Release、签名 / 公证仍需另行验收，不把「实验」解释为「无法打包发布」。
+- **macOS 小窗优先评估系统 PiP**：用户希望采用系统画中画，而非仅把 Flutter 播放器窗口缩小后置顶。AVKit 管理画中画窗口；该能力独立于 Flutter 官方多窗口 API，stable 应用也可通过原生桥接接入。当前 media_kit/libmpv 输出 Flutter 纹理，必须验证视频内容接入、字幕、播放控制、回到原播放器及退出清理，不能仅调用 PiP 开关就认定接入完成。系统 PiP 方案尚未实现或验收，不在本轮修改 mini 行为。
+- **置顶不是引擎能力的否决条件**：如保留普通 mini 窗口，可通过系统窗口接口扩展；如采用系统 PiP，则按 PiP 的产品行为验收。两者分别评估，不因 Flutter 没有通用 always-on-top 方法就否定官方单引擎方案，也不将 macOS PiP 自动推广为 Windows 方案。
 
 ## Decision（决策）
 
@@ -83,6 +92,8 @@ Flutter 官方 Desktop Windowing API 提供单引擎多视图方向。[官方公
 3. 主窗口关闭能完成最终进度保存、关闭全部窗口并结束进程；播放器单独关闭、重复退出、启动中退出和无响应超时均通过验证。
 4. 数据查询刷新与播放状态同步正确，连续打开 / 替换 / 关闭播放器不会导致输入冻结、残留窗口或资源泄漏。
 5. 能在项目锁定 SDK 下构建和发布，两平台回归检查具备可复现记录；API 稳定性满足维护要求。
+
+基础可行性原型已归档并从活动实验目录移除，SDK 提交、验证结论、来源与后续方法保留在 [实验记录](../experiments/official-single-engine-windowing.md) 中；实验机器日志与源码压缩包不提交到仓库。剩余验证按该文档的清单推进：Windows Debug / Release、系统 PiP、实际播放与项目插件、SQLite 最终保存、退出竞争 / 无响应，以及持续运行和多显示器。生产迁移前仍须满足上面的门槛；归档不表示所有门槛已通过。
 
 不预先规定「先播放器、后主窗口」。若新旧窗口后端可以共存且生命周期、插件注册均验证通过，可以分步替换；否则统一迁移窗口宿主。迁移期间只保留有明确期限的适配实现，验收通过后删除旧后端，不长期维护两套业务流程。
 
