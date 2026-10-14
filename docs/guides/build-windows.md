@@ -38,6 +38,8 @@ CI 从 `.fvmrc` 读取完整 main 提交，通过 Git 检出 SDK，再下载预�
 
 2026-10-14 [首次 master CI](https://github.com/sen-to/mochi_player/actions/runs/38505530613/job/115662050561) 的依赖、本地化与静态检查通过；测试阶段因 `flutter_tester` 缺少官方 Win32 窗口初始化符号而有 26 个测试文件加载失败，Windows Release 构建尚未执行。测试宿主配置与原因见 [测试指南](testing.md#测试宿主与真实窗口)。修复后必须重新运行 Windows CI 才能确认结果，不能沿用 macOS 的通过结论。
 
+同日 [第二次 CI](https://github.com/sen-to/mochi_player/actions/runs/38509922678/job/115675829212) 的静态检查与全部 209 项测试通过，确认测试宿主隔离修复生效；Windows Release 构建在 `main.cpp` 的 `ViewId` 函数报 C2062。局部变量 `small` 与 Windows RPC 头文件的 `#define small char` 冲突，已改为 `int32_value`。本地使用相同宏复现编译失败并确认重命名后通过语法检查；完整 MSVC 构建仍须由后续 CI 确认。
+
 2026-10-14 用户已确认文件对话框手工验收完成，记录见 [测试指南](testing.md)。该确认未单独说明 Windows 平台，因此 Windows COM 对话框的验收仍保留。
 
 ## 本地化生成

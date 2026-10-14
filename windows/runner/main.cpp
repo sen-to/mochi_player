@@ -17,7 +17,7 @@ const EncodableValue& Argument(const EncodableMap& args, const char* key) {
   return args.at(EncodableValue(key));
 }
 int64_t ViewId(const EncodableValue& value) {
-  if (const auto* small = std::get_if<int32_t>(&value)) return *small;
+  if (const auto* int32_value = std::get_if<int32_t>(&value)) return *int32_value;
   return std::get<int64_t>(value);
 }
 
