@@ -2,15 +2,15 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_repository.dart';
-import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/features/library/application/storage_sources_service.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 
 void main() {
   test('stores source configuration together with its credentials', () async {
     final repository = _MemorySourceRepository();
-    final service = StorageSourcesController(
+    final service = StorageSourcesService(
       repository: repository,
-      registry: StorageProviderRegistry([]),
+      registry: StorageAdapterRegistry([]),
       onSourceRemoved: (_) {},
     );
     const source = StorageSource(
@@ -29,9 +29,9 @@ void main() {
 
   test('deletes source credentials with its source', () async {
     final repository = _MemorySourceRepository();
-    final service = StorageSourcesController(
+    final service = StorageSourcesService(
       repository: repository,
-      registry: StorageProviderRegistry([]),
+      registry: StorageAdapterRegistry([]),
       onSourceRemoved: (_) {},
     );
     const source = StorageSource(
@@ -54,9 +54,9 @@ void main() {
   test('temporary connection closes after successful and failed directory reads', () async {
     for (final fails in [false, true]) {
       final connection = _Connection(fails: fails);
-      final service = StorageSourcesController(
+      final service = StorageSourcesService(
         repository: _MemorySourceRepository(),
-        registry: StorageProviderRegistry([_Provider(connection)]),
+        registry: StorageAdapterRegistry([_Provider(connection)]),
         onSourceRemoved: (_) {},
       );
       if (fails) {
@@ -70,9 +70,9 @@ void main() {
   test('shutdown rejects new requests and waits until accepted test connection is released', () async {
     final finishRead = Completer<List<StorageEntry>>();
     final connection = _Connection(pending: finishRead.future);
-    final service = StorageSourcesController(
+    final service = StorageSourcesService(
       repository: _MemorySourceRepository(),
-      registry: StorageProviderRegistry([_Provider(connection)]),
+      registry: StorageAdapterRegistry([_Provider(connection)]),
       onSourceRemoved: (_) {},
     );
     final operation = service.testConnection(connection.source, null);
@@ -91,9 +91,9 @@ void main() {
   test('source deletion notifies selection owner only after successful persistence', () async {
     final repository = _MemorySourceRepository();
     final removed = <String>[];
-    final service = StorageSourcesController(
+    final service = StorageSourcesService(
       repository: repository,
-      registry: StorageProviderRegistry([]),
+      registry: StorageAdapterRegistry([]),
       onSourceRemoved: removed.add,
     );
     const source = StorageSource(id: 'nas', name: 'NAS', type: StorageSourceType.local, endpoint: '/media');
@@ -136,7 +136,7 @@ class _MemorySourceRepository implements StorageSourceRepository {
   }
 }
 
-class _Provider implements StorageProvider {
+class _Provider implements StorageAdapter {
   _Provider(this.connection);
   final _Connection connection;
   @override

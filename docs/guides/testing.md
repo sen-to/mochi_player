@@ -62,7 +62,7 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 | 数据层 | `test/core/infrastructure/database/` | 组合唯一键、外键 / CHECK、JSON、日期、事务、局部更新、级联 / 禁止删除、开发库并发重建、双后台连接、关闭重开 |
 | 库查询 | `test/features/library/application/library_repository_test.dart` | 标题可用性、搜索 / 收藏 / 续播排序、有限结果、SQL 与领域规则一致性、共享订阅 |
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
-| 媒体源应用入口 | `test/features/library/application/storage_sources_controller_test.dart`、`file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知及迟到连接关闭 |
+| 媒体源应用入口 | `test/features/library/application/storage_sources_service_test.dart`、`file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知及迟到连接关闭 |
 | 应用组装 | `test/app/bootstrap/` | 设置与趋势共享 TMDB 实例、应用查询与播放写入共享数据库，独立实例无隐藏全局配置 |
 | 应用退出 | `test/app/application/` | 重复请求、保存 / 释放顺序、失败与超时、最终快照持久化 |
 | 播放 | `test/features/playback/` | 引擎门面、轨道 / 字幕、seek、进度队列、创建 / 替换 / 关闭、mini / 全屏失败重试 |

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/local_storage_provider.dart';
+import 'package:mochi_player/core/infrastructure/storage/local_storage_adapter.dart';
 
 void main() {
   late Directory directory;
@@ -40,4 +40,4 @@ void main() {
 StorageSource _source(Directory directory) =>
     StorageSource(id: 'local-media', name: '本地媒体', type: StorageSourceType.local, endpoint: directory.path);
 
-LocalStorageProvider _provider() => LocalStorageProvider();
+LocalStorageAdapter _provider() => LocalStorageAdapter();

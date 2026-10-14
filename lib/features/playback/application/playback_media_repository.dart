@@ -4,7 +4,7 @@ import 'package:mochi_player/core/domain/media/media_file.dart';
 ///
 /// Keeping this separate lets a dedicated player window load only its queue
 /// instead of materializing the complete library catalog and its metadata.
-abstract interface class PlaybackMediaStore {
+abstract interface class PlaybackMediaRepository {
   Future<MediaFile?> readMediaFile({required String sourceId, required String path});
 
   Future<void> updateProgress(MediaFile file, int position, {int? duration});

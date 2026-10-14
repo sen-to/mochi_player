@@ -16,7 +16,7 @@ Emby 的 API 分别提供用户媒体库视图与项目列表、播放信息解�
 
 ## Decision（决策）
 
-**支持 Emby 等媒体服务器；首个可交付适配器为 Emby，并以独立的媒体服务器接入层承载后续适配器。媒体服务器不作为 `StorageProvider` 或普通 `StorageSource` 的一种实现。**
+**支持 Emby 等媒体服务器；首个可交付适配器为 Emby，并以独立的媒体服务器接入层承载后续适配器。媒体服务器不作为 `StorageAdapter` 或普通 `StorageSource` 的一种实现。**
 
 具体规则：
 

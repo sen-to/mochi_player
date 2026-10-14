@@ -9,7 +9,7 @@ import 'package:mochi_player/core/infrastructure/database/database_service.dart'
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/features/library/application/library_search_matcher.dart';
 import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
-import 'package:mochi_player/features/playback/infrastructure/database_playback_media_store.dart';
+import 'package:mochi_player/features/playback/infrastructure/database_playback_media_repository.dart';
 
 MediaFile file(
   String path, {
@@ -234,7 +234,7 @@ void main() {
       await db.setTitleFavorite(const Movie(tmdbId: '1', title: 'Movie'), true);
       expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
       expect(stream.current.single.isFavorite, isTrue);
-      await DatabasePlaybackMediaStore(database: db).updateProgress(entry, 42000, duration: 100000);
+      await DatabasePlaybackMediaRepository(database: db).updateProgress(entry, 42000, duration: 100000);
       expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
       expect(stream.current.single.position, 42000);
       expect(stream.current.single.duration, 100000);

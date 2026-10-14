@@ -4,37 +4,37 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
-import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
+import 'package:mochi_player/features/library/application/storage_sources_service.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_scraper.dart';
 import 'package:mochi_player/features/library/infrastructure/storage_media_scanner.dart';
 
 /// Coordinates storage scans and TMDB metadata scraping.
-class LibrarySyncController extends ChangeNotifier {
-  LibrarySyncController({
+class LibrarySyncService extends ChangeNotifier {
+  LibrarySyncService({
     required DatabaseService database,
     required LibraryRepository repository,
     required TmdbService tmdbService,
     required MetadataScraper metadataScraper,
-    required StorageSourcesController storageSources,
-    required StorageProviderRegistry storageProviderRegistry,
+    required StorageSourcesService storageSources,
+    required StorageAdapterRegistry storageAdapterRegistry,
     required StorageMediaScanner Function(StorageConnection connection) storageScannerFactory,
   }) : _db = database,
        _repository = repository,
        _tmdbService = tmdbService,
        _metadataScraper = metadataScraper,
        _storageSources = storageSources,
-       _storageProviderRegistry = storageProviderRegistry,
+       _storageAdapterRegistry = storageAdapterRegistry,
        _storageScannerFactory = storageScannerFactory;
 
   final DatabaseService _db;
   final LibraryRepository _repository;
   final TmdbService _tmdbService;
   final MetadataScraper _metadataScraper;
-  final StorageSourcesController _storageSources;
-  final StorageProviderRegistry _storageProviderRegistry;
+  final StorageSourcesService _storageSources;
+  final StorageAdapterRegistry _storageAdapterRegistry;
   final StorageMediaScanner Function(StorageConnection connection) _storageScannerFactory;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
@@ -125,7 +125,7 @@ class LibrarySyncController extends ChangeNotifier {
 
       if (_shuttingDown) return null;
       final sources = (await _storageSources.getAll())
-          .where((source) => source.enabled && _storageProviderRegistry.supports(source.type))
+          .where((source) => source.enabled && _storageAdapterRegistry.supports(source.type))
           .toList(growable: false);
       if (sources.isEmpty) {
         _error = AppFailure.scanSourceRequired;
@@ -144,7 +144,7 @@ class LibrarySyncController extends ChangeNotifier {
         _notify();
         try {
           final credentials = await _storageSources.readCredentials(source.id);
-          final connection = await _storageProviderRegistry.connect(source, credentials);
+          final connection = await _storageAdapterRegistry.connect(source, credentials);
           try {
             final result = await _scanFilesFromStorage(connection);
             discoveredFileCount += result.discoveredCount;

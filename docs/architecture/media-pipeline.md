@@ -1,7 +1,7 @@
 # 媒体流水线：扫描 → 解析 → 刮削 → 索引
 
 核对日期：2026-10-14。本文描述从「配置媒体源」到「首页出现海报」的完整链路。入口是
-[LibrarySyncController.scanEnabledMediaSources()](../../lib/features/library/application/library_sync_controller.dart)。
+[LibrarySyncService.scanEnabledMediaSources()](../../lib/features/library/application/library_sync_service.dart)。
 
 ```mermaid
 flowchart TD
@@ -25,8 +25,8 @@ flowchart TD
 
 ## 阶段 1：扫描与入库
 
-- 只处理 `enabled == true` 且注册表支持其类型的媒体源（[library_sync_controller.dart](../../lib/features/library/application/library_sync_controller.dart)）。
-- 连接由 `StorageProviderRegistry` 按类型分派到 `LocalStorageProvider` / `WebDavStorageProvider` / `SmbStorageProvider`；`connect` 前从仓库读取凭据，用完 `close()`。
+- 只处理 `enabled == true` 且注册表支持其类型的媒体源（[library_sync_service.dart](../../lib/features/library/application/library_sync_service.dart)）。
+- 连接由 `StorageAdapterRegistry` 按类型分派到 `LocalStorageAdapter` / `WebDavStorageAdapter` / `SmbStorageAdapter`；`connect` 前从仓库读取凭据，用完 `close()`。
 - `StorageMediaScanner.scan()` 递归列目录，过程中任何一次目录读取失败都会置位「读错误」，从而**跳过失效文件清理**——宁可留下失效记录，也不误删整个来源（网络抖动场景）。
 - 视频判定依赖扩展名白名单（[media_file_kind.dart](../../lib/core/domain/media/media_file_kind.dart)）：`mp4 mkv avi mov wmv flv webm ts m2ts mpg mpeg m4v`。
 - **幂等键**：数据库使用 `(sourceId, path)` 组合唯一约束；派生 `storageKey` 仅用于任务集合。新路径插入，已有路径仅更新大小与解析属性，保留匹配、进度、收藏与添加时间。

@@ -6,7 +6,7 @@
 
 ## Context（背景与约束）
 
-现状：SMB 媒体源在扫描与浏览时使用 `dart_smb2`（[smb_storage_provider.dart](../../lib/core/infrastructure/storage/smb_storage_provider.dart)，`workers: 1`，单连接），
+现状：SMB 媒体源在扫描与浏览时使用 `dart_smb2`（[smb_storage_adapter.dart](../../lib/core/infrastructure/storage/smb_storage_adapter.dart)，`workers: 1`，单连接），
 播放时由 [smb_playback_resolver.dart](../../lib/core/infrastructure/storage/smb_playback_resolver.dart) 把文件拼成 `smb://user:pass@host/share/...` 直接交给 libmpv，不走本地缓存。
 
 风险点（**外部事实，需在落地前实测确认**）：

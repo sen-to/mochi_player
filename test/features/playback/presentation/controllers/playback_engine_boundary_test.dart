@@ -6,7 +6,7 @@ import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
@@ -15,8 +15,8 @@ import 'package:mochi_player/l10n/l10n.dart';
 
 import '../../../../support/fake_playback_engine.dart';
 
-class _Store implements PlaybackMediaStore {
-  _Store(this.item, this.events);
+class _Repository implements PlaybackMediaRepository {
+  _Repository(this.item, this.events);
 
   final MediaFile item;
   final List<String> events;
@@ -34,7 +34,7 @@ class _Store implements PlaybackMediaStore {
 
 void main() {
   late FakePlaybackEngine engine;
-  late _Store store;
+  late _Repository store;
   late PlayerPlaybackController controller;
   const target = PlaybackTarget(url: 'https://example.com/movie.mkv', httpHeaders: {'Authorization': 'test'});
   setUp(() {
@@ -47,10 +47,10 @@ void main() {
       parsedTitle: 'Movie',
       addedAt: DateTime(2026),
     );
-    store = _Store(item, engine.events);
+    store = _Repository(item, engine.events);
     controller = PlayerPlaybackController(
       engine: engine,
-      mediaStore: store,
+      mediaRepository: store,
       settings: const AppSettings(
         playbackCacheSizeMb: 128,
         playbackReadaheadSeconds: 30,

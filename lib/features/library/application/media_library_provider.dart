@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/features/library/application/library_sync_controller.dart';
+import 'package:mochi_player/features/library/application/library_sync_service.dart';
 import 'package:mochi_player/features/library/application/media_card_view_data.dart';
 import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 
@@ -13,16 +13,16 @@ class MediaLibraryProvider extends ChangeNotifier {
   MediaLibraryProvider({
     required DatabaseService database,
     required LibraryRepository repository,
-    required LibrarySyncController syncController,
+    required LibrarySyncService syncService,
   }) : _db = database,
        _repository = repository,
-       _sync = syncController {
+       _sync = syncService {
     _sync.addListener(_relay);
   }
 
   final DatabaseService _db;
   final LibraryRepository _repository;
-  final LibrarySyncController _sync;
+  final LibrarySyncService _sync;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   Future<void>? _loading;
   bool _initialized = false;

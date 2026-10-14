@@ -4,7 +4,7 @@ import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:path/path.dart' as path;
 
 /// Connects to a user-selected directory on the local machine.
-class LocalStorageProvider implements StorageProvider {
+class LocalStorageAdapter implements StorageAdapter {
   @override
   StorageSourceType get type => StorageSourceType.local;
 

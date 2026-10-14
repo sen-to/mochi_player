@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 
 void main() {
   const source = StorageSource(
@@ -11,8 +11,8 @@ void main() {
   );
 
   test('resolves a provider by storage source type', () async {
-    final provider = _FakeStorageProvider();
-    final registry = StorageProviderRegistry([provider]);
+    final provider = _FakeStorageAdapter();
+    final registry = StorageAdapterRegistry([provider]);
 
     final connection = await registry.connect(source, null);
 
@@ -22,13 +22,13 @@ void main() {
   });
 
   test('rejects unsupported storage source types', () {
-    final registry = StorageProviderRegistry(const []);
+    final registry = StorageAdapterRegistry(const []);
 
-    expect(() => registry.providerFor(StorageSourceType.smb), throwsA(isA<UnsupportedError>()));
+    expect(() => registry.adapterFor(StorageSourceType.smb), throwsA(isA<UnsupportedError>()));
   });
 }
 
-class _FakeStorageProvider implements StorageProvider {
+class _FakeStorageAdapter implements StorageAdapter {
   final connection = _FakeStorageConnection();
 
   @override

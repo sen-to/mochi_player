@@ -27,8 +27,8 @@ abstract interface class SmbDirectoryClient {
 }
 
 /// Connects to an SMB2/3 share.
-class SmbStorageProvider implements StorageProvider {
-  SmbStorageProvider({Future<SmbDirectoryClient> Function(SmbSourceLocation, StorageCredentials?)? connect})
+class SmbStorageAdapter implements StorageAdapter {
+  SmbStorageAdapter({Future<SmbDirectoryClient> Function(SmbSourceLocation, StorageCredentials?)? connect})
     : _connect = connect ?? _connectWithSmb2;
 
   final Future<SmbDirectoryClient> Function(SmbSourceLocation, StorageCredentials?) _connect;

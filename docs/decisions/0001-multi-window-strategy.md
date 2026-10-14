@@ -27,7 +27,7 @@
 - [DesktopWindowHost](../../lib/core/platform/desktop_window_service.dart) 使用 `WindowManager` / `WindowRegistry` 管理 `WindowEntry`；官方 internal API 只出现在这个生产适配文件。
 - macOS 与 Windows runner 只创建一个 `FlutterEngine`，插件只注册一次。窗口由 Dart 创建；删除旧的隐式主窗口宿主、多引擎回调及旧窗口插件依赖。
 - `WindowService` 通过每个视图的 Provider 注入，包含该视图的 `viewId`。不再用引擎全局 singleton 推断当前窗口。全屏、激活、尺寸约束使用官方控制器；位置、拖动、普通小窗置顶、文件 / 目录对话框和 macOS 按钮显隐通过原生桥按 `viewId` 定位。
-- 主窗口与播放器共享 `AppLocaleController`、`ThemeProvider`、`AppSettingsProvider` 和 `DatabaseService`。窗口按钮状态、提示消息队列、播放器会话与播放资源由各自视图拥有。`AppMessage` 按调用方 context 找到所属视图的宿主，不保留引擎全局队列；播放器字幕错误不能投递到媒体库窗口。
+- 主窗口与播放器共享 `AppLocaleProvider`、`ThemeProvider`、`AppSettingsProvider` 和 `DatabaseService`。窗口按钮状态、提示消息队列、播放器会话与播放资源由各自视图拥有。`AppMessage` 按调用方 context 找到所属视图的宿主，不保留引擎全局队列；播放器字幕错误不能投递到媒体库窗口。
 - [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 由启动入口创建并通过 Provider 注入，串行创建、替换与关闭单个 `PlayerWindowSession`；不使用全局静态转发层。请求是内存中的 `PlayerWindowRequest`；保留文件引用与队列，移除版本化 JSON 协议、就绪轮询、跨窗口 RPC 和语言 revision 快照。
 - 替换前解析下一目标；成功后先保存并释放旧播放资源，解绑旧页面一帧，再挂载新页面。解析失败保留原播放，不补偿创建第二个播放器。
 - 删除播放器视图时先从 registry 注销，等待渲染帧移除 View，再 destroy / dispose 原生控制器。不能先销毁 FlutterView 再让旧组件继续绘制。

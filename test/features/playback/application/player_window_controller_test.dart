@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
-import 'package:mochi_player/features/playback/application/player_window_state.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
+import 'package:mochi_player/features/playback/application/player_window_controller.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 
 void main() {
@@ -19,7 +19,7 @@ void main() {
   test('bootstrap refreshes persisted progress and forwards the fresh item to the injected resolver', () async {
     final fresh = original.copyWith(position: 42000, duration: 100000);
     final resolver = _Resolver();
-    final result = await PlayerWindowBootstrap.load(request, mediaStore: _Store(fresh), resolver: resolver);
+    final result = await PlayerWindowBootstrap.load(request, mediaRepository: _Repository(fresh), resolver: resolver);
     expect(result.initialMedia!.position, 42000);
     expect(result.queue.single.position, 42000);
     expect(resolver.resolved!.position, 42000);
@@ -28,21 +28,21 @@ void main() {
   test('bootstrap retains browser-only files and distinguishes unresolved targets from load errors', () async {
     final unresolved = await PlayerWindowBootstrap.load(
       request,
-      mediaStore: _Store(null),
+      mediaRepository: _Repository(null),
       resolver: _Resolver(available: false),
     );
     expect(unresolved.initialMedia, same(original));
     expect(unresolved.failure, PlayerLaunchFailure.target);
     final failed = await PlayerWindowBootstrap.load(
       request,
-      mediaStore: _Store(null, fail: true),
+      mediaRepository: _Repository(null, fail: true),
       resolver: _Resolver(),
     );
     expect(failed.failure, PlayerLaunchFailure.load);
   });
   test('closing state rejects a later replacement even when it finishes loading', () async {
-    final loaded = await PlayerWindowBootstrap.load(request, mediaStore: _Store(null), resolver: _Resolver());
-    final state = PlayerWindowState(loaded);
+    final loaded = await PlayerWindowBootstrap.load(request, mediaRepository: _Repository(null), resolver: _Resolver());
+    final state = PlayerWindowController(loaded);
     state.beginShutdown();
     state.close();
     state.open(loaded);
@@ -52,8 +52,8 @@ void main() {
   });
 }
 
-class _Store implements PlaybackMediaStore {
-  _Store(this.file, {this.fail = false});
+class _Repository implements PlaybackMediaRepository {
+  _Repository(this.file, {this.fail = false});
   final MediaFile? file;
   final bool fail;
   @override

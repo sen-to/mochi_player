@@ -1,20 +1,20 @@
 import 'dart:async';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_repository.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 
 /// Application entry for source configuration and temporary connection tests.
-class StorageSourcesController {
-  StorageSourcesController({
+class StorageSourcesService {
+  StorageSourcesService({
     required StorageSourceRepository repository,
-    required StorageProviderRegistry registry,
+    required StorageAdapterRegistry registry,
     required void Function(String) onSourceRemoved,
   }) : _repository = repository,
        _registry = registry,
        _onSourceRemoved = onSourceRemoved;
 
   final StorageSourceRepository _repository;
-  final StorageProviderRegistry _registry;
+  final StorageAdapterRegistry _registry;
   final void Function(String) _onSourceRemoved;
 
   bool _shuttingDown = false;

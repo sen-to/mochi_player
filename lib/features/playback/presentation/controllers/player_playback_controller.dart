@@ -8,7 +8,7 @@ import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart'
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/features/playback/application/external_subtitle_track.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
@@ -24,7 +24,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   static const Duration localBufferingIndicatorDelay = Duration(milliseconds: 350);
 
   PlayerPlaybackController({
-    required PlaybackMediaStore mediaStore,
+    required PlaybackMediaRepository mediaRepository,
     required AppSettings settings,
     required MediaFile initialItem,
     required List<MediaFile> queueItems,
@@ -34,7 +34,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     this.onPlaybackActivity,
   }) : _settings = settings,
        _session = PlaybackSessionController(
-         mediaStore: mediaStore,
+         mediaRepository: mediaRepository,
          initialItem: initialItem,
          queueItems: queueItems,
          initialTarget: initialTarget,

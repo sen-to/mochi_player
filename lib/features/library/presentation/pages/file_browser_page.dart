@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
+import 'package:mochi_player/features/library/application/storage_sources_service.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
@@ -20,7 +20,7 @@ class FileBrowserPage extends StatefulWidget {
 }
 
 class _FileBrowserPageState extends State<FileBrowserPage> {
-  StorageSourcesController get _storageSources => context.read<StorageSourcesController>();
+  StorageSourcesService get _storageSources => context.read<StorageSourcesService>();
   var _sources = const <StorageSource>[];
   var _isLoadingSources = true;
   AppFailure? _sourceError;

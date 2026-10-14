@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
 
 void main() {
@@ -70,25 +70,25 @@ void main() {
   });
 
   test('closes the previous storage connection when changing sources', () async {
-    final storageProvider = _TrackingStorageProvider();
+    final storageAdapter = _TrackingStorageAdapter();
     final provider = FileBrowserProvider(
       readCredentials: (_) async => null,
-      storageProviderRegistry: StorageProviderRegistry([storageProvider]),
+      storageAdapterRegistry: StorageAdapterRegistry([storageAdapter]),
     );
 
     await provider.openStorageSource(_source);
-    final firstConnection = storageProvider.connections.single;
+    final firstConnection = storageAdapter.connections.single;
     await provider.openStorageSource(_source);
 
     expect(firstConnection.isClosed, isTrue);
-    expect(storageProvider.connections, hasLength(2));
+    expect(storageAdapter.connections, hasLength(2));
   });
   test('an opening connection that finishes after shutdown is closed and never selected', () async {
     final pending = Completer<StorageConnection>();
     final connection = _TrackingStorageConnection(_source);
     final provider = FileBrowserProvider(
       readCredentials: (_) async => null,
-      storageProviderRegistry: StorageProviderRegistry([_DelayedProvider(pending.future)]),
+      storageAdapterRegistry: StorageAdapterRegistry([_DelayedProvider(pending.future)]),
     );
     final opening = provider.openStorageSource(_source);
     await Future<void>.delayed(Duration.zero);
@@ -110,11 +110,11 @@ const _source = StorageSource(
 
 FileBrowserProvider _provider(Future<List<StorageEntry>> Function(String path) read) => FileBrowserProvider(
   readCredentials: (_) async => null,
-  storageProviderRegistry: StorageProviderRegistry([_FakeStorageProvider(read)]),
+  storageAdapterRegistry: StorageAdapterRegistry([_FakeStorageAdapter(read)]),
 );
 
-class _FakeStorageProvider implements StorageProvider {
-  const _FakeStorageProvider(this._read);
+class _FakeStorageAdapter implements StorageAdapter {
+  const _FakeStorageAdapter(this._read);
 
   final Future<List<StorageEntry>> Function(String path) _read;
 
@@ -143,7 +143,7 @@ class _FakeStorageConnection implements StorageConnection {
   Future<void> close() async {}
 }
 
-class _TrackingStorageProvider implements StorageProvider {
+class _TrackingStorageAdapter implements StorageAdapter {
   final connections = <_TrackingStorageConnection>[];
 
   @override
@@ -176,7 +176,7 @@ class _TrackingStorageConnection implements StorageConnection {
   Future<bool> testConnection() async => true;
 }
 
-class _DelayedProvider implements StorageProvider {
+class _DelayedProvider implements StorageAdapter {
   _DelayedProvider(this.pending);
   final Future<StorageConnection> pending;
   @override

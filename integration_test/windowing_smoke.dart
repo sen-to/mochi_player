@@ -1,5 +1,5 @@
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 // Run: fvm flutter run -d macos -t integration_test/windowing_smoke.dart
 // Uses the production runner, real media_kit and sandbox-local generated video.
 // SQLite and preferences are isolated from the user's library.
@@ -20,7 +20,7 @@ import 'package:mochi_player/core/infrastructure/database/database_service.dart'
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
-import 'package:mochi_player/features/playback/infrastructure/database_playback_media_store.dart';
+import 'package:mochi_player/features/playback/infrastructure/database_playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
@@ -28,7 +28,7 @@ import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
-import 'package:mochi_player/l10n/app_locale_controller.dart';
+import 'package:mochi_player/l10n/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -85,14 +85,14 @@ void main() async {
   ]);
   final media = (await database.getMediaFile('smoke', mediaPath))!;
   final host = DesktopWindowHost();
-  final locales = AppLocaleController();
+  final locales = AppLocaleProvider();
   await locales.load();
-  final settings = AppSettingsProvider(settingsService: AppSettingsService(), tmdbService: TmdbService());
+  final settings = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: TmdbService());
   await settings.load();
   final theme = ThemeProvider();
   final mainWindow = host.create(
     setup: const WindowSetup(size: Size(960, 640), minimumSize: Size(800, 500)),
-    builder: (_) => Consumer<AppLocaleController>(
+    builder: (_) => Consumer<AppLocaleProvider>(
       builder: (_, locales, _) => MaterialApp(
         locale: locales.locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -110,7 +110,7 @@ void main() async {
     createSession: (request) async => playerSession = await createPlayerWindow(
       host: host,
       request: request,
-      mediaStore: DatabasePlaybackMediaStore(database: database),
+      mediaRepository: DatabasePlaybackMediaRepository(database: database),
       resolver: LocalTarget(),
       engineFactory: MediaKitPlaybackEngine.new,
     ),

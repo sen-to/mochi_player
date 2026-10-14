@@ -4,7 +4,7 @@
 
 ## 扫描与幂等索引
 
-[StorageMediaScanner](../../lib/features/library/infrastructure/storage_media_scanner.dart) 深度优先递归列目录，跳过隐藏项，按扩展名识别视频，并用异步流产出解析后的文件。`LibrarySyncController` 用路径集合统计发现 / 新增，按 128 项批量入库。
+[StorageMediaScanner](../../lib/features/library/infrastructure/storage_media_scanner.dart) 深度优先递归列目录，跳过隐藏项，按扩展名识别视频，并用异步流产出解析后的文件。`LibrarySyncService` 用路径集合统计发现 / 新增，按 128 项批量入库。
 
 扫描完成且无读取错误时，删除该来源“原有路径集合减去本次发现路径集合”对应的索引；扫描出错或退出中断时禁止删除。数据库组合唯一键 `(sourceId, path)` 保证重复扫描不会插入重复记录，已有文件属性仍会更新。
 

@@ -4,11 +4,11 @@ import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/core/ui/components/feedback/app_message.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/player_window_state.dart';
+import 'package:mochi_player/features/playback/application/player_window_controller.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
 import 'package:mochi_player/features/playback/presentation/pages/player_page.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
-import 'package:mochi_player/l10n/app_locale_controller.dart';
+import 'package:mochi_player/l10n/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +23,7 @@ class PlayerWindowApp extends StatelessWidget {
     required this.resolver,
   });
 
-  final PlayerWindowState session;
+  final PlayerWindowController session;
   final PlayerWindowCloseCoordinator closeCoordinator;
   final Future<void> Function() onCloseRequested;
   final WindowControlsController windowControls;
@@ -37,12 +37,12 @@ class PlayerWindowApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: windowControls),
         ChangeNotifierProvider.value(value: session),
       ],
-      child: Consumer2<ThemeProvider, AppLocaleController>(
+      child: Consumer2<ThemeProvider, AppLocaleProvider>(
         builder: (context, themeProvider, locales, _) {
           return MaterialApp(
             title: 'Mochi Player',
             locale: locales.locale,
-            localeListResolutionCallback: AppLocaleController.resolve,
+            localeListResolutionCallback: AppLocaleProvider.resolve,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             debugShowCheckedModeBanner: false,
@@ -50,7 +50,7 @@ class PlayerWindowApp extends StatelessWidget {
             theme: AppTheme.lightThemeFor(themeProvider.accentColor.color),
             darkTheme: AppTheme.darkThemeFor(themeProvider.accentColor.color),
             home: AppMessageHost(
-              child: Consumer<PlayerWindowState>(
+              child: Consumer<PlayerWindowController>(
                 builder: (context, session, _) => _PlayerWindowHome(
                   bootstrap: session.bootstrap,
                   engineFactory: engineFactory,
@@ -106,7 +106,7 @@ class _PlayerWindowHome extends StatelessWidget {
                   target: bootstrap.initialTarget!,
                   contextTitle: bootstrap.request.contextTitle,
                   playlist: bootstrap.queue,
-                  mediaStore: bootstrap.mediaStore,
+                  mediaRepository: bootstrap.mediaRepository,
                   regularMinimumWindowSize: const Size(720, 405),
                   closeCoordinator: closeCoordinator,
                 )

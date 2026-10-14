@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
-import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
+import 'package:mochi_player/features/library/application/storage_sources_service.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
@@ -35,7 +35,7 @@ enum _SettingsTab { general, mediaSource, metadata, playback }
 enum _StorageSourceAddOption { local, webDav, smb }
 
 class _SettingsPageState extends State<SettingsPage> {
-  StorageSourcesController get _sourceController => context.read<StorageSourcesController>();
+  StorageSourcesService get _sourceController => context.read<StorageSourcesService>();
   final _tmdbApiKeyController = TextEditingController();
   final _tmdbApiBaseUrlController = TextEditingController();
   final _tmdbProxyUrlController = TextEditingController();
@@ -78,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (_controllersInitialized) return;
 
     final settings = context.read<AppSettingsProvider>();
-    _syncControllers(settings);
+    _syncServices(settings);
     for (final controller in _settingsControllers) {
       controller.addListener(_scheduleAutoSave);
     }
@@ -1317,7 +1317,7 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final settingsProvider = context.read<AppSettingsProvider>();
       final previousRuntimeSettings = settingsProvider.appliedRuntimeSettings ?? settingsProvider.settings;
-      await _persistSettings(applyRuntime: shouldApplyRuntime, syncControllers: false);
+      await _persistSettings(applyRuntime: shouldApplyRuntime, syncServices: false);
       if (mounted && settingsProvider.error == null) {
         final currentSettings = settingsProvider.settings;
         if (shouldApplyRuntime) {
@@ -1408,7 +1408,7 @@ class _SettingsPageState extends State<SettingsPage> {
     AppMessage.success(context, context.l10n.libraryCleared);
   }
 
-  Future<bool> _persistSettings({bool applyRuntime = false, bool syncControllers = true}) async {
+  Future<bool> _persistSettings({bool applyRuntime = false, bool syncServices = true}) async {
     final settingsProvider = context.read<AppSettingsProvider>();
 
     await settingsProvider.saveSettings(
@@ -1434,8 +1434,8 @@ class _SettingsPageState extends State<SettingsPage> {
       return false;
     }
 
-    if (syncControllers) _syncControllers(settingsProvider);
-    if (mounted && syncControllers) setState(() {});
+    if (syncServices) _syncServices(settingsProvider);
+    if (mounted && syncServices) setState(() {});
     return true;
   }
 
@@ -1453,7 +1453,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _syncControllers(AppSettingsProvider settingsProvider) {
+  void _syncServices(AppSettingsProvider settingsProvider) {
     _isSyncingControllers = true;
     try {
       _setControllerText(_tmdbApiKeyController, settingsProvider.tmdbApiKey);

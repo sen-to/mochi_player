@@ -1,7 +1,7 @@
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/playback_progress_writer.dart';
 import 'package:mochi_player/features/playback/domain/playback_queue.dart';
 
@@ -12,18 +12,18 @@ import 'package:mochi_player/features/playback/domain/playback_queue.dart';
 /// actual open/seek commands to PlaybackEngine.
 class PlaybackSessionController {
   PlaybackSessionController({
-    required PlaybackMediaStore mediaStore,
+    required PlaybackMediaRepository mediaRepository,
     required MediaFile initialItem,
     required List<MediaFile> queueItems,
     required PlaybackTarget initialTarget,
     required PlaybackTargetResolver resolver,
-  }) : _mediaStore = mediaStore,
+  }) : _mediaRepository = mediaRepository,
        _resolver = resolver,
        _queue = PlaybackQueue(initialItem: initialItem, items: queueItems),
        _currentTarget = initialTarget,
-       _progressWriter = PlaybackProgressWriter(mediaStore.updateProgress);
+       _progressWriter = PlaybackProgressWriter(mediaRepository.updateProgress);
 
-  final PlaybackMediaStore _mediaStore;
+  final PlaybackMediaRepository _mediaRepository;
   final PlaybackTargetResolver _resolver;
   final PlaybackQueue _queue;
   final PlaybackProgressWriter _progressWriter;
@@ -48,7 +48,7 @@ class PlaybackSessionController {
 
   Future<void> refreshCurrentItem() async {
     final itemAtRequest = currentItem;
-    final latestItem = await _mediaStore.readMediaFile(sourceId: itemAtRequest.sourceId, path: itemAtRequest.path);
+    final latestItem = await _mediaRepository.readMediaFile(sourceId: itemAtRequest.sourceId, path: itemAtRequest.path);
     if (latestItem != null && _isCurrent(itemAtRequest)) {
       _queue.replaceCurrent(latestItem);
     }

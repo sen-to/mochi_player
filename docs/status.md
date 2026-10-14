@@ -12,7 +12,7 @@
 | [本地化](decisions/0004-i18n-l10n.md) | ARB / gen-l10n、中英与跟随系统、共享语言偏好 | 277 条文案检查与 Widget 回归通过，完整页面布局 / 原生语言交互仍待验收 |
 | 本地与 WebDAV | 浏览、扫描、解析播放 URL 与认证头已实现 | 生产媒体与网络条件分别验证，不以假适配器测试承诺所有服务器 |
 | [SMB 播放路径](decisions/0005-smb-playback-path.md) | SMB 浏览 / 扫描已实现；当前播放器直链打开 / seek 实测失败 | HTTP Range 回源方案已接受，但服务尚未实现；客户端升级不修复播放器协议能力 |
-| [媒体服务器](decisions/0006-media-server-integration.md) | Emby 优先的独立适配方向已接受 | 尚未实现服务器账户、目录、播放协商与进度上报；不是现有 StorageProvider 能力 |
+| [媒体服务器](decisions/0006-media-server-integration.md) | Emby 优先的独立适配方向已接受 | 尚未实现服务器账户、目录、播放协商与进度上报；不是现有 StorageAdapter 能力 |
 | 独立 UI 包迁移 | 仍使用 SDK 的旧 Material / Cupertino 导入 | 弃用提示保留；相关图片、图标、路由包主版本升级尚未进行 |
 
 ## 当前明确边界

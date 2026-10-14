@@ -6,26 +6,26 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/media_file_kind.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
 
 enum FileBrowserViewMode { grid, list }
 
 enum FileSortField { name, size, modifiedAt }
 
-/// 文件浏览器 Provider
+/// 文件浏览器界面状态与操作入口
 ///
 /// Owns directory navigation, filtering and sorting for the file browser.
 class FileBrowserProvider extends ChangeNotifier {
-  final StorageProviderRegistry _storageProviderRegistry;
+  final StorageAdapterRegistry _storageAdapterRegistry;
   final Future<StorageCredentials?> Function(String) _readCredentials;
   StorageConnection? _storageConnection;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
   FileBrowserProvider({
-    required StorageProviderRegistry storageProviderRegistry,
+    required StorageAdapterRegistry storageAdapterRegistry,
     required Future<StorageCredentials?> Function(String) readCredentials,
-  }) : _storageProviderRegistry = storageProviderRegistry,
+  }) : _storageAdapterRegistry = storageAdapterRegistry,
        _readCredentials = readCredentials;
 
   String get sourceId => _storageConnection?.source.id ?? '';
@@ -140,7 +140,7 @@ class FileBrowserProvider extends ChangeNotifier {
     final generation = ++_requestGeneration;
     final credentials = await _readCredentials(source.id);
     if (_shuttingDown || generation != _requestGeneration) return;
-    final connection = await _storageProviderRegistry.connect(source, credentials);
+    final connection = await _storageAdapterRegistry.connect(source, credentials);
     if (_shuttingDown || generation != _requestGeneration) {
       await connection.close();
       return;

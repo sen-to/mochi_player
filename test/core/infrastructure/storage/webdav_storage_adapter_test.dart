@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/webdav_storage_provider.dart';
+import 'package:mochi_player/core/infrastructure/storage/webdav_storage_adapter.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {

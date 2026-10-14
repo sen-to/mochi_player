@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_storage_provider.dart';
+import 'package:mochi_player/core/infrastructure/storage/smb_storage_adapter.dart';
 
 void main() {
   const source = StorageSource(
@@ -14,7 +14,7 @@ void main() {
 
   test('maps the configured SMB root and directory entries', () async {
     String? requestedPath;
-    final provider = SmbStorageProvider(
+    final provider = SmbStorageAdapter(
       connect: (location, credentials) async {
         expect(location.host, '192.168.1.20');
         expect(location.share, 'Media');

@@ -13,13 +13,13 @@ import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
-import 'package:mochi_player/app/bootstrap/application_services.dart';
+import 'package:mochi_player/app/bootstrap/application_dependencies.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
-import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
+import 'package:mochi_player/features/library/application/storage_sources_service.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
-import 'package:mochi_player/l10n/app_locale_controller.dart';
+import 'package:mochi_player/l10n/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -29,25 +29,25 @@ void main() async {
   final host = DesktopWindowHost();
 
   // 初始化数据库
-  final services = ApplicationServices(
+  final dependencies = ApplicationDependencies(
     database: DatabaseService(),
     tmdb: TmdbService(),
-    storageRegistry: StorageProviderRegistry.defaults(),
-    settingsService: AppSettingsService(),
+    storageRegistry: StorageAdapterRegistry.defaults(),
+    settingsRepository: AppSettingsRepository(),
   );
-  await services.database.init();
+  await dependencies.database.init();
 
-  final locales = AppLocaleController();
+  final locales = AppLocaleProvider();
   await locales.load();
-  final appSettingsProvider = services.settings;
+  final appSettingsProvider = dependencies.settings;
   await appSettingsProvider.load();
-  final mediaLibraryProvider = services.mediaLibrary;
+  final mediaLibraryProvider = dependencies.mediaLibrary;
   final playerWindows = PlayerWindowCoordinator(
     createSession: (request) => createPlayerWindow(
       host: host,
       request: request,
-      mediaStore: services.playbackStore,
-      resolver: services.playbackResolver,
+      mediaRepository: dependencies.playbackRepository,
+      resolver: dependencies.playbackResolver,
       engineFactory: MediaKitPlaybackEngine.new,
     ),
   );
@@ -77,8 +77,8 @@ void main() async {
       locales.beginShutdown();
       playerWindows.beginShutdown();
       mediaLibraryProvider.beginShutdown();
-      services.storageSources.beginShutdown();
-      services.fileBrowser.beginShutdown();
+      dependencies.storageSources.beginShutdown();
+      dependencies.fileBrowser.beginShutdown();
       appSettingsProvider.beginShutdown();
       themeProvider.beginShutdown();
     },
@@ -86,13 +86,13 @@ void main() async {
     cleanUp: () async {
       await Future.wait([
         mediaLibraryProvider.shutdown(),
-        services.storageSources.drain(),
-        services.fileBrowser.shutdown(),
+        dependencies.storageSources.drain(),
+        dependencies.fileBrowser.shutdown(),
         appSettingsProvider.waitForPendingSave(),
         themeProvider.waitForPendingSave(),
         locales.drain(),
       ]);
-      await services.database.close();
+      await dependencies.database.close();
     },
     exitProcess: windows.exitApplication,
     onFailure: (stage, _) => debugPrint('应用退出阶段失败或超时: $stage'),
@@ -106,10 +106,10 @@ void main() async {
         ChangeNotifierProvider.value(value: locales),
         ChangeNotifierProvider.value(value: appSettingsProvider),
         ChangeNotifierProvider.value(value: themeProvider),
-        ChangeNotifierProvider.value(value: services.fileBrowser),
-        Provider<StorageSourcesController>.value(value: services.storageSources),
+        ChangeNotifierProvider.value(value: dependencies.fileBrowser),
+        Provider<StorageSourcesService>.value(value: dependencies.storageSources),
         ChangeNotifierProvider.value(value: mediaLibraryProvider),
-        ChangeNotifierProvider.value(value: services.trending),
+        ChangeNotifierProvider.value(value: dependencies.trending),
       ],
       child: host.buildRoot(),
     ),
@@ -131,8 +131,8 @@ class MochiPlayerApp extends StatelessWidget {
     return MaterialApp.router(
       routerConfig: router,
       title: 'Mochi Player',
-      locale: context.watch<AppLocaleController>().locale,
-      localeListResolutionCallback: AppLocaleController.resolve,
+      locale: context.watch<AppLocaleProvider>().locale,
+      localeListResolutionCallback: AppLocaleProvider.resolve,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,

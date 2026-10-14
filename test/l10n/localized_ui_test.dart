@@ -6,7 +6,7 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
 import 'package:mochi_player/features/library/presentation/widgets/file_browser_entry_display.dart';
 import 'package:mochi_player/features/settings/presentation/widgets/language_preference_control.dart';
-import 'package:mochi_player/l10n/app_locale_controller.dart';
+import 'package:mochi_player/l10n/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,7 +33,7 @@ void main() {
   });
 
   testWidgets('language picker switches UI and preserves mounted playback state', (tester) async {
-    final locales = AppLocaleController();
+    final locales = AppLocaleProvider();
     await locales.load();
     await locales.setLanguage(AppLanguage.zh);
     var mounts = 0;
@@ -43,8 +43,8 @@ void main() {
         child: Builder(
           builder: (context) => MaterialApp(
             theme: AppTheme.lightTheme,
-            locale: context.watch<AppLocaleController>().locale,
-            localeListResolutionCallback: AppLocaleController.resolve,
+            locale: context.watch<AppLocaleProvider>().locale,
+            localeListResolutionCallback: AppLocaleProvider.resolve,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Builder(
@@ -83,7 +83,7 @@ void main() {
   });
 
   testWidgets('dates, plural counts and structured errors follow the current locale', (tester) async {
-    final locales = AppLocaleController();
+    final locales = AppLocaleProvider();
     await locales.setLanguage(AppLanguage.en);
     final item = FileBrowserEntry(
       sourceId: 'test',

@@ -1,7 +1,7 @@
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppSettingsService {
+class AppSettingsRepository {
   static const _tmdbApiKeyKey = 'tmdb_api_key';
   static const _tmdbApiBaseUrlKey = 'tmdb_api_base_url';
   static const _tmdbProxyUrlKey = 'tmdb_proxy_url';
@@ -11,7 +11,7 @@ class AppSettingsService {
   static const _enableHardwareAccelerationKey = 'enable_hardware_acceleration';
   static const _subtitleLanguagePriorityKey = 'subtitle_language_priority';
   static const _subtitleFontSizeKey = 'subtitle_font_size';
-  AppSettingsService();
+  AppSettingsRepository();
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();

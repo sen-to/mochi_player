@@ -12,7 +12,7 @@ enum AppLanguage {
   static AppLanguage parse(Object? value) => values.where((item) => item.name == value).firstOrNull ?? system;
 }
 
-class AppLocaleController extends ChangeNotifier {
+class AppLocaleProvider extends ChangeNotifier {
   static const preferenceKey = 'app_language';
   AppLanguage _language = AppLanguage.system;
   AppLanguage _persistedLanguage = AppLanguage.system;

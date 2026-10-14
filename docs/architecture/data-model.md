@@ -12,7 +12,7 @@
 
 [AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 收集 Dart 表定义及 [media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift) 中的 SQL 表定义，`DatabaseService` 管理连接与写入，`LibraryRepository` 提供读取投影。生产连接使用 `NativeDatabase.createInBackground`；主视图与播放器共用同一个后台 SQLite 连接，播放器关闭不关闭数据库，应用退出统一关闭。
 
-数据库服务是由组装入口创建的普通实例，不通过全局单例获取。[ApplicationServices](../../lib/app/bootstrap/application_services.dart) 将同一实例注入来源仓库、库查询 / 扫描 / 刮削和播放持久化适配。页面通过 `MediaLibraryProvider` 的应用查询入口读取，具体 `LibraryRepository` 不公开给页面。
+数据库服务是由组装入口创建的普通实例，不通过全局单例获取。[ApplicationDependencies](../../lib/app/bootstrap/application_dependencies.dart) 将同一实例注入来源仓库、库查询 / 扫描 / 刮削和播放持久化适配。页面通过 `MediaLibraryProvider` 的应用查询入口读取，具体 `LibraryRepository` 不公开给页面。
 
 ## 表概览
 
@@ -375,7 +375,7 @@ fvm dart run drift_dev schema dump lib/core/infrastructure/database/app_database
 
 后续 SQLite schema 变化需提升版本并明确迁移策略 / 测试，不能把这次开发库重建推广为发布版可随意清空数据。
 
-媒体源用户名 / 密码当前是 SQLite 普通文本，尚未接入系统凭据存储。语言偏好由共享 `AppLocaleController` 保存为 SharedPreferences 的 `app_language`（`system / zh / en`），不写 SQLite，也不使用跨窗口快照。主题和播放器设置由各自服务保存。
+媒体源用户名 / 密码当前是 SQLite 普通文本，尚未接入系统凭据存储。语言偏好由共享 `AppLocaleProvider` 保存为 SharedPreferences 的 `app_language`（`system / zh / en`），不写 SQLite，也不使用跨窗口快照。主题和播放器设置由各自服务保存。
 
 ## 待完善
 

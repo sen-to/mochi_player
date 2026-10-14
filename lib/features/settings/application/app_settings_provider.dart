@@ -3,13 +3,13 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 
 class AppSettingsProvider extends ChangeNotifier {
-  final AppSettingsService _settingsService;
+  final AppSettingsRepository _settingsRepository;
 
-  AppSettingsProvider({required AppSettingsService settingsService, required TmdbService tmdbService})
-    : _settingsService = settingsService,
+  AppSettingsProvider({required AppSettingsRepository settingsRepository, required TmdbService tmdbService})
+    : _settingsRepository = settingsRepository,
       _tmdbService = tmdbService;
 
   final TmdbService _tmdbService;
@@ -62,7 +62,7 @@ class AppSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _settings = await _settingsService.load();
+      _settings = await _settingsRepository.load();
       await _applyRuntimeSettings();
     } catch (e) {
       _error = AppFailure.settingsLoad;
@@ -129,7 +129,7 @@ class AppSettingsProvider extends ChangeNotifier {
         subtitleLanguagePriority: subtitleLanguagePriority.trim(),
         subtitleFontSize: subtitleFontSize,
       );
-      _settings = await _settingsService.save(nextSettings);
+      _settings = await _settingsRepository.save(nextSettings);
       if (applyRuntime) await _applyRuntimeSettings();
     } catch (e) {
       _error = AppFailure.settingsSave;

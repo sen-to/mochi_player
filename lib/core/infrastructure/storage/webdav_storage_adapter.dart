@@ -7,7 +7,7 @@ abstract interface class WebDavDirectoryClient {
 }
 
 /// Connects to a WebDAV source whose endpoint is already the WebDAV root.
-class WebDavStorageProvider implements StorageProvider {
+class WebDavStorageAdapter implements StorageAdapter {
   @override
   StorageSourceType get type => StorageSourceType.webDav;
 

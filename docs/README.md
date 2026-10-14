@@ -25,7 +25,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| [架构总览](architecture/overview.md) | 分层职责、模块归属、实际业务调用、共享依赖组装及运行时资源 |
+| [架构总览](architecture/overview.md) | 分层职责、统一命名约定、依赖作用域、实际业务调用及运行时资源 |
 | [数据模型](architecture/data-model.md) | 六表完整字段字典、类型 / 主外键 / 约束 / 索引、设计取舍、ORM 与读写边界 |
 | [媒体流水线](architecture/media-pipeline.md) | 扫描、文件名解析、TMDB 刮削、错误边界与索引展示 |
 | [播放](architecture/playback.md) | 请求、目标解析、引擎门面、mini / 全屏、退出时序、字幕与进度 |

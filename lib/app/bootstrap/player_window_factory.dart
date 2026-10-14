@@ -5,9 +5,9 @@ import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
-import 'package:mochi_player/features/playback/application/player_window_state.dart';
+import 'package:mochi_player/features/playback/application/player_window_controller.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
@@ -15,12 +15,12 @@ import 'package:mochi_player/features/playback/presentation/controllers/player_w
 Future<PlayerWindowSession> createPlayerWindow({
   required DesktopWindowHost host,
   required PlayerWindowRequest request,
-  required PlaybackMediaStore mediaStore,
+  required PlaybackMediaRepository mediaRepository,
   required PlaybackEngine Function(PlaybackOptions) engineFactory,
   required PlaybackTargetResolver resolver,
 }) async {
-  final bootstrap = await PlayerWindowBootstrap.load(request, mediaStore: mediaStore, resolver: resolver);
-  final session = PlayerWindowState(bootstrap);
+  final bootstrap = await PlayerWindowBootstrap.load(request, mediaRepository: mediaRepository, resolver: resolver);
+  final session = PlayerWindowController(bootstrap);
   final closeCoordinator = PlayerWindowCloseCoordinator();
   final lifecycle = _PlayerWindowLifecycle(session: session, resolver: resolver, closeCoordinator: closeCoordinator);
   final windows = host.create(
@@ -56,7 +56,7 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
   late final WindowService windows;
   late final WindowControlsController windowControls;
   final PlayerWindowCloseCoordinator closeCoordinator;
-  final PlayerWindowState session;
+  final PlayerWindowController session;
   final PlaybackTargetResolver resolver;
   Future<void>? _closing;
   Future<void>? _replacement;
@@ -75,7 +75,7 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
     if (isClosing) throw StateError('播放器正在关闭。');
     final next = await PlayerWindowBootstrap.load(
       request,
-      mediaStore: session.bootstrap.mediaStore,
+      mediaRepository: session.bootstrap.mediaRepository,
       resolver: resolver,
     );
     if (!next.isReady) throw StateError('播放器无法准备新的媒体请求。');

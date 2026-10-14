@@ -64,7 +64,7 @@
 - [PlaybackTrack](../../lib/features/playback/domain/playback_track.dart) 定义项目轨道类型，区分嵌入轨、自动、关闭及外挂来源，保留标题、语言、默认轨、音频编码与声道信息；门面不返回 media_kit 对象。
 - [MediaKitPlaybackEngine](../../lib/features/playback/infrastructure/media_kit_playback_engine.dart) 是唯一当前后端，内部拥有 `Player` / `VideoController`，完成轨道与状态转换、HTTP 请求头、日志脱敏和所有 mpv 属性读写。切换 / 退出时使未完成的参数批次失效，释放接口幂等。
 - `PlayerPlaybackController` 使用注入的门面处理播放命令、状态流、续播和字幕策略，队列 / URL 解析与串行进度由 `PlaybackSessionController` 协调；页面、控制栏、键盘操作均经门面访问播放与渲染。应用组装入口选择后端工厂，窗口工厂与页面使用注入的工厂，不导入或选择具体后端类型。
-- 播放窗口由 `app/bootstrap/player_window_factory.dart` 组装，展示状态在 `PlayerWindowState`，界面在 `PlayerWindowApp`。`PlaybackMediaStore` 仅定义应用契约，数据库实现位于 `infrastructure/database_playback_media_store.dart`，使用注入的共享连接。
+- 播放窗口由 `app/bootstrap/player_window_factory.dart` 组装，展示状态在 `PlayerWindowController`，界面在 `PlayerWindowApp`。`PlaybackMediaRepository` 仅定义应用契约，数据库实现位于 `infrastructure/database_playback_media_repository.dart`，使用注入的共享连接。
 - 回归测试使用假引擎验证媒体目标与设置传递、轨道状态 / 外挂字幕选择、控制栏播放 / seek，以及暂停后最终保存、保存后释放和重复释放行为。
 
 2026-10-14 小窗决策：继续使用 mini 播放器，复用同一播放会话、视频表面、字幕与控制逻辑。暂不为系统 PiP 扩展 `PlaybackEngine` 或增加 AVKit 视频帧出口；具体取舍见 [ADR 0001](0001-multi-window-strategy.md)。

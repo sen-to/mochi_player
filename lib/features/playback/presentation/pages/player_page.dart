@@ -10,7 +10,7 @@ import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_mode_controller.dart';
@@ -27,7 +27,7 @@ class PlayerPage extends StatefulWidget {
   final PlaybackTarget target;
   final String? contextTitle;
   final List<MediaFile> playlist;
-  final PlaybackMediaStore mediaStore;
+  final PlaybackMediaRepository mediaRepository;
   final PlaybackTargetResolver resolver;
   final PlayerWindowCloseCoordinator closeCoordinator;
   final Size regularMinimumWindowSize;
@@ -39,7 +39,7 @@ class PlayerPage extends StatefulWidget {
     required this.target,
     this.contextTitle,
     this.playlist = const [],
-    required this.mediaStore,
+    required this.mediaRepository,
     required this.resolver,
     required this.closeCoordinator,
     required this.regularMinimumWindowSize,
@@ -87,7 +87,7 @@ class _PlayerPageState extends State<PlayerPage> {
     final queueItems = widget.playlist.isNotEmpty ? widget.playlist : [widget.videoItem];
 
     _playbackController = PlayerPlaybackController(
-      mediaStore: widget.mediaStore,
+      mediaRepository: widget.mediaRepository,
       resolver: widget.resolver,
       settings: _playbackSettings,
       engine: widget.engineFactory(PlayerPlaybackController.optionsFor(_playbackSettings)),
