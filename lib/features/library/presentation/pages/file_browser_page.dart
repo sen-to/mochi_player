@@ -151,7 +151,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
         '打开媒体源失败: name=${source.name}, type=${source.type.name}, '
         'endpoint=${source.endpoint}, error=$error\n$stackTrace',
       );
-      if (mounted) AppMessage.error(context.l10n.sourceConnectionFailed(source.name));
+      if (mounted) AppMessage.error(context, context.l10n.sourceConnectionFailed(source.name));
     } finally {
       if (mounted) setState(() => _openingSourceId = null);
     }

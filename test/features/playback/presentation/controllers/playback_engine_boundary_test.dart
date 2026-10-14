@@ -22,9 +22,6 @@ class _Store implements PlaybackMediaStore {
   int? savedPosition;
 
   @override
-  Iterable<PlaybackMediaKey> get changedMedia => const [];
-
-  @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async => item;
 
   @override

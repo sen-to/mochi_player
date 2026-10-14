@@ -8,38 +8,29 @@ import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 /// Simple page-facing API for transient application messages.
 abstract final class AppMessage {
   static const _defaultDuration = Duration(seconds: 3);
-  static _MessageQueueController? _controller;
 
-  static void success(String content, {Duration duration = _defaultDuration}) {
-    _show(content, _MessageType.success, duration);
+  static void success(BuildContext context, String content, {Duration duration = _defaultDuration}) {
+    _show(context, content, _MessageType.success, duration);
   }
 
-  static void error(String content, {Duration duration = _defaultDuration}) {
-    _show(content, _MessageType.error, duration);
+  static void error(BuildContext context, String content, {Duration duration = _defaultDuration}) {
+    _show(context, content, _MessageType.error, duration);
   }
 
-  static void warning(String content, {Duration duration = _defaultDuration}) {
-    _show(content, _MessageType.warning, duration);
+  static void warning(BuildContext context, String content, {Duration duration = _defaultDuration}) {
+    _show(context, content, _MessageType.warning, duration);
   }
 
-  static AppMessageHandle loading(String content, {Duration? duration}) {
-    return _show(content, _MessageType.loading, duration);
+  static AppMessageHandle loading(BuildContext context, String content, {Duration? duration}) {
+    return _show(context, content, _MessageType.loading, duration);
   }
 
-  static AppMessageHandle _show(String content, _MessageType type, Duration? duration) {
-    final controller = _controller;
+  static AppMessageHandle _show(BuildContext context, String content, _MessageType type, Duration? duration) {
+    final controller = context.getInheritedWidgetOfExactType<_MessageScope>()?.controller;
     if (controller == null) {
       throw StateError('AppMessageHost is not mounted.');
     }
     return controller.show(message: content, type: type, duration: duration);
-  }
-
-  static void _attach(_MessageQueueController controller) {
-    _controller = controller;
-  }
-
-  static void _detach(_MessageQueueController controller) {
-    if (identical(_controller, controller)) _controller = null;
   }
 }
 
@@ -71,33 +62,36 @@ class _AppMessageHostState extends State<AppMessageHost> {
   final _controller = _MessageQueueController();
 
   @override
-  void initState() {
-    super.initState();
-    AppMessage._attach(_controller);
-  }
-
-  @override
   void dispose() {
-    AppMessage._detach(_controller);
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Positioned.fill(child: widget.child),
-        Positioned(
-          top: widget.top,
-          left: widget.horizontalPadding,
-          right: widget.horizontalPadding,
-          child: IgnorePointer(child: _MessageStack(controller: _controller)),
-        ),
-      ],
+    return _MessageScope(
+      controller: _controller,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(child: widget.child),
+          Positioned(
+            top: widget.top,
+            left: widget.horizontalPadding,
+            right: widget.horizontalPadding,
+            child: IgnorePointer(child: _MessageStack(controller: _controller)),
+          ),
+        ],
+      ),
     );
   }
+}
+
+class _MessageScope extends InheritedWidget {
+  const _MessageScope({required this.controller, required super.child});
+  final _MessageQueueController controller;
+  @override
+  bool updateShouldNotify(_MessageScope oldWidget) => oldWidget.controller != controller;
 }
 
 class _MessageQueueController extends ChangeNotifier {

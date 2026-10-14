@@ -13,27 +13,30 @@ fvm flutter run -d windows
 fvm flutter build windows --release
 ```
 
-## UI 线程策略（不要回退）
+## 官方窗口宿主
 
-[flutter_window.cpp](../../windows/runner/flutter_window.cpp) 显式把主窗口引擎设置为 `UIThreadPolicy::RunOnSeparateThread`：
+[main.cpp](../../windows/runner/main.cpp) 创建单个 `FlutterEngine`，注册一次插件；窗口由 Dart 官方 API 创建。旧 `FlutterWindow`、多引擎插件回调与 `RunOnSeparateThread` 补丁已删除，不应复制旧宿主回来。
 
-> 默认策略会让 UI isolate 与 Win32 消息循环共享线程，`window_manager` / `desktop_multi_window` 的同步 Win32 调用会阻塞该线程，导致打开或激活子窗口后主窗口冻结。
+原生扩展根据 `FlutterDesktopPluginRegistrarGetViewById` 定位 HWND，负责官方 API 尚未提供的位置、拖动、普通 mini 置顶，以及按视图定位父窗口的 IFileOpenDialog。目录选择和字幕扩展名过滤取消时返回空值。需要检查多显示器 / DPI 下的尺寸与定位。
 
-同一文件还注册了 `DesktopMultiWindowSetWindowCreatedCallback`，为每个子引擎注册插件。修改 runner 时这两处都不能删。
+读取窗口样式、获取 / 转换窗口尺寸、调整边框和设置尺寸 / 置顶均检查 Win32 调用结果；失败通过 `window_operation_failed` 返回操作名称与系统错误码，不再向 Dart 返回成功。窗口查找与 DPI 结果也检查有效性。
 
-## CI
+### 旧多引擎代码清理（2026-10-14）
 
-[.github/workflows/windows.yml](../../.github/workflows/windows.yml) 在 `master` 的 push / PR 与手动触发时执行：
+- 删除 `runner/flutter_window.cpp/.h` 与 `runner/win32_window.cpp/.h`，并移除 CMake 源文件引用。
+- 随旧宿主删除 `UIThreadPolicy::RunOnSeparateThread` 输入冻结补丁、`DesktopMultiWindowSetWindowCreatedCallback` 子引擎插件注册，以及 `SetQuitOnClose(false)` 退出保活设置。
+- 从依赖、生成的插件注册和 CMake 插件列表移除 `desktop_multi_window`、`window_manager`、`screen_retriever`；依赖隐式视图的 `file_selector` 也已移除。
+- 本次复查移除旧 `Win32Window` 遗留的 `dwmapi.lib` 链接项；保留 COM 文件对话框及命令行解析使用的 `ole32.lib`、`shell32.lib`、`uuid.lib`。
 
-1. 从 `.fvmrc` 读取 Flutter 版本（避免版本硬编码）；
-2. `flutter pub get` → `flutter analyze` → `flutter test`；
-3. `flutter build windows --release`，产物上传为 `mochi-player-windows-x64`（保留 14 天）。
+当前保留单引擎启动、一次插件注册、标准 Win32 消息循环，以及按 viewId 定位窗口的原生扩展。没有保留旧多引擎兼容分支。源码清理完成不代表 Windows 输入冻结回归已通过。
 
-## 已知问题
+## CI 与验收
 
-曾出现打开播放器后媒体库主窗口鼠标与键盘无响应（渲染仍在继续）、关闭播放器也不恢复的现象。runner 已通过 UI 线程策略处理同步窗口调用阻塞风险，但完整根因与修复效果仍须运行时验证，不能把「同进程多 Flutter 引擎」直接认定为根因。已知限制见 [README](../../README.md#-已知限制)，处置与验收要求见 [0001](../decisions/0001-multi-window-strategy.md)。
+CI 从 `.fvmrc` 读取完整 main 提交，通过 Git 检出 SDK，再下载预编译引擎；不把提交号交给只接受发布版本的安装参数。流程保留依赖、l10n、静态检查、测试与 Windows Release 构建，产物保留 14 天。SDK 的旧 Material/Cupertino 导入弃用提示暂不作为失败，错误与警告仍会失败。
 
-窗口生命周期回归须覆盖：单独关闭播放器、关闭主窗口退出整个应用、播放进度最后一次保存、mini / 全屏退出、重复关闭、启动播放器期间退出与子窗口无响应超时。主窗口关闭即退出的协调已实施；本轮未在 Windows 上执行上述检查，构建成功不能替代运行时验收。
+本轮开发环境为 macOS，**没有确认 Windows 新宿主构建或运行通过**。需实际验证创建 / 复用 / 关闭、主窗口输入、全屏与 mini、文件选择器、最后进度保存、启动中退出及超时。历史输入冻结不能仅因换成单引擎就宣布已修复。
+
+2026-10-14 用户已确认文件对话框手工验收完成，记录见 [测试指南](testing.md)。该确认未单独说明 Windows 平台，因此 Windows COM 对话框的验收仍保留。
 
 ## 本地化生成
 

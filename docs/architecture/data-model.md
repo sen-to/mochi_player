@@ -8,7 +8,7 @@
 | 应用设置 | SharedPreferences | TMDB、缓存、字幕、主题 |
 | TMDB 图片 | flutter_cache_manager 文件缓存 | 30 天过期，上限 1200 条 |
 
-[DatabaseService](../../lib/core/infrastructure/database/database_service.dart) 负责连接与写入边界，[LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart) 负责 SQL 读取投影。[AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 定义 typed 表与 schema 版本。生产连接通过 `NativeDatabase.createInBackground` 运行在后台 isolate，启用 WAL、5 秒 busy timeout 和外键检查。当前保留两个窗口分别建立连接的方案；单写者仅在实测并发问题或统一状态管理需求出现时评估，见 [0001](../decisions/0001-multi-window-strategy.md)。
+[DatabaseService](../../lib/core/infrastructure/database/database_service.dart) 负责连接与写入边界，[LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart) 负责 SQL 读取投影。[AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 定义 typed 表与 schema 版本。生产连接通过 `NativeDatabase.createInBackground` 运行在后台 isolate，启用 WAL、5 秒 busy timeout 和外键检查。官方多视图迁移后两个视图共享同一后台连接；播放器关闭不关闭数据库，应用退出统一关闭，见 [0001](../decisions/0001-multi-window-strategy.md)。
 
 项目尚无 Release，本次从 Isar 替换后直接建立新库，不导入或删除旧库；需重新配置媒体源与扫描，见 [0003](../decisions/0003-persistence-migration.md)。
 
@@ -46,7 +46,7 @@
 
 [AppSettingsService](../../lib/features/settings/infrastructure/app_settings_service.dart) 使用 SharedPreferences 保存 TMDB Key / 地址 / 代理、缓存、预读、硬件解码、字幕语言与样式。主题由 `ThemeProvider` 保存。
 
-媒体源用户名与密码仍是 SQLite 普通文本字段，尚未接入系统钥匙串；此次存储替换不改变其安全边界。跨窗口参数不传凭据。
+媒体源用户名与密码仍是 SQLite 普通文本字段，尚未接入系统钥匙串；此次存储替换不改变其安全边界。播放请求不携带凭据，由媒体源解析服务读取。
 
 ## Schema 与测试
 

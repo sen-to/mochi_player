@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/models.dart';

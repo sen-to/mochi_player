@@ -18,7 +18,7 @@
 
 1. 使用 drift `@UseRowClass` 直接读写不可变领域模型，删除旧 Entity、Stored 枚举和手写双重映射，不保留旧存储接口。
 2. 媒体文件使用 `storageKey = sourceId:path` 的 UNIQUE 约束；元数据直接使用 TMDB ID / 季键作为主键，媒体源使用 `sourceId` 唯一键。文件和来源按业务键 upsert，保留已有行的自增 ID。
-3. 生产数据库通过 `NativeDatabase.createInBackground` 在后台 isolate 执行。每个连接启用 WAL 与 `busy_timeout = 5000`，首次切换 WAL 遇到锁竞争时限时重试，首次建表在写锁内复查版本并原子提交，支持现有多引擎窗口访问同一库。
+3. 生产数据库通过 `NativeDatabase.createInBackground` 在后台 isolate 执行。每个连接启用 WAL 与 `busy_timeout = 5000`，首次切换 WAL 遇到锁竞争时限时重试，首次建表在写锁内复查版本并原子提交，保留多连接安全性；2026-10-13 官方多视图迁移后生产视图共享同一后台连接，连接仅在应用退出时关闭。
 4. 类型标签和演员列表通过 `TypeConverter` 存为 JSON 文本；枚举存名称，日期存 ISO 文本以保留微秒精度。
 5. 新库文件为应用文档目录下的 `mochi_player.sqlite`，schema 版本从 1 开始。后续 SQLite schema 变更必须提升版本并补迁移与测试。
 6. 本次不实现 Isar 导入，不删除旧库。开发者需重新配置媒体源并扫描。
@@ -47,7 +47,7 @@
 ## Consequences（后果）
 
 - **正面**：获得 SQL 查询、索引、事务与版本化 schema；真实数据库测试可在内存运行；现有多连接由 SQLite 锁与 WAL 协调。
-- **负面**：需要 drift 生成代码与 SQLite native assets；初次替换后需重新配置与扫描；Windows 多引擎输入冻结仍属于独立任务。
+- **负面**：需要 drift 生成代码与 SQLite native assets；初次替换后需重新配置与扫描；Windows 官方多视图宿主的输入回归仍须独立验收。
 - **边界**：跨独立连接的 drift 查询订阅不会自动同步通知，当前通过播放器回传变更键后主动失效；如需播放过程中实时同步，必须补通知协议。
 
 ## Alternatives（备选与否决理由）

@@ -6,7 +6,6 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
-import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -91,7 +90,7 @@ class PlaybackLauncher {
     _openPlayer(context, targetFile, contextTitle: showTitle);
   }
 
-  /// 核心播放逻辑：构造可持久化请求 -> 打开或复用独立播放器窗口。
+  /// 核心播放逻辑：构造内存播放请求 -> 打开或复用独立播放器窗口。
   static void _openPlayer(
     BuildContext context,
     MediaFile file, {
@@ -103,14 +102,15 @@ class PlaybackLauncher {
     AppMessageHandle? loadingBanner;
     final loadingDelay = Timer(const Duration(milliseconds: 180), () {
       if (!context.mounted) return;
-      loadingBanner = AppMessage.loading(loadingMessage ?? context.l10n.openingPlayer);
+      loadingBanner = AppMessage.loading(context, loadingMessage ?? context.l10n.openingPlayer);
     });
 
     try {
+      final coordinator = context.read<PlayerWindowCoordinator>();
       final libraryProvider = context.read<MediaLibraryProvider>();
       final queue = playlist.isNotEmpty ? playlist : await libraryProvider.getPlaybackQueue(file);
       final request = PlayerWindowRequest.fromPlayback(initialMedia: file, queue: queue, contextTitle: contextTitle);
-      await PlayerWindow.openOrReplace(request);
+      await coordinator.openOrReplace(request);
     } on PlayerWindowLaunchFailed catch (error) {
       debugPrint('播放器子窗口启动失败: $error');
     } catch (error, stackTrace) {
@@ -125,7 +125,7 @@ class PlaybackLauncher {
   }
 
   static void _showError(BuildContext context, String message) {
-    if (context.mounted) AppMessage.error(message);
+    if (context.mounted) AppMessage.error(context, message);
   }
 
   /// 版本选择弹窗

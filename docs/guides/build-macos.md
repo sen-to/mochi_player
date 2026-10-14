@@ -31,7 +31,9 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 
 ## 窗口外观
 
-主窗口使用隐藏标题栏，原生红绿灯按钮的位置与显隐由 Swift 代码控制（[MainFlutterWindow.swift](../../macos/Runner/MainFlutterWindow.swift)），并监听窗口缩放与全屏通知重新定位。mini 播放器模式下会隐藏原生按钮。修改窗口外观时需同时考虑这段原生逻辑。
+[AppDelegate.swift](../../macos/Runner/AppDelegate.swift) 创建单个引擎；MainMenu 不再持有隐式 Flutter 窗口。Dart 创建两个独立视图。[NativeWindowControls.swift](../../macos/Runner/NativeWindowControls.swift) 通过 `viewId` 定位 NSWindow，设置透明标题栏、按钮显隐、位置、拖动与普通小窗置顶。文件 / 目录选择使用对应窗口的 NSOpenPanel sheet，全屏请求通过系统完成通知确认后才结束。mini 隐藏系统按钮，退出后恢复。窗口模式交互仍须结合真实视频验收。
+
+项目在 `pubspec.yaml` 启用 `enable-windowing: true`，FVM 固定 main 提交；不要用全局开关代替项目配置。
 
 ## 常见问题
 

@@ -1,142 +1,123 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
+import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
+import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_playback_resolver.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
+import 'package:mochi_player/core/ui/components/feedback/app_message.dart';
 import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
 import 'package:mochi_player/features/playback/presentation/pages/player_page.dart';
-import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:mochi_player/l10n/app_locale_controller.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
-class PlayerWindow {
-  static final coordinator = PlayerWindowCoordinator(WindowService.instance);
-
-  static Future<void> openOrReplace(PlayerWindowRequest request) => coordinator.openOrReplace(request);
-}
-
-/// Bootstraps only playback dependencies; it never builds the library shell or
-/// initializes the app router in the child engine.
-Future<void> runPlayerWindow(WindowHandle controller, PlayerWindowRequest request) async {
-  await WindowService.instance.initialize();
-  final locales = AppLocaleController();
-  await locales.load();
-  final bootstrap = await _PlayerWindowBootstrap.load(request);
+Future<PlayerWindowSession> createPlayerWindow({
+  required DesktopWindowHost host,
+  required PlayerWindowRequest request,
+  PlaybackMediaStore? mediaStore,
+  PlaybackTargetResolver? resolver,
+}) async {
+  final targetResolver = resolver ?? StorageSourcePlaybackResolver();
+  final bootstrap = await _PlayerWindowBootstrap.load(request, mediaStore: mediaStore, resolver: targetResolver);
   final session = _PlayerWindowSessionController(bootstrap);
   final closeCoordinator = PlayerWindowCloseCoordinator();
   final lifecycle = _PlayerWindowLifecycle(
-    controller: controller,
-    locales: locales,
-    closeCoordinator: closeCoordinator,
     session: session,
+    resolver: targetResolver,
+    closeCoordinator: closeCoordinator,
   );
-  await WindowService.instance.setPreventClose(true);
-  WindowService.instance.addListener(lifecycle);
-
-  await controller.setHandler((call) async {
-    if (call.method == 'app.setLocale') {
-      locales.applySnapshot(call.arguments);
-      return null;
-    }
-    if (call.method == 'player.ready') {
-      await WidgetsBinding.instance.endOfFrame;
-      return <String, Object?>{'windowId': controller.id, ...session.readiness()};
-    }
-    if (call.method == 'player.replaceRequest') {
-      final arguments = call.arguments;
-      final nextRequest = arguments is String ? PlayerWindowRequest.tryDecode(arguments) : null;
-      if (nextRequest == null) {
-        throw const FormatException('Invalid player-window request.');
-      }
-      if (lifecycle.isClosing) return <String, Object?>{'ready': false, 'state': 'closing'};
-      final nextBootstrap = await lifecycle.replace(nextRequest);
-      return session.readinessFor(nextBootstrap);
-    }
-    if (call.method == 'player.activate') {
-      if (!lifecycle.isClosing) await WindowService.instance.activate();
-      return null;
-    }
-    if (call.method == 'player.prepareClose') return lifecycle.prepareClose();
-    if (call.method == 'player.close') {
-      // Reply before destroying this engine's method channel.
-      Timer(const Duration(milliseconds: 50), () => unawaited(lifecycle.close()));
-      return null;
-    }
-    throw MissingPluginException('Unsupported player-window method: ${call.method}');
-  });
-
-  // Read the authority before the first frame; the main also pushes its latest
-  // revision after ready, covering a language change during native creation.
-  try {
-    final all = await WindowService.instance.getAll().timeout(const Duration(seconds: 1));
-    for (final candidate in all) {
-      if (candidate.id != controller.id && PlayerWindowRequest.tryDecode(candidate.arguments) == null) {
-        locales.applySnapshot(await candidate.invoke<Map<Object?, Object?>>('app.getLocale'));
-        break;
-      }
-    }
-  } catch (error) {
-    debugPrint('Initial player language synchronization failed: $error');
-  }
-
-  runApp(
-    _PlayerWindowApp(
-      locales: locales,
+  final windows = host.create(
+    setup: const WindowSetup(size: Size(1280, 720), minimumSize: Size(720, 405)),
+    builder: (_) => _PlayerWindowApp(
       session: session,
       closeCoordinator: closeCoordinator,
       onCloseRequested: lifecycle.close,
+      windowControls: lifecycle.windowControls,
     ),
   );
-  unawaited(
-    WindowService.instance.configure(
-      const WindowSetup(size: Size(1280, 720), minimumSize: Size(720, 405), backgroundColor: Colors.black),
-    ),
-  );
+  lifecycle.windows = windows;
+  lifecycle.windowControls = WindowControlsController(viewId: windows.viewId);
+  await windows.setPreventClose(true);
+  windows.addListener(lifecycle);
+  try {
+    await WidgetsBinding.instance.endOfFrame;
+    await lifecycle.windowControls.positionNativeWindowButtons();
+    return lifecycle;
+  } catch (_) {
+    // A creation that fails after registration still owns a live native view.
+    // Retire it before allowing the coordinator to accept another launch.
+    await lifecycle.close();
+    rethrow;
+  }
 }
 
-class _PlayerWindowLifecycle with WindowEvents {
-  _PlayerWindowLifecycle({
-    required this.controller,
-    required this.closeCoordinator,
-    required this.session,
-    required this.locales,
-  });
+class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
+  _PlayerWindowLifecycle({required this.closeCoordinator, required this.session, required this.resolver});
 
-  final WindowHandle controller;
-  final AppLocaleController locales;
+  late final WindowService windows;
+  late final WindowControlsController windowControls;
   final PlayerWindowCloseCoordinator closeCoordinator;
   final _PlayerWindowSessionController session;
-  Future<_PlayerWindowBootstrap>? _replacement;
-  Future<Map<String, Object?>>? _preparing;
+  final PlaybackTargetResolver resolver;
   Future<void>? _closing;
+  Future<void>? _replacement;
 
-  bool get isClosing => _preparing != null;
+  @override
+  bool get isClosing => _closing != null;
 
-  Future<_PlayerWindowBootstrap> replace(PlayerWindowRequest request) {
-    return _replacement = session.replace(request);
+  @override
+  Future<void> replace(PlayerWindowRequest request) {
+    final operation = _replace(request);
+    _replacement = operation.catchError((Object _) {});
+    return operation;
+  }
+
+  Future<void> _replace(PlayerWindowRequest request) async {
+    if (isClosing) throw StateError('播放器正在关闭。');
+    final next = await _PlayerWindowBootstrap.load(
+      request,
+      mediaStore: session.bootstrap.mediaStore,
+      resolver: resolver,
+    );
+    if (!next.isReady) throw StateError('播放器无法准备新的媒体请求。');
+    if (isClosing) return;
+    await closeCoordinator.flushProgress();
+    await closeCoordinator.releaseResources();
+    if (isClosing) return;
+    session.close();
+    await WidgetsBinding.instance.endOfFrame;
+    if (!isClosing) session.open(next);
+    await WidgetsBinding.instance.endOfFrame;
+  }
+
+  @override
+  Future<void> activate() async {
+    if (isClosing) return;
+    await windows.activate();
+    if (!session.bootstrap.isReady) {
+      throw const PlayerWindowLaunchFailed();
+    }
   }
 
   @override
   void onWindowClose() => unawaited(close());
 
-  Future<Map<String, Object?>> prepareClose() => _preparing ??= _prepareClose();
+  @override
+  Future<void> close() => _closing ??= _close();
 
-  Future<Map<String, Object?>> _prepareClose() {
-    locales.beginShutdown();
+  Future<void> _close() async {
     session.beginShutdown();
-    return closeCoordinator.prepareClose(
+    await closeCoordinator.prepareClose(
       settleSession: () async {
         await _replacement;
       },
@@ -144,29 +125,13 @@ class _PlayerWindowLifecycle with WindowEvents {
         session.close();
         await WidgetsBinding.instance.endOfFrame;
       },
-      closeDatabase: () => DatabaseService().close(),
     );
-  }
-
-  Future<void> close() => _closing ??= _close();
-
-  Future<void> _close() async {
-    await prepareClose();
+    windows.removeListener(this);
     try {
-      await _notifyMainWindow().timeout(const Duration(seconds: 1));
-    } catch (_) {
-      debugPrint('播放器关闭通知未送达主窗口。');
-    }
-    WindowService.instance.removeListener(this);
-    await WindowService.instance.close();
-  }
-
-  Future<void> _notifyMainWindow() async {
-    final changed = session.bootstrap.mediaStore.changedMedia.map((key) => key.toJson()).toList(growable: false);
-    for (final candidate in await WindowService.instance.getAll()) {
-      if (candidate.id == controller.id || PlayerWindowRequest.tryDecode(candidate.arguments) != null) continue;
-      await candidate.invoke<void>('player.closed', {'windowId': controller.id, 'changedMedia': changed});
-      return;
+      await windows.close();
+    } finally {
+      windowControls.dispose();
+      session.dispose();
     }
   }
 }
@@ -190,29 +155,11 @@ class _PlayerWindowSessionController extends ChangeNotifier {
 
   bool get isOpen => _isOpen;
 
-  Map<String, Object?> readiness() => readinessFor(_bootstrap);
-
-  Map<String, Object?> readinessFor(_PlayerWindowBootstrap bootstrap) => {
-    'ready': bootstrap.isReady,
-    'state': bootstrap.isReady ? 'ready' : 'failed',
-    'requestId': bootstrap.request.requestId,
-    'database': bootstrap.databaseStatus,
-    'media': bootstrap.mediaStatus,
-    'target': bootstrap.targetStatus,
-  };
-
-  Future<_PlayerWindowBootstrap> replace(PlayerWindowRequest request) async {
-    final next = await _PlayerWindowBootstrap.load(
-      request,
-      appSettingsProvider: _bootstrap.appSettingsProvider,
-      mediaStore: _bootstrap.mediaStore,
-      windowControlsController: _bootstrap.windowControlsController,
-    );
-    if (!next.isReady || !_acceptRequests) return next;
+  void open(_PlayerWindowBootstrap next) {
+    if (!_acceptRequests) return;
     _bootstrap = next;
     _isOpen = true;
     notifyListeners();
-    return next;
   }
 
   void close() {
@@ -222,27 +169,21 @@ class _PlayerWindowSessionController extends ChangeNotifier {
   }
 }
 
+enum _PlayerLaunchFailure { load, target }
+
 class _PlayerWindowBootstrap {
   const _PlayerWindowBootstrap._({
     required this.request,
-    required this.appSettingsProvider,
     required this.mediaStore,
-    required this.windowControlsController,
-    required this.databaseStatus,
-    required this.mediaStatus,
-    required this.targetStatus,
+    this.failure,
     this.initialMedia,
     this.queue = const [],
     this.initialTarget,
   });
 
   final PlayerWindowRequest request;
-  final AppSettingsProvider appSettingsProvider;
   final PlaybackMediaStore mediaStore;
-  final WindowControlsController windowControlsController;
-  final String databaseStatus;
-  final String mediaStatus;
-  final String targetStatus;
+  final _PlayerLaunchFailure? failure;
   final MediaFile? initialMedia;
   final List<MediaFile> queue;
   final PlaybackTarget? initialTarget;
@@ -251,51 +192,27 @@ class _PlayerWindowBootstrap {
 
   static Future<_PlayerWindowBootstrap> load(
     PlayerWindowRequest request, {
-    AppSettingsProvider? appSettingsProvider,
     PlaybackMediaStore? mediaStore,
-    WindowControlsController? windowControlsController,
+    required PlaybackTargetResolver resolver,
   }) async {
-    final effectiveAppSettingsProvider = appSettingsProvider ?? AppSettingsProvider();
     final effectiveMediaStore = mediaStore ?? DatabasePlaybackMediaStore();
-    final effectiveWindowControlsController = windowControlsController ?? WindowControlsController();
     try {
-      await DatabaseService().init();
-      if (appSettingsProvider == null) {
-        await effectiveAppSettingsProvider.load();
-      }
-
       final persistedInitialMedia = await effectiveMediaStore.readMediaFile(
         sourceId: request.initialMedia.sourceId,
         path: request.initialMedia.path,
       );
-      final initialMedia = persistedInitialMedia ?? request.initialMedia.toFallbackMediaFile();
-      if (initialMedia == null) {
-        return _PlayerWindowBootstrap._(
-          request: request,
-          appSettingsProvider: effectiveAppSettingsProvider,
-          mediaStore: effectiveMediaStore,
-          windowControlsController: effectiveWindowControlsController,
-          databaseStatus: 'initialized',
-          mediaStatus: 'media_missing',
-          targetStatus: 'unresolved',
-        );
-      }
+      final initialMedia = persistedInitialMedia ?? request.initialMedia;
       final queue = (await Future.wait(
         request.queue.map(
           (reference) async =>
-              await effectiveMediaStore.readMediaFile(sourceId: reference.sourceId, path: reference.path) ??
-              reference.toFallbackMediaFile(),
+              await effectiveMediaStore.readMediaFile(sourceId: reference.sourceId, path: reference.path) ?? reference,
         ),
-      )).whereType<MediaFile>().toList(growable: false);
-      final target = await StorageSourcePlaybackResolver().resolve(initialMedia);
+      )).toList(growable: false);
+      final target = await resolver.resolve(initialMedia);
       return _PlayerWindowBootstrap._(
         request: request,
-        appSettingsProvider: effectiveAppSettingsProvider,
         mediaStore: effectiveMediaStore,
-        windowControlsController: effectiveWindowControlsController,
-        databaseStatus: 'initialized',
-        mediaStatus: persistedInitialMedia == null ? 'loaded_from_request' : 'loaded_from_database',
-        targetStatus: target == null ? 'target_failed' : 'resolved',
+        failure: target == null ? _PlayerLaunchFailure.target : null,
         initialMedia: initialMedia,
         queue: queue,
         initialTarget: target,
@@ -303,12 +220,8 @@ class _PlayerWindowBootstrap {
     } catch (error) {
       return _PlayerWindowBootstrap._(
         request: request,
-        appSettingsProvider: effectiveAppSettingsProvider,
         mediaStore: effectiveMediaStore,
-        windowControlsController: effectiveWindowControlsController,
-        databaseStatus: 'bootstrap_failed',
-        mediaStatus: 'not_loaded',
-        targetStatus: 'unresolved',
+        failure: _PlayerLaunchFailure.load,
       );
     }
   }
@@ -316,27 +229,23 @@ class _PlayerWindowBootstrap {
 
 class _PlayerWindowApp extends StatelessWidget {
   const _PlayerWindowApp({
-    required this.locales,
     required this.session,
     required this.closeCoordinator,
     required this.onCloseRequested,
+    required this.windowControls,
   });
 
   final _PlayerWindowSessionController session;
   final PlayerWindowCloseCoordinator closeCoordinator;
   final Future<void> Function() onCloseRequested;
-
-  final AppLocaleController locales;
+  final WindowControlsController windowControls;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: locales),
-        ChangeNotifierProvider.value(value: session.bootstrap.appSettingsProvider),
-        ChangeNotifierProvider.value(value: session.bootstrap.windowControlsController),
+        ChangeNotifierProvider.value(value: windowControls),
         ChangeNotifierProvider.value(value: session),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: Consumer2<ThemeProvider, AppLocaleController>(
         builder: (context, themeProvider, locales, _) {
@@ -350,13 +259,15 @@ class _PlayerWindowApp extends StatelessWidget {
             themeMode: themeProvider.themeMode,
             theme: AppTheme.lightThemeFor(themeProvider.accentColor.color),
             darkTheme: AppTheme.darkThemeFor(themeProvider.accentColor.color),
-            home: Consumer<_PlayerWindowSessionController>(
-              builder: (context, session, _) => _PlayerWindowHome(
-                bootstrap: session.bootstrap,
-                isOpen: session.isOpen,
-                isClosing: session.isClosing,
-                closeCoordinator: closeCoordinator,
-                onCloseRequested: onCloseRequested,
+            home: AppMessageHost(
+              child: Consumer<_PlayerWindowSessionController>(
+                builder: (context, session, _) => _PlayerWindowHome(
+                  bootstrap: session.bootstrap,
+                  isOpen: session.isOpen,
+                  isClosing: session.isClosing,
+                  closeCoordinator: closeCoordinator,
+                  onCloseRequested: onCloseRequested,
+                ),
               ),
             ),
           );
@@ -436,10 +347,8 @@ class _PlayerWindowLaunchFailure extends StatelessWidget {
                 Text(context.l10n.playerUnavailable, style: TextStyle(color: Colors.white, fontSize: 20)),
                 const SizedBox(height: 8),
                 Text(
-                  bootstrap.databaseStatus == 'bootstrap_failed'
+                  bootstrap.failure == _PlayerLaunchFailure.load
                       ? context.l10n.playerBootstrapFailed
-                      : bootstrap.initialMedia == null
-                      ? context.l10n.playerMediaMissing
                       : context.l10n.playerTargetFailed,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white70),

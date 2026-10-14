@@ -21,7 +21,7 @@ class LanguagePreferenceControl extends StatelessWidget {
       ],
       onChanged: (language) => unawaited(
         context.read<AppLocaleController>().setLanguage(language).catchError((Object error) {
-          if (context.mounted) AppMessage.error(context.l10n.languageSaveFailed);
+          if (context.mounted) AppMessage.error(context, context.l10n.languageSaveFailed);
         }),
       ),
     ),

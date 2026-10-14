@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/local_directory_picker.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/smb_source_location.dart';
 import 'package:mochi_player/core/infrastructure/storage/smb_storage_provider.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
@@ -363,12 +363,22 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLoadingStorageSources = false);
-      AppMessage.error(context.l10n.sourcesLoadFailed);
+      AppMessage.error(context, context.l10n.sourcesLoadFailed);
+    }
+  }
+
+  Future<String?> _pickLocalDirectory({String? initialDirectory}) async {
+    try {
+      return await context.read<WindowService>().pickDirectory(initialDirectory: initialDirectory);
+    } catch (error) {
+      debugPrint('打开目录选择器失败: $error');
+      if (mounted) AppMessage.error(context, context.l10n.directorySelectionFailed);
+      return null;
     }
   }
 
   Future<void> _pickAndAddLocalSource() async {
-    final directoryPath = await const LocalDirectoryPicker().pickDirectory();
+    final directoryPath = await _pickLocalDirectory();
     if (directoryPath == null || directoryPath.isEmpty || !mounted) return;
     await _showLocalSourceEditor(initialDirectory: directoryPath);
   }
@@ -390,9 +400,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     Future<void> chooseDirectory() async {
-      final selected = await const LocalDirectoryPicker().pickDirectory(
-        initialDirectory: directoryPath.isEmpty ? null : directoryPath,
-      );
+      final selected = await _pickLocalDirectory(initialDirectory: directoryPath.isEmpty ? null : directoryPath);
       if (selected == null || selected.isEmpty) return;
       updateModal?.call(() {
         directoryPath = selected;
@@ -558,6 +566,7 @@ class _SettingsPageState extends State<SettingsPage> {
         await _loadStorageSources();
         if (mounted) {
           AppMessage.success(
+            context,
             source == null
                 ? context.l10n.localFolderAdded
                 : clearedActiveSource
@@ -787,6 +796,7 @@ class _SettingsPageState extends State<SettingsPage> {
         await _loadStorageSources();
         if (mounted) {
           AppMessage.success(
+            context,
             source == null
                 ? context.l10n.smbSourceAdded
                 : clearedActiveSource
@@ -1044,6 +1054,7 @@ class _SettingsPageState extends State<SettingsPage> {
         await _loadStorageSources();
         if (mounted) {
           AppMessage.success(
+            context,
             source == null
                 ? context.l10n.sourceAdded
                 : clearedActiveSource
@@ -1139,7 +1150,7 @@ class _SettingsPageState extends State<SettingsPage> {
       final deletedFileCount = await _storageSourceService.deleteWithMedia(source.id);
       if (deletedFileCount == null) {
         if (!mounted) return;
-        AppMessage.error(context.l10n.sourceMissing);
+        AppMessage.error(context, context.l10n.sourceMissing);
         return;
       }
       if (!mounted) return;
@@ -1149,11 +1160,11 @@ class _SettingsPageState extends State<SettingsPage> {
       }
       await _loadStorageSources();
       if (mounted) {
-        AppMessage.success(context.l10n.sourceDeleted(deletedFileCount));
+        AppMessage.success(context, context.l10n.sourceDeleted(deletedFileCount));
       }
     } catch (error, stackTrace) {
       debugPrint('删除媒体源失败: $error\n$stackTrace');
-      if (mounted) AppMessage.error(context.l10n.sourceDeleteFailed);
+      if (mounted) AppMessage.error(context, context.l10n.sourceDeleteFailed);
     }
   }
 
@@ -1345,9 +1356,9 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) return;
 
     if (isConnected) {
-      AppMessage.success(context.l10n.tmdbConnected);
+      AppMessage.success(context, context.l10n.tmdbConnected);
     } else {
-      AppMessage.error(context.l10n.tmdbConnectionFailed);
+      AppMessage.error(context, context.l10n.tmdbConnectionFailed);
     }
   }
 
@@ -1368,7 +1379,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final error = mediaLibraryProvider.error;
     if (summary == null) {
-      AppMessage.error(error == null ? context.l10n.scanFailed : context.l10n.failure(error));
+      AppMessage.error(context, error == null ? context.l10n.scanFailed : context.l10n.failure(error));
       return;
     }
     final message = context.l10n.scanSummary(
@@ -1381,13 +1392,13 @@ class _SettingsPageState extends State<SettingsPage> {
       _ => context.l10n.metadataSkipped,
     };
     if (error != null) {
-      AppMessage.error(context.l10n.scanResultWithError(message, context.l10n.failure(error)));
+      AppMessage.error(context, context.l10n.scanResultWithError(message, context.l10n.failure(error)));
     } else if (summary.failedSourceCount > 0) {
-      AppMessage.error(context.l10n.scanPartialFailure(message, summary.failedSourceCount, metadataMessage));
+      AppMessage.error(context, context.l10n.scanPartialFailure(message, summary.failedSourceCount, metadataMessage));
     } else if (summary.metadataFailedCount case final failed? when failed > 0) {
-      AppMessage.warning(context.l10n.scanResultWithMetadata(message, metadataMessage));
+      AppMessage.warning(context, context.l10n.scanResultWithMetadata(message, metadataMessage));
     } else {
-      AppMessage.success(context.l10n.scanResultWithMetadata(message, metadataMessage));
+      AppMessage.success(context, context.l10n.scanResultWithMetadata(message, metadataMessage));
     }
   }
 
@@ -1408,7 +1419,7 @@ class _SettingsPageState extends State<SettingsPage> {
     await mediaLibraryProvider.clearLibrary();
     if (!mounted) return;
 
-    AppMessage.success(context.l10n.libraryCleared);
+    AppMessage.success(context, context.l10n.libraryCleared);
   }
 
   Future<bool> _persistSettings({bool applyRuntime = false, bool syncControllers = true}) async {
@@ -1433,7 +1444,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final error = settingsProvider.error;
     if (error != null) {
-      AppMessage.error(context.l10n.failure(error));
+      AppMessage.error(context, context.l10n.failure(error));
       return false;
     }
 

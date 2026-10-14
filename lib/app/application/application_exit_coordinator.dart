@@ -1,6 +1,6 @@
 import 'dart:async';
 
-/// Keeps the main engine alive until child progress and application writes have
+/// Keeps the shared engine alive until playback progress and application writes have
 /// drained. Failures never prevent process termination or cause a second exit.
 class ApplicationExitCoordinator {
   ApplicationExitCoordinator({

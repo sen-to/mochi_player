@@ -36,22 +36,21 @@ graph LR
 
 ## 启动流程
 
-[main.dart](../../lib/main.dart) 用同一份入口代码区分两种窗口：
+[main.dart](../../lib/main.dart) 只运行一次：初始化 media_kit、共享数据库和设置，再通过 `runWidget` 挂载官方窗口 registry。
 
 ```mermaid
 flowchart TD
-  M[main] --> K[MediaKit 初始化]
-  K --> W[读取当前引擎的窗口参数]
-  W --> Q{参数能解析为<br/>PlayerWindowRequest?}
-  Q -->|是| P[runPlayerWindow<br/>播放器窗口]
-  Q -->|否| H[主窗口：初始化数据库与设置]
-  H --> S[注册主窗口处理器<br/>接收播放器窗口状态回调]
-  S --> R[runApp + MultiProvider]
+  M[main] --> S[共享数据库 / 语言 / 主题 / 设置]
+  S --> H[DesktopWindowHost + WindowManager]
+  H --> A[主视图 + 路由]
+  A --> C[PlayerWindowCoordinator]
+  C --> P[独立播放器视图 + 播放资源]
+  P --> DB[同一个后台 SQLite 连接]
 ```
 
-- 播放器窗口靠自己重新初始化数据库（[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart)），因此同一进程内有两个后台 SQLite 连接，使用 WAL 与 `busy_timeout` 协调访问。当前保留该方案，单写者按收益和实测问题另行评估，见 [0001](../decisions/0001-multi-window-strategy.md)。
-- 主窗口注册的处理器负责接收播放器窗口关闭时回传的进度变更（见 [playback.md](playback.md)）。
-- 生命周期目标为关闭主窗口即退出整个应用，单独关闭播放器则保留主窗口。主窗口通过应用退出协调器等待播放器最终进度提交及资源清理，再关闭主数据库并退出进程；超时或失联时结束整个进程，不保留后台播放器。
+- macOS / Windows runner 只创建一个 FlutterEngine、注册一次插件；窗口由 Dart 创建。
+- 两个视图共享应用 Provider；`WindowService` 和窗口按钮控制器按视图注入，操作携带 `viewId`。
+- 主窗口关闭先等待播放器最后进度和资源清理，再收尾任务与设置、关闭共享数据库并退出。播放器单独关闭保留主窗口与数据库。
 
 ## 全局 Provider
 
@@ -64,9 +63,11 @@ flowchart TD
 | `FileBrowserProvider` | 文件浏览的目录、排序、搜索状态 |
 | `ThemeProvider` | 主题模式与强调色（持久化在 SharedPreferences） |
 | `TrendingMediaProvider` | 首页 TMDB 趋势（不落库） |
-| `WindowControlsController` | macOS 原生窗口按钮控制 |
+| `AppLocaleController` | 共享语言偏好；所有视图直接观察变更 |
 
-状态刷新的约定：SQLite 是持久化数据源，`LibraryRepository` 提供分页 SQL 查询与 drift 订阅。`MediaLibraryProvider` 只保留有限的首页展示投影与同步任务状态，UI 以稳定查询订阅或投影比较决定重建。全量 Catalog 与手工修订号已删除。独立播放器连接的更新由既有跨窗口事件触发查询失效，见 [0003](../decisions/0003-persistence-migration.md)。
+`WindowControlsController` 与 `WindowService` 在各自视图注入，不是全局窗口状态。每个视图拥有独立 `AppMessageHost`；提示通过调用方 context 路由，避免播放器消息出现在主窗口。
+
+状态刷新的约定：SQLite 是持久化数据源，`LibraryRepository` 提供分页 SQL 查询与 drift 订阅。`MediaLibraryProvider` 只保留有限的首页展示投影与同步任务状态，UI 以稳定查询订阅或投影比较决定重建。全量 Catalog 与手工修订号已删除。播放器与库查询使用同一连接，进度提交直接更新 drift 查询订阅，不再发送关闭通知或手动查询失效，见 [0003](../decisions/0003-persistence-migration.md)。
 
 ## 核心抽象
 
@@ -75,7 +76,7 @@ flowchart TD
 | `StorageSource` / `StorageCredentials` | [core/domain/storage](../../lib/core/domain/storage/storage_source.dart) | 媒体源配置；凭据刻意与配置分离，避免在列表中泄露 |
 | `StorageProvider` / `StorageConnection` | [core/domain/storage](../../lib/core/domain/storage/storage_provider.dart) | 按协议连接与列目录；`StorageProviderRegistry` 按类型分派 |
 | `PlaybackTargetResolver` / `PlaybackTarget` | [core/domain/playback](../../lib/core/domain/playback/playback_target.dart) | 把媒体文件解析成播放 URL 与请求头 |
-| `DatabaseService` | [core/infrastructure/database](../../lib/core/infrastructure/database/database_service.dart) | 数据库统一出口（每引擎单例） |
+| `DatabaseService` | [core/infrastructure/database](../../lib/core/infrastructure/database/database_service.dart) | 数据库统一出口（应用共享单例） |
 | `LibraryRepository` | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 查询、分页、聚合与订阅，按标题加载详情与播放队列 |
 | `TmdbService` | [core/infrastructure/tmdb](../../lib/core/infrastructure/tmdb/tmdb_service.dart) | TMDB 请求、匹配与转换（单例）；客户端由设置在运行时配置 |
 | `AppTheme` + `core/ui/components` | [core/ui](../../lib/core/ui/app_ui.dart) | 设计系统：颜色、字号、间距、圆角、组件库 |
@@ -84,7 +85,7 @@ flowchart TD
 
 | 问题 | 影响 | 决策 |
 | --- | --- | --- |
-| 一个窗口一个 Flutter 引擎 | Windows 主窗口可能无响应；两个引擎各开 SQLite 连接 | [0001](../decisions/0001-multi-window-strategy.md) |
+| 官方实验多视图与 main SDK | Windows 运行时与插件适配仍须验收 | [0001](../decisions/0001-multi-window-strategy.md) |
 | 数据访问是全表加载 + 内存重算 | 大库性能与刷新粒度问题 | [0003](../decisions/0003-persistence-migration.md) |
 | media_kit 有限维护 | 播放后端已隔离，原生渲染、捆绑构建和关键补丁仍需自行验证 | [0002](../decisions/0002-playback-engine.md) |
 | SMB 直链依赖预编译产物是否含某协议 | 功能可用性不可控 | [0005](../decisions/0005-smb-playback-path.md) |
@@ -93,6 +94,6 @@ flowchart TD
 
 ## 界面语言
 
-`lib/l10n/` 的英文模板与简体中文译文由 gen-l10n 生成类型安全接口。`AppLocaleController` 保存 `system / zh / en` 偏好到 SharedPreferences 的 `app_language` 键，独立于 TMDB 和字幕设置；主窗口负责保存与跨窗口通知。播放器启动时向主窗口读取快照，就绪 / 复用时再次校准；revision 拒绝过期通知。两个 `MaterialApp` 配置同一套委托、支持语言与解析策略。
+`lib/l10n/` 的英文模板与简体中文译文由 gen-l10n 生成类型安全接口。`AppLocaleController` 保存 `system / zh / en` 偏好到 SharedPreferences 的 `app_language` 键，独立于 TMDB 和字幕设置；同一控制器在两个视图中共享，变更直接触发 Provider 重建，不再复制快照或使用 revision。两个 `MaterialApp` 配置同一套委托、支持语言与解析策略。
 
 应用与控制器的用户可见错误使用 `AppFailure`，扫描 / 刮削活动使用 `LibraryActivity`；展示层根据当前 locale 翻译，服务层不依赖 `BuildContext`。日志、字幕语言匹配词及用户媒体内容不属于界面译文。生成目录不入库，CI 校验资源完整性并在静态检查 / 测试前生成。

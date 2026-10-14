@@ -17,8 +17,8 @@ fvm flutter gen-l10n                          # 生成本地化代码
 fvm flutter test                              # 全部
 fvm flutter test test/features/playback       # 指定目录
 fvm flutter test --plain-name "解析"          # 按名称筛选
-fvm dart format lib test tool                      # 格式化（120 列，配置见 analysis_options.yaml）
-fvm flutter analyze                           # 静态检查
+fvm dart format lib test tool integration_test # 格式化（120 列，配置见 analysis_options.yaml）
+fvm flutter analyze --no-fatal-infos            # 静态检查（保留 SDK 弃用提示）
 ```
 
 提交流程至少运行全量测试、格式化和静态检查；目录与名称筛选命令是按需使用的示例。CI 执行文案完整性检查、本地化生成、analyze、test 和 Windows 构建。
@@ -47,7 +47,7 @@ fvm flutter analyze                           # 静态检查
 
 ## 窗口退出回归
 
-`test/app/application/` 覆盖退出顺序、重复请求、播放器 / 主窗口清理失败与超时，以及排队周期保存和最终快照在 SQLite 关闭重开后的持久化。`player_window_coordinator_test.dart` 覆盖退出期间的原生创建竞争、拒绝排队启动、旧窗口退役和过期关闭通知；`player_window_close_coordinator_test.dart` 验证保存 / 释放结果确认及失败后继续清理。播放会话与设置测试补充切集期间退出、等待已接受保存并拒绝新保存。
+`test/app/application/` 覆盖退出顺序、重复请求、播放器 / 主窗口清理失败与超时，以及排队周期保存和最终快照在 SQLite 关闭重开后的持久化。`player_window_coordinator_test.dart` 覆盖串行创建 / 替换、启动或替换期间退出、关闭重开和失败请求后重试；`player_window_close_coordinator_test.dart` 验证保存 / 释放结果确认及失败后继续清理。播放会话与设置测试补充切集期间退出、等待已接受保存并拒绝新保存。
 
 手工验收在 macOS / Windows 分别执行：
 
@@ -72,10 +72,46 @@ fvm flutter analyze                           # 静态检查
 
 干净检出和修改 ARB 后，先执行 `fvm flutter pub get`、`fvm dart run tool/check_l10n.dart`、`fvm flutter gen-l10n`，再执行 analyze / test / build。生成目录 `lib/l10n/generated/` 被忽略；模板缺译、未知 key 或缺少占位符会使检查失败。
 
-`test/l10n/` 验证系统语言回退、三种偏好、持久化 / 重启、快速切换、过期消息拒收、退出收尾、语言选择控件、英文 Material 文案、日期 / 数字格式与单复数、结构化错误提示、语言切换不重新挂载会话。播放器窗口协调器测试补充就绪 / 复用的语言校准和原生创建期间切换。既有 Widget 测试显式配置中文及委托，避免依赖执行机器的系统语言。
+`test/l10n/` 验证系统语言回退、三种偏好、持久化 / 重启、快速切换、共享观察、退出收尾、语言选择控件、英文 Material 文案、日期 / 数字格式与单复数、结构化错误提示、语言切换不重新挂载会话。官方多视图集成入口检查两个 MaterialApp 观察同一个语言控制器。既有 Widget 测试显式配置中文及委托，避免依赖执行机器的系统语言。
 
 2026-10-12 本轮验证：275 条中英文文案完整性检查通过，删除生成目录后重新生成成功；`flutter analyze` 无问题，全部 201 项测试通过，macOS Debug 构建成功。生成代码未纳入 Git。
 
 同日收尾修复：占位符改为语义名称，计数使用整数与 locale 数字格式，目录连接 / 删除 / 扫描提示补齐英文复数规则，扫描结果的连接标点交给 ARB。语言偏好区分当前选择与已成功保存的值，保存失败后可重试同一选择，且不会重复广播。回归新增保存失败重试和计数边界测试；277 条文案检查通过，静态检查无问题，全部 203 项测试通过。
 
 手工验收按 [ADR 0004](../decisions/0004-i18n-l10n.md) 的回归基线执行；特别检查真实播放不中断、进度不重置、已有弹层与长英文布局、系统语言变化及 macOS / Windows 原生交互。当前 UI 自动验收工具无法绑定改名后的 macOS 应用，完整页面与原生双窗口验收仍待完成。
+
+## 官方单引擎多视图迁移（2026-10-13）
+
+SDK 固定到 `.fvmrc` 的 main 提交 `5ba8961b517919e97cd58e404b75dcdcf313017a`，项目级 `enable-windowing=true`。旧窗口插件、RPC、JSON 启动协议与语言快照已删除。`flutter analyze --no-fatal-infos` 仍打印 SDK 旧 Material/Cupertino 导入的弃用提示；错误和警告仍作为失败。独立 UI 包迁移单独处理，不通过兼容桥隐藏提示。
+
+真实窗口 / 播放集成入口可以重复运行：
+
+```bash
+fvm flutter run -d macos -t integration_test/windowing_smoke.dart
+# Windows 验收机器上执行：
+fvm flutter run -d windows -t integration_test/windowing_smoke.dart
+```
+
+入口使用正式 runner、DesktopWindowHost 和 PlayerWindowApp，在自己的临时目录生成十秒 RGB AVI，使用隔离 SQLite 和内存偏好，不访问用户媒体库或 TMDB。无额外视频下载、二进制资产或证据 JSON。成功结束会删除临时数据并打印 `WINDOWING SMOKE COMPLETE`；失败打印异常与堆栈后结束进程。不要仅凭 flutter run 的退出码判定成功。
+
+2026-10-13 macOS Debug 运行已验证：两个独立 FlutterView、共享语言渲染、按 viewId 的原生置顶与 480×300 尺寸、主窗口尺寸保持不变、官方全屏进出、请求替换复用视图、单独关闭保留主窗口与数据库、共享查询订阅接收进度、两次关闭重开，以及最终进度在 SQLite 关闭重开后存在。观察到 160×90 视频纹理分配与解码日志。底层仍偶发 `Reported frame time is older than the last one; clamping`，没有将其视为长期稳定性通过。
+
+该入口对主窗口关闭事件处理器的测试是程序内回调，不替代真实红色关闭按钮、Cmd+Q / Dock 退出、拖动、最小化、焦点与中文输入的手工检查。Windows 全套运行时、系统 PiP、真实片源 / 字幕 / HDR、长时间播放、多显示器、可访问性和发布签名仍待验收。
+
+2026-10-13 自动化回归 198 项通过，277 条 l10n 文案检查通过；正式入口 macOS Debug 与 Release 构建成功。构建仍提示 media_kit 的 SPM 支持和上游 Swift 头文件警告；本项目保持 CocoaPods，未宣称这些上游问题已解决。
+
+### 2026-10-14 恢复迁移后的验证
+
+修正全屏动画完成确认。上轮最后一次运行的“全屏检查通过”结论不能直接沿用：固定等待一秒不可靠，状态位更新后立刻退出可能丢失请求。现在等待 AppKit 完成通知，单次确认最多 5 秒；窗口模式测试覆盖重复点击、进入过程中关闭、进入 / 退出失败后的重试。修正后的真实播放集成检查已完成整个退出与 SQLite 重开流程。
+
+文件 / 目录选择不再依赖隐式视图插件。2026-10-14，用户确认文件对话框手工验收完成。该确认未逐项列出平台与边界用例；Windows 宿主、COM 对话框和 DPI 处理仍未确认编译或运行通过。后续目标平台回归清单包括：主窗口添加 / 编辑本地目录，播放器打开 / 取消外挂字幕对话框，中文路径、扩展名过滤、父窗口关闭和全屏下选择。
+
+验证时串行执行平台构建，避免争用同一个 Xcode 构建目录。无需复制 SDK、应用包或保留整份构建备份。测试入口只生成临时小视频与 SQLite；验证后删除可重建缓存，保留应用产物、源码和当前 SDK。
+
+2026-10-14：最终回归 204 项通过，277 条文案检查通过。资源释放 / 窗口恢复阶段改为最多 12 秒，覆盖正在进入全屏后再退出的动画确认；应用退出整体的 18 秒播放器阶段与 8 秒应用清理上限保留。资源无响应会记录失败并继续解绑视图，不无限等待。
+
+2026-10-14 代码审查收尾：删除全局 `PlayerWindow` 转发层，协调器通过 Provider 注入；mini 切换捕获失败，进入失败尝试撤回部分修改，恢复成功后才清除原尺寸记录，失败后可重试。macOS 原生按钮操作成功后才提交 mini 按钮状态。新增五项故障回归，全量 209 项测试通过，静态检查无错误或警告，保留 108 条 SDK 旧 UI 导入弃用提示。Windows 桥检查尺寸 / 置顶等 Win32 调用结果并返回失败；本轮未执行 Windows 编译或运行验收。
+
+共享连接的回归直接通过 `DatabasePlaybackMediaStore` 写入，检查媒体库 `watchVersions` 订阅收到新进度且保留收藏字段；不再依赖外部连接的手动失效函数。真实播放入口还验证共享 drift 订阅，以及通过正式播放控制栏进入全屏后从主窗口关闭事件处理器触发完整退出。
+
+消息回归同时挂载两个宿主，验证主窗口与播放器消息隔离，以及播放器宿主销毁后主窗口仍能提示。提示调用必须提供所属视图的 context，纯数据服务继续使用错误码，不持有 UI context。

@@ -255,7 +255,6 @@
   "settingsSaveFailed": "保存设置失败",
   "scanSourceRequired": "请先添加并启用至少一个可扫描的媒体源",
   "scrapeFailed": "获取元数据失败",
-  "playerMediaMissing": "未找到请求的媒体文件",
   "playerTargetFailed": "无法解析播放来源",
   "playerBootstrapFailed": "无法初始化播放器",
   "liveTextInput": "实况文本",
@@ -276,5 +275,6 @@
   "browserBack": "后退",
   "filteredDirectorySummary": "找到 {summary}（共 {total} 个项目）",
   "scanResultWithMetadata": "{summary}；{metadata}",
-  "scanResultWithError": "{summary}；{reason}"
+  "scanResultWithError": "{summary}；{reason}",
+  "directorySelectionFailed": "无法打开目录选择器，请重试。"
 }

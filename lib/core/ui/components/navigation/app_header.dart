@@ -1,3 +1,4 @@
+import 'package:provider/provider.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -44,7 +45,9 @@ class AppHeader extends StatelessWidget {
         opacity: clampedVisibility,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onPanStart: theme.platform == TargetPlatform.windows ? null : (_) => WindowService.instance.startDragging(),
+          onPanStart: theme.platform == TargetPlatform.windows
+              ? null
+              : (_) => context.read<WindowService>().startDragging(),
           child: ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),

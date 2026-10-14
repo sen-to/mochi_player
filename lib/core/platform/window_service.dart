@@ -1,18 +1,8 @@
-import 'package:flutter/services.dart';
+import 'dart:ui' show Rect, Size;
 
 /// The only desktop-window API exposed to application and playback code.
 abstract class WindowService {
-  static late WindowService instance;
-
-  Future<WindowHandle> current();
-
-  Future<WindowHandle> create(String arguments);
-
-  Future<List<WindowHandle>> getAll();
-
-  Future<void> initialize();
-
-  Future<void> configure(WindowSetup setup);
+  int get viewId;
 
   void addListener(WindowEvents listener);
 
@@ -25,6 +15,10 @@ abstract class WindowService {
   Future<void> close();
 
   Future<void> startDragging();
+
+  Future<String?> pickDirectory({String? initialDirectory});
+
+  Future<String?> pickFile({required List<String> extensions, required String label});
 
   Future<bool> isMaximized();
 
@@ -44,21 +38,12 @@ abstract class WindowService {
 
   Future<bool> isFullScreen();
 
+  /// Completes when the native window confirms the requested state, or fails
+  /// within a bounded wait. Callers must not treat sending a request as success.
   Future<void> setFullScreen(bool value);
 
-  /// Ends the whole process after application-owned cleanup, including any
-  /// unresponsive child engine. This must only be called by the main window.
+  /// Ends the whole process after application-owned cleanup, including all windows. This must only be called by the main window.
   void exitApplication();
-}
-
-abstract interface class WindowHandle {
-  String get id;
-
-  String get arguments;
-
-  Future<T?> invoke<T>(String method, [Object? arguments, Duration? timeout]);
-
-  Future<void> setHandler(Future<Object?> Function(MethodCall call) handler);
 }
 
 abstract mixin class WindowEvents {
@@ -70,9 +55,8 @@ abstract mixin class WindowEvents {
 }
 
 class WindowSetup {
-  const WindowSetup({required this.size, required this.minimumSize, required this.backgroundColor});
+  const WindowSetup({required this.size, required this.minimumSize});
 
   final Size size;
   final Size minimumSize;
-  final Color backgroundColor;
 }

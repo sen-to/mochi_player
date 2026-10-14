@@ -63,8 +63,8 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 
 | 平台 | 状态 |
 | --- | --- |
-| macOS | 已验证。暂无 CI，需要从源码构建 |
-| Windows | 已验证。有 CI 构建，见下方「下载与安装」 |
+| macOS | 正在验证官方多视图迁移；暂无 CI，需要从源码构建 |
+| Windows | 官方多视图新宿主待验收；有 CI 构建，见下方「下载与安装」 |
 
 ## 📥 下载与安装
 
@@ -117,7 +117,7 @@ TMDB Key 由用户自行申请和管理，请不要将自己的 Key 提交到仓
 
 ## 🛠️ 从源码运行
 
-本项目通过 FVM 固定使用 Flutter 3.47.2（见 [`.fvmrc`](.fvmrc)）。
+本迁移分支通过 FVM 固定使用 Flutter main 提交 `5ba8961b517919e97cd58e404b75dcdcf313017a`（见 [`.fvmrc`](.fvmrc)），启用官方实验单引擎多视图 API。SDK 由 FVM 下载，不需要自行编译引擎；项目开关也适用于 Release。当前 Windows 新宿主尚待运行时验收，详见 [ADR 0001](docs/decisions/0001-multi-window-strategy.md)。
 
 构建前置条件：
 
@@ -144,6 +144,7 @@ dart pub global activate fvm
 
 ```bash
 fvm install
+fvm use
 ```
 
 随后统一通过 `fvm flutter` 执行 Flutter 命令：
@@ -172,10 +173,10 @@ macOS 原生插件目前由 CocoaPods 管理。由于本项目尚未完成 SPM �
 提交代码前请执行：
 
 ```bash
-fvm dart format lib test tool
+fvm dart format lib test tool integration_test
 fvm dart run tool/check_l10n.dart
 fvm flutter gen-l10n
-fvm flutter analyze
+fvm flutter analyze --no-fatal-infos
 fvm flutter test
 ```
 
@@ -198,15 +199,14 @@ lib/
 ├── app/        应用外壳：侧边栏、页面骨架与路由
 ├── core/       跨功能的领域模型、基础设施（数据库 / 存储源 / 播放解析）与设计系统
 ├── features/   按功能划分：home、library、playback、settings
-└── main.dart   应用入口，同时负责区分媒体库主窗口与播放器窗口
+└── main.dart   应用入口，初始化共享服务并创建主视图
 test/           与 lib/ 结构对应的单元测试与 Widget 测试
 windows/ macos/ 各平台 runner
 ```
 
 播放通过 `PlaybackEngine` 门面接入，当前唯一实现为 media_kit + libmpv。播放控制、状态订阅、音轨 / 字幕、缓存与硬解设置、视频视图均通过门面；mpv 属性读写集中在后端实现。实施状态和未来直接接 libmpv 的条件见 [播放引擎 ADR](docs/decisions/0002-playback-engine.md)。
 
-> Windows 上主窗口引擎显式使用 `RunOnSeparateThread`（见 `windows/runner/flutter_window.cpp`）。
-> 这不是可选项：默认策略会把 UI isolate 合并到 Win32 消息循环线程，导致窗口在特定交互下冻结。
+窗口采用官方 `WindowManager` / `WindowRegistry`：两个视图共享同一引擎、语言、主题、设置与后台数据库连接，播放器仍是独立窗口。关闭主窗口会保存进度、关闭播放器并退出程序；普通 mini 保留，系统 PiP 尚待实现。
 
 ## 🔒 数据与隐私
 

@@ -17,9 +17,6 @@ class _FakePlaybackMediaStore implements PlaybackMediaStore {
   final progressWrites = <int>[];
 
   @override
-  Iterable<PlaybackMediaKey> get changedMedia => const [];
-
-  @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async => _file(1, path);
 
   @override

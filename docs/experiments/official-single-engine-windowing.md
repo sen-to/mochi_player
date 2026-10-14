@@ -2,13 +2,13 @@
 
 首轮实验：2026-10-12；用户人工验收、Release 验证与归档：2026-10-13。
 
-**macOS 基础路径已证明可行，活动原型完成本轮任务后归档；生产项目继续使用现有多引擎窗口后端。** 未验证 Windows、系统 PiP 或完整业务迁移，不将删除实验目录视为迁移验收通过。
+**这是 2026-10-12～13 的历史原型记录。原型已归档；2026-10-13 用户授权正式迁移，当前实施以 [ADR 0001](../decisions/0001-multi-window-strategy.md) 为准。** 未验证 Windows、系统 PiP 或完整业务迁移，不将删除实验目录视为迁移验收通过。
 
 ## 1. SDK、通道与发布能力
 
 ### stable 的底层能力与官方窗口 API
 
-项目 SDK 仍为 Flutter 3.47.2 stable。其 macOS `FlutterViewController` 提供连接现有 `FlutterEngine` 的构造接口，多视图底层能力存在；本轮没有在 stable 上自行实现原生多窗口宿主，也没有声称该路线运行验证通过。
+原型验证时项目 SDK 为 Flutter 3.47.2 stable；当前迁移分支已固定 main 提交，见 ADR 0001。其 macOS `FlutterViewController` 提供连接现有 `FlutterEngine` 的构造接口，多视图底层能力存在；本轮没有在 stable 上自行实现原生多窗口宿主，也没有声称该路线运行验证通过。
 
 官方 Dart Desktop Windowing API 的正常启用则有通道门槛：
 
@@ -57,7 +57,7 @@ Release 结果通过构建输出、直接启动后的窗口画面与运行进程
 
 | 方案 | 窗口责任 | 与 Flutter windowing 的关系 | 当前状态 |
 | --- | --- | --- | --- |
-| 普通 Flutter mini 窗口 | 应用调整窗口尺寸、控制层和置顶；可调用系统窗口接口 | 可使用当前多引擎后端或未来单引擎窗口 API | 缩小 / 恢复 / 全屏基础验证通过，官方后端置顶扩展未测试 |
+| 普通 Flutter mini 窗口 | 应用调整窗口尺寸、控制层和置顶；可调用系统窗口接口 | 可使用 Flutter 官方单引擎窗口 API | 缩小 / 恢复 / 全屏基础验证通过，官方后端置顶扩展未测试 |
 | macOS 系统 PiP | AVKit 管理画中画窗口，应用提供视频内容和播放控制 | 独立于 Flutter 官方窗口 API；stable 应用也可原生桥接接入 | 用户期望的候选方向，尚未实现 / 验证 |
 
 Apple 提供 `AVPlayerView.allowsPictureInPicturePlayback` 和 `AVPictureInPictureController`。公开内容源接口可以接入 player layer 或 sample buffer display layer；本机 SDK 标注后者内容源接入适用于 macOS 12 及以后。系统 PiP 不接收任意 Flutter Widget，也不能把 libmpv 句柄直接当作 AVPlayer。
@@ -104,7 +104,7 @@ Apple 提供 `AVPlayerView.allowsPictureInPicturePlayback` 和 `AVPictureInPictu
 | P1：持续运行与窗口边界 | 长时间播放、重复打开 / 替换 / 关闭，资源趋势、后台 / 遮挡 / 多显示器与 DPI、全屏跨 Spaces；复查 frame-time 诊断 | 原型仅三次重开和短片，未证明无长期泄漏或多显示器问题 |
 | P1：无障碍与分发 | VoiceOver / 键盘导航；发布包签名 / 公证及目标环境安装启动 | 单纯 AX 工具读取或本机 Release 启动不能替代 |
 
-后续迁移需重新评估单引擎下的窗口身份、Provider / 播放会话所有权、数据库订阅和退出职责；不能仅将旧跨引擎 RPC 外壳长期保留为兼容层。验证新流程后删除旧后端和失效协议，不长期维护两套业务实现。此处是重构依据，不是本轮开始重构。
+后续迁移需重新评估单引擎下的窗口身份、Provider / 播放会话所有权、数据库订阅和退出职责；不能仅将旧跨引擎 RPC 外壳长期保留为兼容层。验证新流程后删除旧后端和失效协议，不长期维护两套业务实现。此处是历史重构依据；正式迁移进度见 ADR 0001 与测试指南。
 
 ## 5. 原型退役与后续复现
 

@@ -9,44 +9,12 @@ abstract interface class PlaybackMediaStore {
   Future<MediaFile?> readMediaFile({required String sourceId, required String path});
 
   Future<void> updateProgress(MediaFile file, int position, {int? duration});
-
-  Iterable<PlaybackMediaKey> get changedMedia;
-}
-
-class PlaybackMediaKey {
-  const PlaybackMediaKey({required this.sourceId, required this.path});
-
-  final String sourceId;
-  final String path;
-
-  Map<String, String> toJson() => {'sourceId': sourceId, 'path': path};
-
-  static PlaybackMediaKey? tryParse(Object? value) {
-    if (value is! Map) return null;
-    final sourceId = value['sourceId'];
-    final path = value['path'];
-    if (sourceId is! String || sourceId.isEmpty || path is! String || path.isEmpty) {
-      return null;
-    }
-    return PlaybackMediaKey(sourceId: sourceId, path: path);
-  }
-
-  @override
-  bool operator ==(Object other) => other is PlaybackMediaKey && other.sourceId == sourceId && other.path == path;
-
-  @override
-  int get hashCode => Object.hash(sourceId, path);
 }
 
 class DatabasePlaybackMediaStore implements PlaybackMediaStore {
   DatabasePlaybackMediaStore({DatabaseService? database}) : _database = database ?? DatabaseService();
 
   final DatabaseService _database;
-  final Set<PlaybackMediaKey> _changedMedia = {};
-
-  @override
-  Iterable<PlaybackMediaKey> get changedMedia => _changedMedia;
-
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async {
     final row = await _database.getMediaFile(sourceId, path);
@@ -58,6 +26,5 @@ class DatabasePlaybackMediaStore implements PlaybackMediaStore {
     final row = await _database.getMediaFile(file.sourceId, file.path);
     if (row == null) return;
     await _database.updateProgress(row, position, duration: duration);
-    _changedMedia.add(PlaybackMediaKey(sourceId: file.sourceId, path: file.path));
   }
 }

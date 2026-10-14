@@ -51,7 +51,7 @@ void main() {
     final events = <String>[];
     final coordinator = ApplicationExitCoordinator(
       beginShutdown: () => throw StateError('begin failed'),
-      closePlayers: () => throw StateError('RPC failed'),
+      closePlayers: () => throw StateError('player cleanup failed'),
       cleanUp: () async => throw StateError('database failed'),
       exitProcess: () => events.add('exit'),
       onFailure: (stage, error) => events.add(stage),

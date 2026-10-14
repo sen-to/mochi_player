@@ -1192,10 +1192,6 @@
   "@scrapeFailed": {
     "description": "Could not retrieve metadata"
   },
-  "playerMediaMissing": "The requested media file was not found",
-  "@playerMediaMissing": {
-    "description": "The requested media file was not found"
-  },
   "playerTargetFailed": "Could not resolve the playback source",
   "@playerTargetFailed": {
     "description": "Could not resolve the playback source"
@@ -1308,5 +1304,9 @@
         "type": "String"
       }
     }
+  },
+  "directorySelectionFailed": "Could not open the folder picker. Please try again.",
+  "@directorySelectionFailed": {
+    "description": "Shown when the native directory picker fails to open."
   }
 }

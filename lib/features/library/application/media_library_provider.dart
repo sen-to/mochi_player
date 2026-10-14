@@ -104,10 +104,6 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   Future<MediaFile?> getLatestMediaFile(MediaFile file) => _db.getMediaFile(file.sourceId, file.path);
 
-  Future<void> refreshPlaybackState(Iterable<({String sourceId, String path})> changed) async {
-    if (changed.isNotEmpty) _db.invalidatePlaybackQueries();
-  }
-
   Future<MediaSourceScanSummary?> scanMediaSources() => _sync.scanEnabledMediaSources();
 
   Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {

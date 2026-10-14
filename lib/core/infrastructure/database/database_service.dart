@@ -212,9 +212,6 @@ class DatabaseService {
     await database.delete(database.episodes).go();
   });
 
-  /// External engines write through another connection; explicitly invalidate dependent queries.
-  void invalidatePlaybackQueries() => database.notifyUpdates({TableUpdate.onTable(database.mediaFiles)});
-
   Future<void> close() async {
     await _initializing;
     final db = _database;

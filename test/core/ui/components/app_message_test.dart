@@ -4,6 +4,49 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
+  testWidgets('messages stay with their view and closing a player host preserves the library host', (tester) async {
+    Widget page({required bool playerOpen}) => MaterialApp(
+      theme: AppTheme.darkTheme,
+      home: Row(
+        children: [
+          const Expanded(
+            child: AppMessageHost(
+              key: ValueKey('library-host'),
+              child: SizedBox(key: ValueKey('library')),
+            ),
+          ),
+          if (playerOpen)
+            const Expanded(
+              child: AppMessageHost(
+                key: ValueKey('player-host'),
+                child: SizedBox(key: ValueKey('player')),
+              ),
+            ),
+        ],
+      ),
+    );
+    await tester.pumpWidget(page(playerOpen: true));
+    AppMessage.error(tester.element(find.byKey(const ValueKey('library'))), 'Library notice');
+    AppMessage.error(tester.element(find.byKey(const ValueKey('player'))), 'Subtitle error');
+    await tester.pump();
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('library-host')), matching: find.text('Library notice')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('library-host')), matching: find.text('Subtitle error')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('player-host')), matching: find.text('Subtitle error')),
+      findsOneWidget,
+    );
+    await tester.pumpWidget(page(playerOpen: false));
+    AppMessage.success(tester.element(find.byKey(const ValueKey('library'))), 'Library still works');
+    await tester.pump();
+    expect(find.text('Library still works'), findsOneWidget);
+    expect(find.text('Subtitle error'), findsNothing);
+  });
   testWidgets('stacks repeated messages and dismisses each independently', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -15,8 +58,8 @@ void main() {
       ),
     );
 
-    AppMessage.error('WebDAV 连接失败', duration: const Duration(seconds: 1));
-    AppMessage.error('WebDAV 连接失败', duration: const Duration(seconds: 2));
+    AppMessage.error(tester.element(find.byType(Scaffold)), 'WebDAV 连接失败', duration: const Duration(seconds: 1));
+    AppMessage.error(tester.element(find.byType(Scaffold)), 'WebDAV 连接失败', duration: const Duration(seconds: 2));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 140));
 
@@ -42,7 +85,7 @@ void main() {
       ),
     );
 
-    final loading = AppMessage.loading('正在获取播放链接…');
+    final loading = AppMessage.loading(tester.element(find.byType(Scaffold)), '正在获取播放链接…');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 140));
     expect(find.text('正在获取播放链接…'), findsOneWidget);
@@ -63,7 +106,7 @@ void main() {
       ),
     );
 
-    AppMessage.error('整体下滑', duration: const Duration(seconds: 10));
+    AppMessage.error(tester.element(find.byType(Scaffold)), '整体下滑', duration: const Duration(seconds: 10));
     await tester.pump();
     await tester.pump();
 
@@ -99,8 +142,8 @@ void main() {
       ),
     );
 
-    final first = AppMessage.loading('第一条');
-    AppMessage.error('第二条', duration: const Duration(seconds: 10));
+    final first = AppMessage.loading(tester.element(find.byType(Scaffold)), '第一条');
+    AppMessage.error(tester.element(find.byType(Scaffold)), '第二条', duration: const Duration(seconds: 10));
     await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 140));

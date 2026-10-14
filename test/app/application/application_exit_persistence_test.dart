@@ -15,8 +15,8 @@ void main() {
   test('queued periodic save and final snapshot survive graceful exit and reopen', () async {
     final directory = await Directory.systemTemp.createTemp('mochi_exit_test_');
     final path = File('${directory.path}/library.sqlite');
-    final child = DatabaseService.withDatabase(AppDatabase(NativeDatabase(path, setup: configureSqlite)));
-    await child.init();
+    final database = DatabaseService.withDatabase(AppDatabase(NativeDatabase(path, setup: configureSqlite)));
+    await database.init();
     final file = MediaFile(
       id: 0,
       sourceId: 'source',
@@ -25,7 +25,7 @@ void main() {
       parsedTitle: 'Test',
       addedAt: DateTime(2026),
     );
-    await child.saveScannedFiles([file]);
+    await database.saveScannedFiles([file]);
     final periodicStarted = Completer<void>();
     final finishPeriodic = Completer<void>();
     final events = <String>[];
@@ -34,7 +34,7 @@ void main() {
         periodicStarted.complete();
         await finishPeriodic.future;
       }
-      await child.updateProgress(file, position, duration: duration);
+      await database.updateProgress(file, position, duration: duration);
       events.add('saved:$position');
     });
     final periodic = writer.save(file, 10000, duration: 100000);
@@ -45,15 +45,14 @@ void main() {
     final exit = ApplicationExitCoordinator(
       beginShutdown: () => events.add('begin'),
       closePlayers: () async {
-        final report = await player.prepareClose(
-          settleSession: () async {},
-          detachView: () async {},
-          closeDatabase: child.close,
-        );
-        expect(report['saved'], isTrue);
+        final report = await player.prepareClose(settleSession: () async {}, detachView: () async {});
+        expect(report.saved, isTrue);
         events.add('player closed');
       },
-      cleanUp: () async => events.add('main cleanup'),
+      cleanUp: () async {
+        await database.close();
+        events.add('main cleanup');
+      },
       exitProcess: () => events.add('exit'),
       onFailure: (stage, error) => fail('$stage: $error'),
     );
@@ -74,7 +73,7 @@ void main() {
         await reopened.close();
       }
     } finally {
-      await child.close();
+      await database.close();
       await directory.delete(recursive: true);
     }
   });

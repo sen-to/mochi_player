@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
@@ -99,6 +98,7 @@ class _PlayerPageState extends State<PlayerPage> {
       await _windowModeController.restoreWindow();
     });
     _windowModeController = PlayerWindowModeController(
+      windows: context.read<WindowService>(),
       windowControlsController: context.read<WindowControlsController>(),
       regularMinimumWindowSize: widget.regularMinimumWindowSize,
     )..addListener(_handleWindowModeChanged);
@@ -207,7 +207,12 @@ class _PlayerPageState extends State<PlayerPage> {
     widget.closeCoordinator.unregisterResourceReleaser();
     _playbackController.dispose();
     _windowModeController.removeListener(_handleWindowModeChanged);
-    unawaited(_windowModeController.restoreWindow().whenComplete(_windowModeController.dispose));
+    unawaited(
+      _windowModeController
+          .restoreWindow()
+          .catchError((Object error) => debugPrint('播放器窗口恢复失败: $error'))
+          .whenComplete(_windowModeController.dispose),
+    );
     _focusNode.dispose();
     super.dispose();
   }
@@ -236,7 +241,7 @@ class _PlayerPageState extends State<PlayerPage> {
                   behavior: HitTestBehavior.translucent,
                   onPanStart: Theme.of(context).platform == TargetPlatform.windows
                       ? null
-                      : (_) => unawaited(WindowService.instance.startDragging()),
+                      : (_) => unawaited(context.read<WindowService>().startDragging()),
                   onDoubleTap: _windowModeController.toggleFullScreen,
                   child: const ColoredBox(color: Colors.transparent),
                 ),
@@ -338,19 +343,20 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Future<void> _loadExternalSubtitle() async {
-    final subtitleFiles = XTypeGroup(label: context.l10n.subtitleFiles, extensions: ['srt', 'ass', 'ssa', 'vtt']);
-
     try {
-      final selectedFile = await openFile(acceptedTypeGroups: [subtitleFiles]);
+      final selectedFile = await context.read<WindowService>().pickFile(
+        extensions: const ['srt', 'ass', 'ssa', 'vtt'],
+        label: context.l10n.subtitleFiles,
+      );
       if (selectedFile == null || !mounted) return;
 
-      final loaded = await _playbackController.loadExternalSubtitle(selectedFile.path);
+      final loaded = await _playbackController.loadExternalSubtitle(selectedFile);
       if (!loaded && mounted) {
-        AppMessage.error(context.l10n.subtitleLoadFailed);
+        AppMessage.error(context, context.l10n.subtitleLoadFailed);
       }
     } catch (error, stackTrace) {
       debugPrint('选择外挂字幕失败: $error\n$stackTrace');
-      if (mounted) AppMessage.error(context.l10n.subtitleLoadFailed);
+      if (mounted) AppMessage.error(context, context.l10n.subtitleLoadFailed);
     }
   }
 }

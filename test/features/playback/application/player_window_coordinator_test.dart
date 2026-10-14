@@ -1,9 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
-import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 
@@ -20,179 +18,106 @@ PlayerWindowRequest request(String id) => PlayerWindowRequest.fromPlayback(
   requestId: id,
 );
 
-class FakeWindows extends WindowService {
-  final List<FakeWindow> all = [];
-  final List<String> events = [];
-  Completer<WindowHandle>? creation;
-  int created = 0;
-
+class FakeSession implements PlayerWindowSession {
+  final events = <String>[];
+  Completer<void>? replacement;
   @override
-  Future<List<WindowHandle>> getAll() async => List.of(all);
-
+  bool isClosing = false;
   @override
-  Future<WindowHandle> create(String arguments) async {
-    created++;
-    if (creation != null) return creation!.future;
-    final window = FakeWindow(this, 'player-$created', arguments);
-    all.add(window);
-    return window;
+  Future<void> replace(PlayerWindowRequest request) async {
+    events.add(request.requestId);
+    await replacement?.future;
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class FakeWindow implements WindowHandle {
-  FakeWindow(this.windows, this.id, this.arguments);
-
-  final FakeWindows windows;
+  Future<void> activate() async => events.add('activate');
   @override
-  final String id;
-  @override
-  final String arguments;
-  Future<Object?> Function(MethodCall)? handler;
-  Completer<void>? save;
-  bool rejectReplace = false;
-  Completer<void>? ready;
-  final localeSnapshots = <Object?>[];
-
-  @override
-  Future<T?> invoke<T>(String method, [Object? arguments, Duration? timeout]) async {
-    windows.events.add('$id:$method');
-    Object? result;
-    switch (method) {
-      case 'player.ready':
-        await ready?.future;
-        result = {'ready': true};
-      case 'player.replaceRequest':
-        if (rejectReplace) throw StateError('channel unavailable');
-        result = {'ready': true};
-      case 'player.prepareClose':
-        if (save != null) await save!.future;
-        result = {'prepared': true, 'saved': true, 'released': true};
-      case 'app.setLocale':
-        localeSnapshots.add(arguments);
-      case 'player.close':
-        windows.all.remove(this);
-    }
-    return result as T?;
+  Future<void> close() async {
+    isClosing = true;
+    events.add('close');
   }
-
-  @override
-  Future<void> setHandler(Future<Object?> Function(MethodCall) value) async => handler = value;
 }
 
 void main() {
-  test('player readiness and replacement calibrate the latest language', () async {
-    final windows = FakeWindows();
-    final coordinator = PlayerWindowCoordinator(windows);
-    final main = FakeWindow(windows, 'main', '');
-    var snapshot = <String, Object?>{'language': 'en', 'revision': 0};
-    await coordinator.installMainWindowHandler(
-      main,
-      localeSnapshot: () => snapshot,
-      onPlaybackStateChanged: (_) async {},
+  test('concurrent launches create only one player and replace it in order', () async {
+    final session = FakeSession();
+    var created = 0;
+    final coordinator = PlayerWindowCoordinator(
+      createSession: (_) async {
+        created++;
+        return session;
+      },
     );
-    expect(await main.handler!(const MethodCall('app.getLocale')), snapshot);
-    await coordinator.openOrReplace(request('first'));
-    final player = windows.all.single;
-    expect(player.localeSnapshots.last, snapshot);
-    snapshot = {'language': 'zh', 'revision': 1};
-    await coordinator.synchronizeLocale(snapshot);
-    expect(player.localeSnapshots.last, snapshot);
-    await coordinator.openOrReplace(request('second'));
-    expect(windows.created, 1);
-    expect(player.localeSnapshots.last, snapshot);
-    coordinator.beginShutdown();
-    final notices = player.localeSnapshots.length;
-    await coordinator.synchronizeLocale({'language': 'en', 'revision': 2});
-    expect(player.localeSnapshots.length, notices);
+    await Future.wait([coordinator.openOrReplace(request('first')), coordinator.openOrReplace(request('second'))]);
+    expect(created, 1);
+    expect(session.events, ['activate', 'second', 'activate']);
   });
 
-  test('language changed during native creation is sent after child readiness', () async {
-    final windows = FakeWindows()..creation = Completer<WindowHandle>();
-    final coordinator = PlayerWindowCoordinator(windows);
-    final main = FakeWindow(windows, 'main', '');
-    var snapshot = <String, Object?>{'language': 'en', 'revision': 0};
-    await coordinator.installMainWindowHandler(
-      main,
-      localeSnapshot: () => snapshot,
-      onPlaybackStateChanged: (_) async {},
+  test('shutdown owns an in-flight creation and never activates its result', () async {
+    final creation = Completer<PlayerWindowSession>();
+    final coordinator = PlayerWindowCoordinator(createSession: (_) => creation.future);
+    final launch = coordinator.openOrReplace(request('first'));
+    final rejected = expectLater(launch, throwsStateError);
+    await Future<void>.delayed(Duration.zero);
+    final closing = coordinator.closeAll();
+    final session = FakeSession();
+    creation.complete(session);
+    await Future.wait([rejected, closing]);
+    expect(session.events, ['close']);
+    await expectLater(coordinator.openOrReplace(request('late')), throwsStateError);
+  });
+
+  test('shutdown waits for replacement before releasing the session', () async {
+    final session = FakeSession();
+    final coordinator = PlayerWindowCoordinator(createSession: (_) async => session);
+    await coordinator.openOrReplace(request('first'));
+    session.replacement = Completer<void>();
+    final launch = coordinator.openOrReplace(request('second'));
+    final rejected = expectLater(launch, throwsStateError);
+    await Future<void>.delayed(Duration.zero);
+    final closing = coordinator.closeAll();
+    expect(session.events, ['activate', 'second']);
+    session.replacement!.complete();
+    await Future.wait([rejected, closing]);
+    expect(session.events, ['activate', 'second', 'close']);
+  });
+
+  test('a closed player is retired before reopening, without a second live session', () async {
+    final sessions = <FakeSession>[];
+    final coordinator = PlayerWindowCoordinator(
+      createSession: (_) async {
+        final session = FakeSession();
+        sessions.add(session);
+        return session;
+      },
     );
-    final opening = coordinator.openOrReplace(request('first'));
-    await Future<void>.delayed(Duration.zero);
-    snapshot = {'language': 'zh', 'revision': 1};
-    final player = FakeWindow(windows, 'late', request('first').encode());
-    windows.all.add(player);
-    windows.creation!.complete(player);
-    await opening;
-    expect(player.localeSnapshots.single, snapshot);
-  });
-
-  test('shutdown waits for durable preparation before closing the player', () async {
-    final windows = FakeWindows();
-    final coordinator = PlayerWindowCoordinator(windows);
     await coordinator.openOrReplace(request('first'));
-    final player = windows.all.single;
-    player.save = Completer<void>();
-    final shutdown = coordinator.closeAll();
-    await Future<void>.delayed(Duration.zero);
-    expect(windows.events.last, '${player.id}:player.prepareClose');
-    expect(windows.all, [player]);
-    await expectLater(coordinator.openOrReplace(request('blocked')), throwsStateError);
-    player.save!.complete();
-    await shutdown;
-    expect(windows.all, isEmpty);
-    expect(windows.created, 1);
-  });
-
-  test('queued launch is rejected when exit races native window creation', () async {
-    final windows = FakeWindows()..creation = Completer<WindowHandle>();
-    final coordinator = PlayerWindowCoordinator(windows);
-    final launching = coordinator.openOrReplace(request('first'));
-    final launchFailure = expectLater(launching, throwsStateError);
-    final queued = coordinator.openOrReplace(request('queued'));
-    final queuedFailure = expectLater(queued, throwsStateError);
-    await Future<void>.delayed(Duration.zero);
-    final shutdown = coordinator.closeAll();
-    final latePlayer = FakeWindow(windows, 'late-player', request('first').encode());
-    windows.all.add(latePlayer);
-    windows.creation!.complete(latePlayer);
-    await Future.wait([launchFailure, queuedFailure, shutdown]);
-    expect(windows.created, 1);
-    expect(windows.events, ['late-player:player.prepareClose', 'late-player:player.close']);
-    expect(windows.all, isEmpty);
-  });
-
-  test('unavailable replacement retires the old window before creating another', () async {
-    final windows = FakeWindows();
-    final coordinator = PlayerWindowCoordinator(windows);
-    await coordinator.openOrReplace(request('first'));
-    windows.all.single.rejectReplace = true;
+    await sessions.single.close();
     await coordinator.openOrReplace(request('second'));
-    expect(windows.events, [
-      'player-1:player.ready',
-      'player-1:player.replaceRequest',
-      'player-1:player.prepareClose',
-      'player-1:player.close',
-      'player-2:player.ready',
-    ]);
-    expect(windows.all.single.id, 'player-2');
+    expect(sessions.length, 2);
+    expect(sessions.first.isClosing, isTrue);
+    expect(sessions.last.events, ['activate']);
   });
 
-  test('stale close notifications do not invalidate a new active player', () async {
-    final windows = FakeWindows();
-    final coordinator = PlayerWindowCoordinator(windows);
-    final main = FakeWindow(windows, 'main', '');
-    var refreshed = 0;
-    await coordinator.installMainWindowHandler(main, onPlaybackStateChanged: (_) async => refreshed++);
+  test('a failed replacement does not create another player and a later request can retry', () async {
+    final session = FakeSession();
+    var created = 0;
+    final coordinator = PlayerWindowCoordinator(
+      createSession: (_) async {
+        created++;
+        return session;
+      },
+    );
     await coordinator.openOrReplace(request('first'));
-    await main.handler!(const MethodCall('player.closed', {'windowId': 'old-player', 'changedMedia': []}));
-    await coordinator.openOrReplace(request('second'));
-    expect(windows.created, 1);
-    expect(refreshed, 1);
-    coordinator.beginShutdown();
-    await main.handler!(const MethodCall('player.closed', {'windowId': 'player-1', 'changedMedia': []}));
-    expect(refreshed, 1);
+    session.replacement = Completer<void>();
+    final failed = coordinator.openOrReplace(request('bad'));
+    final rejected = expectLater(failed, throwsStateError);
+    await Future<void>.delayed(Duration.zero);
+    session.replacement!.completeError(StateError('unresolved media'));
+    await rejected;
+    session.replacement = null;
+    await coordinator.openOrReplace(request('retry'));
+    expect(created, 1);
+    expect(session.events.last, 'activate');
   });
 }

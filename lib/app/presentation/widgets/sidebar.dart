@@ -1,3 +1,4 @@
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
@@ -47,7 +48,7 @@ class Sidebar extends StatelessWidget {
           if (theme.platform != TargetPlatform.windows)
             GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onPanStart: (_) => WindowService.instance.startDragging(),
+              onPanStart: (_) => context.read<WindowService>().startDragging(),
               child: const SizedBox(height: _SidebarMetrics.topDragAreaHeight, width: double.infinity),
             ),
 

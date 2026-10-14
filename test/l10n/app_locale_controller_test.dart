@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/l10n/app_locale_controller.dart';
@@ -44,30 +42,16 @@ void main() {
     restarted.dispose();
   });
 
-  test('rapid changes publish immediately and child rejects a late older snapshot', () async {
-    final main = AppLocaleController();
-    final child = AppLocaleController();
-    final firstNotice = Completer<void>();
-    Map<String, Object?>? old;
-    main.onChanged = (snapshot) async {
-      if (snapshot['revision'] == 1) {
-        old = snapshot;
-        await firstNotice.future;
-      }
-      child.applySnapshot(snapshot);
-    };
-    final first = main.setLanguage(AppLanguage.en);
-    final second = main.setLanguage(AppLanguage.zh);
-    expect(main.language, AppLanguage.zh);
-    expect(child.language, AppLanguage.zh);
-    expect(old!['revision'], 1);
-    firstNotice.complete();
+  test('rapid changes notify all views immediately and persist the final selection', () async {
+    final locales = AppLocaleController();
+    final observed = <AppLanguage>[];
+    locales.addListener(() => observed.add(locales.language));
+    final first = locales.setLanguage(AppLanguage.en);
+    final second = locales.setLanguage(AppLanguage.zh);
+    expect(observed, [AppLanguage.en, AppLanguage.zh]);
     await Future.wait([first, second]);
-    expect(child.language, AppLanguage.zh);
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString(AppLocaleController.preferenceKey), 'zh');
-    main.dispose();
-    child.dispose();
+    expect((await SharedPreferences.getInstance()).getString(AppLocaleController.preferenceKey), 'zh');
+    locales.dispose();
   });
 
   test('shutdown drains accepted work and rejects new preference changes', () async {
@@ -83,23 +67,13 @@ void main() {
     locales.dispose();
   });
 
-  test('failed window notification does not poison later persistence', () async {
-    final locales = AppLocaleController();
-    locales.onChanged = (_) async => throw StateError('window disappeared');
-    await locales.setLanguage(AppLanguage.en);
-    locales.onChanged = null;
-    await locales.setLanguage(AppLanguage.zh);
-    expect((await SharedPreferences.getInstance()).getString(AppLocaleController.preferenceKey), 'zh');
-    locales.dispose();
-  });
-
   test('a failed save can retry the same language without publishing it twice', () async {
     final store = _FailOncePreferencesStore();
     SharedPreferencesStorePlatform.instance = store;
     final locales = AppLocaleController();
     await locales.load();
     var notifications = 0;
-    locales.onChanged = (_) async => notifications++;
+    locales.addListener(() => notifications++);
     await expectLater(locales.setLanguage(AppLanguage.en), throwsStateError);
     expect(locales.language, AppLanguage.en);
     expect((await store.getAll())['flutter.app_language'], isNull);

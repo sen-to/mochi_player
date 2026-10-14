@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -6,6 +8,7 @@ import 'package:mochi_player/core/infrastructure/database/database_service.dart'
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/features/library/application/library_search_matcher.dart';
 import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
+import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 
 MediaFile file(
   String path, {
@@ -188,18 +191,24 @@ void main() {
     expect(actual, expected);
   });
 
-  test('watch streams reflect favorite, progress and explicit external invalidation', () async {
+  test('shared library subscriptions receive playback-store progress without window notifications', () async {
     final entry = file('/movie', movieId: '1');
     await db.saveScannedFiles([entry]);
-    final favoriteValues = <bool>[];
-    final subscription = repository.watchVersions('1').listen((files) => favoriteValues.add(files.single.isFavorite));
-    await Future<void>.delayed(const Duration(milliseconds: 30));
-    await db.setTitleFavorite('1', true);
-    await Future<void>.delayed(const Duration(milliseconds: 30));
-    db.invalidatePlaybackQueries();
-    await Future<void>.delayed(const Duration(milliseconds: 30));
-    expect(favoriteValues, [false, true, true]);
-    await subscription.cancel();
+    final stream = StreamIterator(repository.watchVersions('1'));
+    try {
+      expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
+      expect(stream.current.single.isFavorite, isFalse);
+      await db.setTitleFavorite('1', true);
+      expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
+      expect(stream.current.single.isFavorite, isTrue);
+      await DatabasePlaybackMediaStore(database: db).updateProgress(entry, 42000, duration: 100000);
+      expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
+      expect(stream.current.single.position, 42000);
+      expect(stream.current.single.duration, 100000);
+      expect(stream.current.single.isFavorite, isTrue);
+    } finally {
+      await stream.cancel();
+    }
   });
 
   test('scrape candidates exclude persisted matches and handle explicit numeric overrides', () async {

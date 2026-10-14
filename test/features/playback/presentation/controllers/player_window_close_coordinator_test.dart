@@ -4,6 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
 
 void main() {
+  test('a hung resource release is reported and does not skip view detachment', () async {
+    final coordinator = PlayerWindowCloseCoordinator(resourceTimeout: const Duration(milliseconds: 5));
+    var detached = false;
+    coordinator.registerResourceReleaser(() => Completer<void>().future);
+    final report = await coordinator.prepareClose(settleSession: () async {}, detachView: () async => detached = true);
+    expect(report.released, isFalse);
+    expect(report.failedStages, ['resources']);
+    expect(detached, isTrue);
+  });
   test('flushes the active player callback before the window closes', () async {
     final coordinator = PlayerWindowCloseCoordinator();
     var flushCount = 0;
@@ -36,7 +45,7 @@ void main() {
     await Future.wait([firstFlush, secondFlush]);
   });
 
-  test('preparation confirms persistence and resource release before database close', () async {
+  test('preparation confirms persistence and resource release before view detach', () async {
     final coordinator = PlayerWindowCloseCoordinator();
     final events = <String>[];
     final save = Completer<void>();
@@ -48,49 +57,39 @@ void main() {
     final report = coordinator.prepareClose(
       settleSession: () async => events.add('settle'),
       detachView: () async => events.add('detach'),
-      closeDatabase: () async => events.add('database'),
     );
     final repeated = coordinator.prepareClose(
       settleSession: () async => fail('duplicate close'),
       detachView: () async => fail('duplicate close'),
-      closeDatabase: () async => fail('duplicate close'),
     );
     expect(identical(report, repeated), isTrue);
     await Future<void>.delayed(Duration.zero);
     expect(events, ['settle', 'save']);
     save.complete();
-    expect(await report, {'prepared': true, 'saved': true, 'released': true, 'failedStages': <String>[]});
-    expect(events, ['settle', 'save', 'release', 'detach', 'database']);
+    final result = await report;
+    expect(result.saved && result.released, isTrue);
+    expect(result.failedStages, isEmpty);
+    expect(events, ['settle', 'save', 'release', 'detach']);
   });
 
   test('failed final write is reported honestly and does not skip resource cleanup', () async {
     final coordinator = PlayerWindowCloseCoordinator();
     var released = false;
-    var closedDatabase = false;
     coordinator.registerProgressFlusher(() async => throw StateError('write failed'));
     coordinator.registerResourceReleaser(() async => released = true);
-    final report = await coordinator.prepareClose(
-      settleSession: () async {},
-      detachView: () async {},
-      closeDatabase: () async => closedDatabase = true,
-    );
-    expect(report['saved'], isFalse);
-    expect(report['released'], isTrue);
-    expect(report['failedStages'], ['progress']);
-    expect(released && closedDatabase, isTrue);
+    final report = await coordinator.prepareClose(settleSession: () async {}, detachView: () async {});
+    expect(report.saved, isFalse);
+    expect(report.released, isTrue);
+    expect(report.failedStages, ['progress']);
+    expect(released, isTrue);
   });
 
   test('a hung progress flusher reaches its deadline and releases remaining resources', () async {
     final coordinator = PlayerWindowCloseCoordinator(stageTimeout: const Duration(milliseconds: 5));
     coordinator.registerProgressFlusher(() => Completer<void>().future);
     coordinator.registerResourceReleaser(() async {});
-    final report = await coordinator.prepareClose(
-      settleSession: () async {},
-      detachView: () async {},
-      closeDatabase: () async {},
-    );
-    expect(report['prepared'], isTrue);
-    expect(report['saved'], isFalse);
-    expect(report['failedStages'], ['progress']);
+    final report = await coordinator.prepareClose(settleSession: () async {}, detachView: () async {});
+    expect(report.saved, isFalse);
+    expect(report.failedStages, ['progress']);
   });
 }

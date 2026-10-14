@@ -10,7 +10,7 @@
 
 | 编号 | 决策 | 状态 | 日期 |
 | --- | --- | --- | --- |
-| [0001](decisions/0001-multi-window-strategy.md) | 多窗口策略：保留独立播放器，主窗口关闭即退出应用 | Accepted | 2026-10-11 |
+| [0001](decisions/0001-multi-window-strategy.md) | 多窗口策略：官方单引擎多视图，主窗口关闭即退出应用 | Accepted | 2026-10-14 |
 | [0002](decisions/0002-playback-engine.md) | 播放引擎：继续使用 libmpv（经 media_kit），PlaybackEngine 门面已实施 | Accepted | 2026-10-12 |
 | [0003](decisions/0003-persistence-migration.md) | 持久化：Isar 3 迁往 drift + SQLite | Accepted | 2026-10-11 |
 | [0004](decisions/0004-i18n-l10n.md) | 国际化与本地化：官方 gen-l10n + ARB（`app_en.arb` 模板 / `app_zh.arb` 译文），应用内语言切换与双窗口同步已实施 | Accepted | 2026-10-12 |
@@ -28,7 +28,7 @@
 | [architecture/overview.md](architecture/overview.md) | 分层与依赖方向、启动流程、核心抽象、已知架构问题 |
 | [architecture/data-model.md](architecture/data-model.md) | 存储分工、SQLite 表与索引、领域模型映射、进度推导、设置键 |
 | [architecture/media-pipeline.md](architecture/media-pipeline.md) | 扫描 → 文件名解析 → TMDB 刮削 → 索引与展示 |
-| [architecture/playback.md](architecture/playback.md) | 播放链路、跨窗口协议、窗口模式、字幕、进度写入 |
+| [architecture/playback.md](architecture/playback.md) | 播放链路、单引擎播放会话、窗口模式、字幕、进度写入 |
 
 ### 指南
 
@@ -37,7 +37,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | [guides/build-macos.md](guides/build-macos.md) | SPM 关闭、沙箱权限（含 Release 缺少 `network.server` 的坑）、窗口外观 |
-| [guides/build-windows.md](guides/build-windows.md) | UI 线程策略、CI 流程、多窗口已知问题 |
+| [guides/build-windows.md](guides/build-windows.md) | 官方单引擎宿主、固定提交 CI、待验收项 |
 | [guides/testing.md](guides/testing.md) | 测试分层与运行方式、代码约定、待补项 |
 | [experiments/official-single-engine-windowing.md](experiments/official-single-engine-windowing.md) | 官方单引擎多窗口重构依据：通道开关、FVM 固定提交、Release 与系统 PiP，历史验证结论、来源及剩余验收清单 |
 

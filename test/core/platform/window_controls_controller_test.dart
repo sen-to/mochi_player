@@ -24,15 +24,31 @@ void main() {
   });
 
   test('positions native macOS buttons through the platform bridge', () async {
-    final controller = WindowControlsController();
+    final controller = WindowControlsController(viewId: 7);
 
     await controller.positionNativeWindowButtons();
 
     expect(calls.single.method, 'positionNativeWindowButtons');
+    expect(calls.single.arguments, {'viewId': 7});
+  });
+
+  test('failed native visibility change does not commit mini state and permits retry', () async {
+    final controller = WindowControlsController(viewId: 7);
+    addTearDown(controller.dispose);
+    var fail = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+      if (fail) throw PlatformException(code: 'window_operation_failed');
+      return null;
+    });
+    await expectLater(controller.setMiniPlayerMode(true), throwsA(isA<PlatformException>()));
+    expect(controller.isMiniPlayer, isFalse);
+    fail = false;
+    await controller.setMiniPlayerMode(true);
+    expect(controller.isMiniPlayer, isTrue);
   });
 
   test('publishes mini-player state and updates native visibility', () async {
-    final controller = WindowControlsController();
+    final controller = WindowControlsController(viewId: 7);
     var notifications = 0;
     controller.addListener(() => notifications++);
 
@@ -41,6 +57,6 @@ void main() {
     expect(controller.isMiniPlayer, isTrue);
     expect(notifications, 1);
     expect(calls.single.method, 'setNativeWindowButtonsVisible');
-    expect(calls.single.arguments, isFalse);
+    expect(calls.single.arguments, {'viewId': 7, 'visible': false});
   });
 }

@@ -3,8 +3,21 @@ import FlutterMacOS
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  private var engine: FlutterEngine?
+  private var controls: NativeWindowControls?
   static var lifecycleChannel: FlutterMethodChannel?
   private var exitRequested = false
+
+  override func applicationDidFinishLaunching(_ notification: Notification) {
+    let engine = FlutterEngine(name: "Mochi Player", project: nil)
+    self.engine = engine
+    Self.lifecycleChannel = FlutterMethodChannel(
+      name: "mochi_player/application_lifecycle", binaryMessenger: engine.binaryMessenger)
+    controls = NativeWindowControls(engine: engine)
+    RegisterGeneratedPlugins(registry: engine)
+    engine.run(withEntrypoint: nil)
+    super.applicationDidFinishLaunching(notification)
+  }
 
   override func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     guard let channel = Self.lifecycleChannel else {
@@ -13,7 +26,7 @@ class AppDelegate: FlutterAppDelegate {
     if !exitRequested {
       exitRequested = true
       channel.invokeMethod("requestExit", arguments: nil)
-      // A hung main Dart engine must not leave playback running indefinitely.
+      // A hung Dart engine must not leave playback running indefinitely.
       // The Dart coordinator normally finishes within 26 seconds.
       DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
         exit(0)

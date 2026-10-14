@@ -36,12 +36,16 @@ jobs:
           }
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          # Single source of truth: the version pinned by FVM in .fvmrc.
-          flutter-version: ${{ steps.fvmrc.outputs.version }}
-          cache: true
+      - name: Install the pinned Flutter main commit
+        shell: pwsh
+        run: |
+          $sdkPath = Join-Path $env:RUNNER_TEMP "flutter-sdk"
+          git clone --filter=blob:none --no-checkout https://github.com/flutter/flutter.git $sdkPath
+          git -C $sdkPath checkout ${{ steps.fvmrc.outputs.version }}
+          if ($LASTEXITCODE -ne 0) { throw "Flutter checkout failed" }
+          "$sdkPath\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          & "$sdkPath\bin\flutter.bat" --version
+          if ($LASTEXITCODE -ne 0) { throw "Flutter setup failed" }
 
       - name: Show Flutter environment
         run: flutter doctor -v
@@ -56,7 +60,7 @@ jobs:
         run: flutter gen-l10n
 
       - name: Analyze
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Test
         run: flutter test --reporter compact

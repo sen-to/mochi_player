@@ -1,18 +1,12 @@
 PODS:
   - dart_smb2 (0.1.2):
     - FlutterMacOS
-  - desktop_multi_window (0.0.1):
-    - FlutterMacOS
-  - file_selector_macos (0.0.1):
-    - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - media_kit_libs_macos_video (1.0.4):
     - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
   - package_info_plus (0.0.1):
-    - FlutterMacOS
-  - screen_retriever_macos (0.0.1):
     - FlutterMacOS
   - shared_preferences_foundation (0.0.1):
     - Flutter
@@ -22,30 +16,20 @@ PODS:
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
-  - window_manager (0.5.0):
-    - FlutterMacOS
 
 DEPENDENCIES:
   - dart_smb2 (from `Flutter/ephemeral/.symlinks/plugins/dart_smb2/macos`)
-  - desktop_multi_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos`)
-  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
-  - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
-  - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
 
 EXTERNAL SOURCES:
   dart_smb2:
     :path: Flutter/ephemeral/.symlinks/plugins/dart_smb2/macos
-  desktop_multi_window:
-    :path: Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos
-  file_selector_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   media_kit_libs_macos_video:
@@ -54,30 +38,22 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
-  screen_retriever_macos:
-    :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   shared_preferences_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   sqflite_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin
   wakelock_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
-  window_manager:
-    :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
   dart_smb2: c596120ffb6d7767cb1322d478ba726a3155d97e
-  desktop_multi_window: ea8bb43f17f12cf60220d6ebd6b249dcd82e8279
-  file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  screen_retriever_macos: c5508cc3c66ff0d4db650480cf0ab691e220d933
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
-  window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
 PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
 
