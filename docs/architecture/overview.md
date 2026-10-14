@@ -1,99 +1,110 @@
 # 架构总览
 
-本文描述**现状**（代码是怎么组织的）；要做什么改动见 [决策记录](../decisions/)。
+本文描述当前实现（核对日期：2026-10-14）。功能完成度见 [实施状态](../status.md)，技术取舍见 [ADR](../decisions/)，验证证据见 [测试指南](../guides/testing.md)。
 
-## 分层与目录
+## 系统边界
 
-```
-lib/
-├── app/        应用外壳：侧边栏、页面骨架、路由
-├── core/       跨功能共享：领域模型、基础设施、设计系统、平台适配
-│   ├── domain/         领域模型与接口（media / storage / playback）
-│   ├── infrastructure/ 接口实现（database / storage / tmdb）
-│   ├── ui/             设计系统：theme + components + formatters
-│   └── platform/       平台窗口控制
-├── features/   按功能划分：home / library / playback / settings
-│   └── <feature>/{application,domain,infrastructure,presentation}
-└── main.dart   入口，同时区分「媒体库主窗口」与「播放器窗口」
-```
-
-当前主要依赖方向：
+Mochi Player 是面向 macOS / Windows 的本地优先桌面媒体库播放器。文件系统媒体源包括本地、WebDAV 和 SMB；扫描与 TMDB 刮削形成本地索引，播放器使用 libmpv（经 media_kit）。SMB 可浏览 / 扫描，但当前捆绑播放器不能直接打开或 seek SMB URL；HTTP 回源和媒体服务器接入仍是计划。
 
 ```mermaid
-graph LR
-  P[presentation<br/>页面与组件] --> A[application<br/>provider / 控制器]
-  A --> D[domain<br/>模型与接口]
-  I[infrastructure<br/>实现] -.实现.-> D
-  A --> I
-  CORE[core/domain] --> A
-  P --> UI[core/ui]
+flowchart LR
+  Sources["本地 / WebDAV / SMB"] --> Scan["扫描与文件名解析"]
+  Scan --> DB["drift + SQLite 本地索引"]
+  TMDB["TMDB 元数据"] --> Scrape["刮削与匹配"]
+  Scrape --> DB
+  DB --> Library["媒体库查询与展示"]
+  Library --> Session["播放会话"]
+  Session --> Resolve["解析 URL 与认证头"]
+  Resolve --> Engine["PlaybackEngine / media_kit / libmpv"]
+  Engine --> Progress["播放进度串行保存"]
+  Progress --> DB
 ```
 
-- `presentation` 只通过 `application` 拿状态，不直接访问数据库或网络客户端。
-- `infrastructure` 实现 `core/domain` 中的部分接口（如 `StorageProvider`、`PlaybackTargetResolver`）；但当前多个 `application` 类仍直接导入数据库、TMDB、存储等具体实现（例如 [library_sync_controller.dart](../../lib/features/library/application/library_sync_controller.dart)）。因此图描述的是主要依赖关系，项目尚未做到上层完全依赖接口。
-- `core/` 不依赖 `features/`；跨功能的能力沉淀到 `core/`。
-- 所有导入使用包路径（`package:mochi_player/...`），由 `always_use_package_imports` 强制。
+这张图表示数据流，不表示各模块直接互相导入。
 
-## 启动流程
+## 代码分层与依赖
 
-[main.dart](../../lib/main.dart) 只运行一次：初始化 media_kit、共享数据库和设置，再通过 `runWidget` 挂载官方窗口 registry。
+| 目录 | 职责 | 主要入口 |
+| --- | --- | --- |
+| `app/` | 路由、应用外壳、整体退出 | `app/routing/`、`app/application/` |
+| `core/domain/` | 共享领域模型、存储 / 播放目标接口、续播规则 | `media/`、`storage/`、`playback/` |
+| `core/infrastructure/` | SQLite、存储协议、TMDB 实现 | `database/`、`storage/`、`tmdb/` |
+| `core/platform/` | 视图级窗口接口及平台适配 | `WindowService`、`DesktopWindowHost` |
+| `core/ui/` | 主题、组件、展示格式 | `app_ui.dart` |
+| `features/` | 首页、媒体库、播放、设置的应用逻辑与界面 | 各功能的 `application / domain / infrastructure / presentation` |
+| `l10n/` | 英文模板、中文译文、共享语言控制器 | `app_en.arb`、`app_zh.arb` |
+| `main.dart` | 初始化并组装共享依赖、主窗口及播放器工厂 | [启动入口](../../lib/main.dart) |
+
+项目采用按功能组织的分层模块化单体，尚不是上层全部依赖接口的严格 Clean Architecture。下图箭头表示导入 / 使用方向：
 
 ```mermaid
 flowchart TD
-  M[main] --> S[共享数据库 / 语言 / 主题 / 设置]
-  S --> H[DesktopWindowHost + WindowManager]
-  H --> A[主视图 + 路由]
-  A --> C[PlayerWindowCoordinator]
-  C --> P[独立播放器视图 + 播放资源]
-  P --> DB[同一个后台 SQLite 连接]
+  Root["main.dart 组装入口"] --> P["presentation 页面与组件"]
+  Root --> A["application Provider 与控制器"]
+  Root --> I["infrastructure 具体实现"]
+  P --> A
+  A --> D["domain 模型与接口"]
+  I --> D
+  A --> I
+  P -. "当前部分页面直接使用" .-> I
+  P --> UI["core/ui"]
+  P --> W["WindowService"]
 ```
 
-- macOS / Windows runner 只创建一个 FlutterEngine、注册一次插件；窗口由 Dart 创建。
-- 两个视图共享应用 Provider；`WindowService` 和窗口按钮控制器按视图注入，操作携带 `viewId`。
-- 主窗口关闭先等待播放器最后进度和资源清理，再收尾任务与设置、关闭共享数据库并退出。播放器单独关闭保留主窗口与数据库。
+- `core/` 不导入 `features/`；共享能力放在 `core/`。
+- `PlaybackEngine` 与存储接口隔离后端类型；`application` 中仍有数据库、TMDB 等具体实现依赖。
+- 设置页、图片组件和播放器组装入口等仍直接引用基础设施；这是当前边界，不应写成“展示层完全不访问基础设施”。
+- 库查询返回页面投影，不再由全量内存 Catalog 承担筛选与聚合。UI 包独立迁移尚未进行，旧 Material/Cupertino 导入的弃用提示仍可见。
 
-## 全局 Provider
+## 运行时：一个引擎、两个视图、一个共享数据库连接
 
-在 [main.dart](../../lib/main.dart) 中一次性注入：
+```mermaid
+flowchart TB
+  Native["macOS AppDelegate / Windows main.cpp"] --> Engine["一个 FlutterEngine"]
+  Engine --> Main["main.dart：一个 UI isolate"]
+  Main --> Shared["共享 Provider 与应用服务"]
+  Shared --> Registry["DesktopWindowHost / 官方窗口 registry"]
+  Registry --> Library["主视图：路由与媒体库"]
+  Registry --> Player["播放器视图：最多一个"]
+  Shared --> DB["DatabaseService：同一个后台 SQLite 连接"]
+  Library --> DB
+  Player --> DB
+  Library --> LW["主视图 WindowService / viewId"]
+  Player --> PW["播放器 WindowService / viewId"]
+  PW --> Resource["本次会话的播放引擎与资源"]
+```
 
-| Provider | 职责 |
+原生 runner 创建一个引擎并注册一次插件；Dart 创建窗口。数据库通过后台 isolate 执行，UI 与播放器共享同一连接对象；数据库后台 isolate 不等于第二个播放器引擎。
+
+| 所有者 | 状态 / 资源 | 释放时机 |
+| --- | --- | --- |
+| 应用 | `PlayerWindowCoordinator`、设置、主题、语言、库任务与数据库 | 主窗口关闭 / 应用退出 |
+| 每个视图 | `WindowService`、`WindowControlsController`、消息队列 | 对应视图退役 |
+| 播放会话 | `PlaybackEngine`、播放队列、进度写入与窗口模式控制器 | 换片或播放器关闭 |
+
+共享 Provider 包括媒体库、文件浏览、趋势、设置、主题与 `AppLocaleController`；窗口接口和消息宿主按视图注入。`AppMessage` 通过调用方 context 找到消息宿主，不通过全局变量猜测窗口。
+
+## 核心契约
+
+| 契约 | 当前实现与边界 |
 | --- | --- |
-| `AppSettingsProvider` | 应用设置（TMDB、缓存、字幕），并把设置应用到运行时单例 |
-| `MediaLibraryProvider` | 媒体库门面：委托查询与同步控制器 |
-| `FileBrowserProvider` | 文件浏览的目录、排序、搜索状态 |
-| `ThemeProvider` | 主题模式与强调色（持久化在 SharedPreferences） |
-| `TrendingMediaProvider` | 首页 TMDB 趋势（不落库） |
-| `AppLocaleController` | 共享语言偏好；所有视图直接观察变更 |
+| [StorageProvider / StorageConnection](../../lib/core/domain/storage/storage_provider.dart) | 注册表按协议建立连接与列目录；浏览能力与播放协议能力分别验证 |
+| [PlaybackTargetResolver](../../lib/core/domain/playback/playback_target_resolver.dart) | 根据媒体源解析 URL 与请求头，不负责媒体服务器的会话上报 |
+| [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) | 播放、seek、轨道、选项、状态流及视频表面；不暴露任意 mpv 属性 API |
+| [DatabaseService](../../lib/core/infrastructure/database/database_service.dart) | 共享连接、事务与字段级写入 |
+| [LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart) | SQL 筛选、聚合、有限结果投影与 drift 订阅 |
+| [WindowService](../../lib/core/platform/window_service.dart) | 所属视图的窗口操作；原生桥每次带 `viewId` |
 
-`WindowControlsController` 与 `WindowService` 在各自视图注入，不是全局窗口状态。每个视图拥有独立 `AppMessageHost`；提示通过调用方 context 路由，避免播放器消息出现在主窗口。
+## 生命周期与同步
 
-状态刷新的约定：SQLite 是持久化数据源，`LibraryRepository` 提供分页 SQL 查询与 drift 订阅。`MediaLibraryProvider` 只保留有限的首页展示投影与同步任务状态，UI 以稳定查询订阅或投影比较决定重建。全量 Catalog 与手工修订号已删除。播放器与库查询使用同一连接，进度提交直接更新 drift 查询订阅，不再发送关闭通知或手动查询失效，见 [0003](../decisions/0003-persistence-migration.md)。
+主窗口关闭意味着整个程序退出：先拒绝新任务，保存 / 释放播放器，再收尾应用任务与偏好、关闭数据库，最后结束进程。单独关闭播放器保留主窗口与数据库。失败或无响应经过有界等待后继续退出，不承诺超时场景一定保存最后快照。详细顺序见 [播放生命周期](playback.md#生命周期与退出)。
 
-## 核心抽象
+数据库变更由共享连接的 drift 订阅刷新媒体库；语言、主题与设置由共享 Provider 通知。不再使用窗口 RPC、版本化 JSON 启动协议、语言快照或跨连接手动查询失效。小窗采用 mini，系统画中画暂不纳入计划。
 
-| 抽象 | 位置 | 作用 |
-| --- | --- | --- |
-| `StorageSource` / `StorageCredentials` | [core/domain/storage](../../lib/core/domain/storage/storage_source.dart) | 媒体源配置；凭据刻意与配置分离，避免在列表中泄露 |
-| `StorageProvider` / `StorageConnection` | [core/domain/storage](../../lib/core/domain/storage/storage_provider.dart) | 按协议连接与列目录；`StorageProviderRegistry` 按类型分派 |
-| `PlaybackTargetResolver` / `PlaybackTarget` | [core/domain/playback](../../lib/core/domain/playback/playback_target.dart) | 把媒体文件解析成播放 URL 与请求头 |
-| `DatabaseService` | [core/infrastructure/database](../../lib/core/infrastructure/database/database_service.dart) | 数据库统一出口（应用共享单例） |
-| `LibraryRepository` | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 查询、分页、聚合与订阅，按标题加载详情与播放队列 |
-| `TmdbService` | [core/infrastructure/tmdb](../../lib/core/infrastructure/tmdb/tmdb_service.dart) | TMDB 请求、匹配与转换（单例）；客户端由设置在运行时配置 |
-| `AppTheme` + `core/ui/components` | [core/ui](../../lib/core/ui/app_ui.dart) | 设计系统：颜色、字号、间距、圆角、组件库 |
+## 当前设计限制
 
-## 已知架构问题
-
-| 问题 | 影响 | 决策 |
-| --- | --- | --- |
-| 官方实验多视图与 main SDK | Windows 运行时与插件适配仍须验收 | [0001](../decisions/0001-multi-window-strategy.md) |
-| 数据访问是全表加载 + 内存重算 | 大库性能与刷新粒度问题 | [0003](../decisions/0003-persistence-migration.md) |
-| media_kit 有限维护 | 播放后端已隔离，原生渲染、捆绑构建和关键补丁仍需自行验证 | [0002](../decisions/0002-playback-engine.md) |
-| SMB 直链依赖预编译产物是否含某协议 | 功能可用性不可控 | [0005](../decisions/0005-smb-playback-path.md) |
-| 媒体服务器包含目录浏览、播放协商与服务端会话，不能由文件系统源抽象完整表达 | 需独立的服务端接入与播放生命周期 | [0006](../decisions/0006-media-server-integration.md) |
-| 本地化已接入 gen-l10n，提供中英文与双窗口语言同步 | Windows 原生运行时与完整页面布局仍需验收；系统原生菜单语言由平台控制 | [0004](../decisions/0004-i18n-l10n.md) |
-
-## 界面语言
-
-`lib/l10n/` 的英文模板与简体中文译文由 gen-l10n 生成类型安全接口。`AppLocaleController` 保存 `system / zh / en` 偏好到 SharedPreferences 的 `app_language` 键，独立于 TMDB 和字幕设置；同一控制器在两个视图中共享，变更直接触发 Provider 重建，不再复制快照或使用 revision。两个 `MaterialApp` 配置同一套委托、支持语言与解析策略。
-
-应用与控制器的用户可见错误使用 `AppFailure`，扫描 / 刮削活动使用 `LibraryActivity`；展示层根据当前 locale 翻译，服务层不依赖 `BuildContext`。日志、字幕语言匹配词及用户媒体内容不属于界面译文。生成目录不入库，CI 校验资源完整性并在静态检查 / 测试前生成。
+- 部分上层依赖具体实现，数据库和 TMDB 服务仍使用单例；接口化按实际替换 / 测试需求推进。
+- 单个 UI isolate 中的同步重任务会影响两个视图；数据库已移到后台，但不能据此宣称所有计算都已隔离。
+- 实验窗口 API 与固定 main SDK 需要持续验证插件、原生交互和发布。
+- 大库分页、搜索与索引效果尚无容量基线；不把实现了 SQL 等同于性能已验证。
+- 元数据匹配错误分类、凭据存储和元数据回收仍待完善，见 [数据模型](data-model.md) 与 [媒体流水线](media-pipeline.md)。

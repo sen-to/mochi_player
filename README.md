@@ -24,17 +24,17 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 
 ## 🖼️ 界面预览
 
-![首页](docs/images/screenshots/home.png)
+![首页](docs/images/screenshots/home.webp)
 
 | 电影 | 媒体详情 |
 | --- | --- |
-| ![电影库](docs/images/screenshots/movies.png) | ![媒体详情](docs/images/screenshots/detail.png) |
+| ![电影库](docs/images/screenshots/movies.webp) | ![媒体详情](docs/images/screenshots/detail.webp) |
 
 | 文件浏览 | 播放 |
 | --- | --- |
-| ![文件浏览](docs/images/screenshots/file-browser.png) | ![播放](docs/images/screenshots/playback.png) |
+| ![文件浏览](docs/images/screenshots/file-browser.webp) | ![播放](docs/images/screenshots/playback.webp) |
 
-![设置](docs/images/screenshots/settings.png)
+![设置](docs/images/screenshots/settings.webp)
 
 ## ✨ 功能
 
@@ -64,7 +64,7 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 | 平台 | 状态 |
 | --- | --- |
 | macOS | 正在验证官方多视图迁移；暂无 CI，需要从源码构建 |
-| Windows | 官方多视图新宿主待验收；有 CI 构建，见下方「下载与安装」 |
+| Windows | 官方多视图版本 CI 构建已通过，原生交互仍待验收；见下方「下载与安装」 |
 
 ## 📥 下载与安装
 
@@ -88,7 +88,7 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
    - **SMB**：局域网内的 SMB / Samba 共享。
 4. 扫描媒体源并开始浏览、播放。
 
-后续扫描会重新枚举目录以识别删除项，但只将新增路径写入媒体库；已存在的元数据不会重复请求 TMDB。
+后续扫描会重新枚举目录并更新文件属性，保留播放进度和收藏；扫描无读取错误才清理消失的文件。已具备匹配元数据的文件通常跳过 TMDB 请求，显式 ID 变化或缺少元数据时会重新处理。
 
 TMDB Key 由用户自行申请和管理，请不要将自己的 Key 提交到仓库或截图中。
 

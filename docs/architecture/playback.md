@@ -1,6 +1,6 @@
 # 播放
 
-本文描述「点击播放」到「进度写回媒体库」的链路与同引擎会话调用。
+核对日期：2026-10-14。本文描述「点击播放」到「进度写回媒体库」的链路与同引擎会话调用。功能状态见 [实施状态](../status.md)，验证证据见 [测试指南](../guides/testing.md)。
 
 ```mermaid
 sequenceDiagram
@@ -13,11 +13,11 @@ sequenceDiagram
   alt 媒体已入库
     DB-->>MW: MediaFile
   else 媒体未入库
-    MW->>MW: 使用请求中的请求中的文件对象
+    MW->>MW: 使用请求中的文件对象
   end
   MW->>MW: StorageSourcePlaybackResolver 解析播放目标
   MW->>MPV: PlaybackEngine.open(target, start)
-  loop 每 10 秒或位移超过 5 秒
+  loop 每 10 秒检查，位移至少 5 秒才保存
     MW->>DB: 媒体已入库时写入播放进度
   end
   DB-->>UI: 共享 drift 查询订阅刷新媒体库状态
@@ -27,7 +27,7 @@ sequenceDiagram
 
 - 入口：`PlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[playback_launcher.dart](../../lib/features/playback/presentation/playback_launcher.dart)）。
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
-- 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，在同一 isolate 内传递 `MediaFile`、队列和会话 ID，不再序列化 JSON 或维护版本协议。
+- 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，在同一 isolate 内传递 `MediaFile`、队列和请求 ID，不再序列化 JSON 或维护版本协议。
 - [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器，不依赖全局静态转发层。[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 创建独立视图，并使用共享设置、语言、主题和后台数据库连接。
 - 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
@@ -72,7 +72,31 @@ sequenceDiagram
 
 窗口操作通过视图 Provider 中的 `WindowService`，不使用全局「当前窗口」。`DesktopWindowHost` 管理官方 registry，每个服务拥有独立 `viewId`；尺寸约束、激活和全屏使用官方控制器，拖动 / 位置 / 普通置顶和按视图绑定的文件对话框通过原生扩展。macOS 全屏的 Future 等待 AppKit 动画完成，超时会恢复实际 UI 状态并允许重试。小窗统一采用 mini 播放器，复用当前播放会话、字幕和控制界面；系统画中画暂不纳入实现与验收范围。
 
+进入 mini 前记录原尺寸、最大化与置顶状态；退出时恢复这些状态及常规尺寸约束。mini 失败会尝试撤回部分修改，原尺寸记录在恢复成功后才清除；恢复失败保留重试信息，置顶失败读取实际状态。标题栏配置使用 `configureTitlebar`，没有手动移动 macOS 红绿灯坐标。
+
+## 生命周期与退出
+
 关闭主窗口进入 `ApplicationExitCoordinator`：拒绝新请求，等待已接受的会话操作、最终进度和资源释放，注销视图并等待一帧，再销毁窗口；随后收尾任务、设置与共享数据库，结束进程。播放器单独关闭不关闭共享数据库。
+
+```mermaid
+sequenceDiagram
+  participant Main as 主窗口退出入口
+  participant Exit as ApplicationExitCoordinator
+  participant Player as 播放器会话
+  participant DB as 共享数据库
+  Main->>Exit: requestExit
+  Exit->>Exit: 拒绝新播放、扫描与设置变更
+  Exit->>Player: 等待已接受请求，暂停并保存最终进度
+  Player->>DB: 串行提交进度
+  DB-->>Player: 写入结果
+  Player->>Player: 释放引擎，解绑页面与视图
+  Player-->>Exit: 清理结果或超时
+  Exit->>Exit: 等待应用任务与偏好写入
+  Exit->>DB: 关闭共享连接
+  Exit->>Exit: 结束整个进程
+```
+
+重复退出复用同一操作。播放器阶段最多 18 秒，应用清理阶段最多 8 秒；macOS 原生退出有 30 秒兜底。播放器内部对替换 / 保存 / 解绑帧阶段各等待最多 2 秒，资源释放与窗口恢复阶段最多 12 秒。失败继续后续清理，超时 / 强制结束不保证最后快照已保存，不能把“进程退出”当作“保存成功”。
 
 替换播放请求先解析新目标；成功后保存、释放旧播放资源并移除旧页面一帧，再挂载新页面，避免两个页面同时拥有资源回调。目标解析失败保留原播放。语言变化只重建文案，不替换播放会话。
 

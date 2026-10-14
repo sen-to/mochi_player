@@ -2,7 +2,7 @@
 
 - **Status**: Accepted（2026-10-14 完成迁移主体；Windows 运行时仍待验收）
 - **Date**: 2026-10-13（初稿 2026-10-05）
-- **Related**: [0002 播放引擎](0002-playback-engine.md)、[0003 持久化](0003-persistence-migration.md)、[0004 l10n](0004-i18n-l10n.md)、[历史原型验证](../experiments/official-single-engine-windowing.md)
+- **Related**: [0002 播放引擎](0002-playback-engine.md)、[0003 持久化](0003-persistence-migration.md)、[0004 l10n](0004-i18n-l10n.md)、[历史原型验证](../history/official-single-engine-windowing.md)
 
 ## Context（背景与约束）
 
@@ -63,11 +63,11 @@
 
 ## 实施与验收
 
-实施内容包括官方窗口宿主、视图级窗口服务、共享状态与数据库、直接会话调用和旧后端删除。macOS Debug / Release 构建与回归测试与隔离的真实播放 / SQLite 集成运行已通过。验证方式见 [测试指南](../guides/testing.md)。
+实施内容包括官方窗口宿主、视图级窗口服务、共享状态与数据库、直接会话调用和旧后端删除。macOS 构建、回归与隔离播放冒烟已通过；Windows 静态检查与 209 项测试有 CI 日志确认，原生构建修复后用户确认 CI 成功。构建通过不代表运行时交互已验收，最新证据见 [测试指南](../guides/testing.md)。
 
 仍需分别验收：
 
-- Windows 编译、Debug / Release 运行、输入冻结回归、原生窗口扩展、多显示器与 DPI。
+- Windows Debug / Release 实际运行、输入冻结回归、原生窗口扩展、多显示器与 DPI。
 - 主窗口原生关闭按钮、播放器聚焦时 Cmd+Q、连续打开 / 替换 / 关闭；播放错误、长时间播放和无响应超时。
 - 真实媒体 seek、切集、内嵌 / 外挂字幕、硬解、HDR 与可访问性；Windows 原生文件对话框及未逐项报告的对话框边界用例。
 - 双平台签名 / 发布流程。

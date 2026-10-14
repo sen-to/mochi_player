@@ -1,6 +1,6 @@
 # 媒体流水线：扫描 → 解析 → 刮削 → 索引
 
-本文描述从「配置媒体源」到「首页出现海报」的完整链路。入口是
+核对日期：2026-10-14。本文描述从「配置媒体源」到「首页出现海报」的完整链路。入口是
 [LibrarySyncController.scanEnabledMediaSources()](../../lib/features/library/application/library_sync_controller.dart)。
 
 ```mermaid
@@ -20,6 +20,8 @@ flowchart TD
   L --> M[写入电影/剧集/季/集]
   M --> Z
 ```
+
+字段所有权与订阅见 [数据模型](data-model.md)，复杂度、排序与调度策略见 [算法说明](algorithms.md)。
 
 ## 阶段 1：扫描与入库
 
@@ -60,7 +62,7 @@ flowchart TD
 3. **匹配**：`MetadataMatchResolver` 先看显式 ID / 已确认 ID（命中则直接读本地库），否则依次尝试查询计划，**取第一个非空结果**（`TmdbSearchMatcher.findBest` 直接返回首条，注释说明以 TMDB 自身排序为准）。
 4. **详情与转换**：`TmdbService` 请求详情（`append_to_response=credits,release_dates,images` 或剧集对应参数，`language=zh-CN`），由 `TmdbMetadataMapper` 转成领域模型。
 5. **剧集**：按 `tmdb:<id>` 或规范化标题分组，逐组匹配剧集并拉取各季详情，经 `MetadataImporter.importSeasonEpisodes` 写入季与集；集 ID 形如 `show_s1e1`。
-6. **并发**：`_runWithConcurrency` 以固定 worker 数（见源码 `maxConcurrent`）并行处理，进度通过回调上报（完成数 / 总数 / 成功 / 失败 / 当前标题）。
+6. **并发**：`_runWithConcurrency` 分电影与剧集分组两个阶段执行，各最多 5 个异步 worker；限制 I/O 请求并发，不是 CPU 多线程。进度通过回调上报（完成数 / 总数 / 成功 / 失败 / 当前标题）。
 7. **未匹配**：标记为未匹配并清空 ID。
 
 网络与代理：`TmdbClient` 统一处理 API Key、语言、超时与代理（`PROXY host:port`，不支持代理认证），图片走 `TmdbImageCacheManager`（30 天、1200 条上限，使用相同代理）。
