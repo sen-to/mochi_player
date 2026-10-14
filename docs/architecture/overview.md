@@ -35,44 +35,99 @@ flowchart LR
 | `l10n/` | 英文模板、中文译文、共享语言控制器 | `app_en.arb`、`app_zh.arb` |
 | `main.dart` | 初始化并组装共享依赖、主窗口及播放器工厂 | [启动入口](../../lib/main.dart) |
 
-项目采用按功能组织的分层模块化单体，尚不是上层全部依赖接口的严格 Clean Architecture。下图箭头表示导入 / 使用方向：
+项目采用按功能组织的分层模块化单体：首页、媒体库、播放和设置各自组织页面与应用逻辑，共用存储、数据库、平台和 UI 能力。这里的分层是职责划分，尚未形成所有上层只依赖接口的严格依赖约束。
+
+### 模块职责
+
+下图只表示目录归属，不表示调用或导入。各功能按需要设置子目录，并非每个功能都有完整的四层。
 
 ```mermaid
-flowchart TD
-  Root["main.dart 组装入口"] --> P["presentation 页面与组件"]
-  Root --> A["application Provider 与控制器"]
-  Root --> I["infrastructure 具体实现"]
-  P --> A
-  A --> D["domain 模型与接口"]
-  I --> D
-  A --> I
-  P -. "当前部分页面直接使用" .-> I
-  P --> UI["core/ui"]
-  P --> W["WindowService"]
+flowchart TB
+  subgraph App["应用组装与外壳"]
+    Entry["main.dart：初始化与依赖组装"]
+    Shell["app/：路由、外壳与整体退出"]
+  end
+  subgraph Features["features/：按功能组织"]
+    Home["home：趋势与首页"]
+    Library["library：浏览、查询、扫描与刮削"]
+    Playback["playback：会话、进度与播放器界面"]
+    Settings["settings：偏好与设置界面"]
+  end
+  subgraph Core["core/ 与 l10n/：共享能力"]
+    Domain["领域模型与存储 / 播放目标契约"]
+    Infra["SQLite、存储协议与 TMDB"]
+    Platform["视图窗口接口与平台适配"]
+    UI["主题、组件与本地化"]
+  end
 ```
 
-- `core/` 不导入 `features/`；共享能力放在 `core/`。
-- `PlaybackEngine` 与存储接口隔离后端类型；`application` 中仍有数据库、TMDB 等具体实现依赖。
-- 设置页、图片组件和播放器组装入口等仍直接引用基础设施；这是当前边界，不应写成“展示层完全不访问基础设施”。
-- 库查询返回页面投影，不再由全量内存 Catalog 承担筛选与聚合。UI 包独立迁移尚未进行，旧 Material/Cupertino 导入的弃用提示仍可见。
+`core/` 不导入 `features/`。功能之间仍有协作，例如设置变更影响媒体库和趋势；目录归属不代表模块完全独立。
+
+### 业务调用与当前越层访问
+
+下图表示代表性的调用路径，不是完整 import 图。实线为当前常规路径，虚线为需要收拢的页面直接访问。入口组装、图片缓存和窗口操作不混入这张业务图。
+
+```mermaid
+flowchart LR
+  subgraph LibraryPath["媒体库"]
+    LibraryPage["媒体库页面"] --> LibraryApp["MediaLibraryProvider / LibrarySyncController"]
+    LibraryApp --> Repository["LibraryRepository / 扫描与刮削实现"]
+    Repository --> Database["DatabaseService / SQLite"]
+    LibraryPage -. "LibraryQuery 接收具体仓库" .-> Repository
+  end
+  subgraph SettingsPath["设置"]
+    SettingsPage["SettingsPage"] --> SettingsApp["AppSettingsProvider"]
+    SettingsApp --> Preferences["AppSettingsService"]
+    SettingsPage -. "页面直接管理媒体源" .-> Storage["StorageSourceService / 存储实现"]
+  end
+  subgraph PlaybackPath["播放"]
+    Player["播放器界面与控制器"] --> Session["播放会话与进度逻辑"]
+    Session --> Contract["PlaybackEngine / PlaybackMediaStore 契约"]
+    Contract --> Backend["运行时实现：media_kit / 数据库适配"]
+  end
+```
+
+播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
+
+以下依赖有明确用途，不应仅因跨目录就判为架构问题：
+
+- 入口和工厂必须选择具体实现并组装依赖；需要明确它们的组装职责。
+- 页面使用 `core/ui` 和视图级 `WindowService` 属于展示与窗口交互。
+- 图片组件使用 TMDB 图片缓存属于展示资源加载，与页面直接处理存储业务的风险不同。
+- 应用服务调用具体仓库是当前务实分层的取舍；是否引入接口应由替换、测试与职责边界决定。
+
+库查询返回有限的页面投影，不再由全量内存 Catalog 承担筛选与聚合。UI 包独立迁移尚未进行，旧 Material/Cupertino 导入的弃用提示仍可见。
+
+### 已识别的架构问题
+
+以下是当前代码问题及后续建议，整改尚未实施；不把建议中的边界当作现状。
+
+| 问题与代码证据 | 当前影响 | 建议整改与完成标准 |
+| --- | --- | --- |
+| [SettingsPage](../../lib/features/settings/presentation/pages/settings_page.dart) 创建 `StorageSourceService`，直接引用 SMB 与存储注册表；[FileBrowserPage](../../lib/features/library/presentation/pages/file_browser_page.dart) 也直接使用媒体源服务 | 页面承担媒体源业务协调，错误、任务状态与刷新逻辑容易分散 | 优先把媒体源操作收拢到应用层；页面保留输入、确认与展示，不直接编排存储实现 |
+| [MediaLibraryProvider](../../lib/features/library/application/media_library_provider.dart) 公开具体 `repository`；[LibraryQuery](../../lib/features/library/presentation/widgets/library_query.dart) 接收 `LibraryRepository` 回调 | 页面查询与仓库 API 绑定，Provider 未形成完整的查询边界 | 再收拢页面使用的查询入口与投影；页面不再依赖具体仓库类型，保留 drift 订阅刷新行为 |
+| [playback_media_store.dart](../../lib/features/playback/application/playback_media_store.dart) 同时定义 `PlaybackMediaStore` 和 `DatabasePlaybackMediaStore` | 引用契约也会引入数据库实现所在文件，应用契约与适配职责混合 | 将数据库适配移入 `infrastructure/`；契约所在文件不导入数据库实现 |
+| [player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 同时负责界面、窗口生命周期与具体播放后端组装 | 播放器展示入口包含较多组装职责，替换后端时需要修改展示目录 | 明确独立的播放器组装入口，注入后端工厂；保持窗口关闭、换片和资源释放顺序 |
+| 数据库与 TMDB 存在单例及默认构造；应用对象内部仍选择具体服务 | 依赖来源部分隐含，隔离测试和替换实现需要额外处理 | 最后按实际需求集中关键依赖组装；避免给每个类机械增加接口 |
+
+建议顺序为：页面业务收拢 → 查询边界收拢 → 适配器归位与播放器组装分离 → 关键依赖显式注入。整改应维持现有功能和生命周期契约，并验证相关行为；仅调整目录名或补接口不能视为问题已解决。
 
 ## 运行时：一个引擎、两个视图、一个共享数据库连接
 
 ```mermaid
 flowchart TB
-  Native["macOS AppDelegate / Windows main.cpp"] --> Engine["一个 FlutterEngine"]
-  Engine --> Main["main.dart：一个 UI isolate"]
-  Main --> Shared["共享 Provider 与应用服务"]
-  Shared --> Registry["DesktopWindowHost / 官方窗口 registry"]
-  Registry --> Library["主视图：路由与媒体库"]
-  Registry --> Player["播放器视图：最多一个"]
-  Shared --> DB["DatabaseService：同一个后台 SQLite 连接"]
-  Library --> DB
-  Player --> DB
-  Library --> LW["主视图 WindowService / viewId"]
-  Player --> PW["播放器 WindowService / viewId"]
-  PW --> Resource["本次会话的播放引擎与资源"]
+  Native["原生宿主：一个 FlutterEngine"] --> Runtime["Dart：一个 UI isolate"]
+  Runtime --> Shared["应用共享：Provider、窗口协调与 DatabaseService"]
+  Runtime --> Views["DesktopWindowHost：视图注册与管理"]
+  Views --> Library["主视图：路由与媒体库"]
+  Views --> Player["播放器视图：最多一个"]
+  Shared --> DB["数据库后台 isolate：SQLite 连接"]
+  Library --> LW["主视图资源：WindowService、窗口控制与消息宿主"]
+  Player --> PW["播放器视图资源：WindowService、窗口控制与消息宿主"]
+  Player --> Resource["会话资源：播放引擎、队列与进度写入"]
 ```
+
+本图箭头表示创建 / 管理关系，省略业务调用。两个视图使用同一组应用共享对象；没有分别持有独立数据库连接。
 
 原生 runner 创建一个引擎并注册一次插件；Dart 创建窗口。数据库通过后台 isolate 执行，UI 与播放器共享同一连接对象；数据库后台 isolate 不等于第二个播放器引擎。
 

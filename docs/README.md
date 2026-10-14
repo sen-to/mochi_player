@@ -25,7 +25,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| [架构总览](architecture/overview.md) | 数据流、导入方向、单引擎双视图、状态与资源所有权 |
+| [架构总览](architecture/overview.md) | 模块职责、业务调用、运行时资源、当前架构问题与整改顺序 |
 | [数据模型](architecture/data-model.md) | 六表、逻辑关系图、唯一键 / 编码 / 索引、字段级写入与查询限制 |
 | [媒体流水线](architecture/media-pipeline.md) | 扫描、文件名解析、TMDB 刮削、错误边界与索引展示 |
 | [播放](architecture/playback.md) | 请求、目标解析、引擎门面、mini / 全屏、退出时序、字幕与进度 |
