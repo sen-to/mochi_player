@@ -8,8 +8,9 @@
 2. [架构总览](architecture/overview.md)：系统数据流、分层职责、实际调用路径、已落实的职责边界与资源所有权。
 3. [数据模型](architecture/data-model.md) → [媒体流水线](architecture/media-pipeline.md) → [播放](architecture/playback.md)：按实际调用链理解代码。
 4. [算法说明](architecture/algorithms.md)：文件解析、搜索评分、续播、任务调度及复杂度边界。
-5. [测试指南](guides/testing.md) 与对应平台构建指南：复现、验收和排障。
-6. 修改技术方向前阅读相关 ADR。
+5. 开始编码前阅读 [代码组织与新增功能](guides/code-organization.md)：目录骨架、代码落位、依赖规则与评审流程。
+6. [测试指南](guides/testing.md) 与对应平台构建指南：复现、验收和排障。
+7. 修改技术方向前阅读相关 ADR。
 
 ## 文档分工
 
@@ -26,6 +27,7 @@
 | 文档 | 内容 |
 | --- | --- |
 | [架构总览](architecture/overview.md) | 分层职责、统一命名约定、依赖作用域、实际业务调用及运行时资源 |
+| [代码组织与新增功能](guides/code-organization.md) | 后续编码的目录骨架、代码归属、依赖边界、扩展示例与评审流程 |
 | [数据模型](architecture/data-model.md) | 六表完整字段字典、类型 / 主外键 / 约束 / 索引、设计取舍、ORM 与读写边界 |
 | [媒体流水线](architecture/media-pipeline.md) | 扫描、文件名解析、TMDB 刮削、错误边界与索引展示 |
 | [播放](architecture/playback.md) | 请求、目标解析、引擎门面、mini / 全屏、退出时序、字幕与进度 |
