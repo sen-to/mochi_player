@@ -44,6 +44,15 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 | `pod install` 报 Flutter-Generated.xcconfig 不存在 | 先执行 `fvm flutter pub get` |
 | 构建后无法连接网络媒体源 | 检查对应构建配置的 `network.client` 权限 |
 
+### 原生依赖警告（2026-10-14）
+
+- `POD_CONFIGURATION_DEBUG macro redefined`：`media_kit_video 2.0.1` 的 macOS Podspec 将宏列表中的 `$(inherited)` 加了引号，导致继承的多个宏被拼成一个定义。`Podfile` 的 `pre_install` 钩子仅在内存中修正该插件的设置，再由 CocoaPods 生成配置；不改 pub 缓存或生成头文件，不关闭编译警告。上游 Podspec 修正后删除此钩子。[上游配置](https://github.com/media-kit/media-kit/blob/main/media_kit_video/macos/media_kit_video.podspec)
+- Swift Package Manager 提示：项目主动关闭 SPM，已安装的 `media_kit_video 2.0.1` 与 `media_kit_libs_macos_video 1.1.4` 缺少 macOS SPM 支持。继续使用 CocoaPods；升级到支持 SPM 的插件并完成原生依赖迁移后，删除项目关闭开关。仅开启开关不能使插件自动支持 SPM。[上游跟踪](https://github.com/media-kit/media-kit/issues/1399)
+- `objc_ownership` / `CVPixelBufferRef`：来自插件 Swift 视频纹理接口生成的 Objective-C 头文件，属于插件接口与编译器桥接问题。上游 README 也记录了同类警告。本项目保留提示，不修改生成头文件或改变像素缓冲区的所有权语义。[上游说明](https://github.com/media-kit/media-kit#notes)
+- `Using the Impeller rendering backend`：正常渲染后端信息，不是构建警告。
+
+验证：`pod install --no-repo-update` 成功，生成的宏列表保持各定义独立；macOS Debug 构建成功，本次日志没有宏重定义警告。SPM 提示仍存在。增量构建未输出所有权警告，不代表已修复该生成接口问题。依赖版本与 Podspec 校验值未变，仅更新 Podfile 校验值。
+
 ## 构建命令
 
 ```bash
