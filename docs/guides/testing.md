@@ -23,6 +23,12 @@ fvm flutter analyze --no-fatal-infos            # 静态检查（保留 SDK 弃�
 
 提交流程至少运行全量测试、格式化和静态检查；目录与名称筛选命令是按需使用的示例。CI 执行文案完整性检查、本地化生成、analyze、test 和 Windows 构建。
 
+### 测试宿主与真实窗口
+
+`test/flutter_test_config.dart` 在每个测试套件启动、创建 binding 之前关闭测试进程内的实验窗口能力。`test/` 中的单元 / Widget 测试使用注入的 `WindowService` 假实现，不创建真实原生窗口；正式应用和 `integration_test/windowing_smoke.dart` 继续使用项目的 `enable-windowing=true`。
+
+固定 SDK `5ba8961b51` 的 `WidgetsBinding.initInstances` 会先创建平台窗口宿主，随后 `flutter_test` 才安装测试窗口宿主。在 Windows 的 `flutter_tester` 中，前一步找不到 `InternalFlutterWindows_WindowManager_Initialize`，导致测试文件加载失败。测试配置隔离该原生初始化，不跳过测试、不修改 SDK，也不关闭应用的多窗口能力。该测试配置只作用于 `test/`，真实窗口、输入与退出仍需通过正式 runner 的集成 / 人工验收。升级 SDK 后应复查是否可移除此配置。
+
 ## 约定
 
 - 代码统一 120 列，由 [analysis_options.yaml](../../analysis_options.yaml) 的 `formatter.page_width` 声明，无需传参。

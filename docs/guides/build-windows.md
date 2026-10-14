@@ -36,6 +36,8 @@ CI 从 `.fvmrc` 读取完整 main 提交，通过 Git 检出 SDK，再下载预�
 
 本轮开发环境为 macOS，**没有确认 Windows 新宿主构建或运行通过**。需实际验证创建 / 复用 / 关闭、主窗口输入、全屏与 mini、文件选择器、最后进度保存、启动中退出及超时。历史输入冻结不能仅因换成单引擎就宣布已修复。
 
+2026-10-14 [首次 master CI](https://github.com/sen-to/mochi_player/actions/runs/38505530613/job/115662050561) 的依赖、本地化与静态检查通过；测试阶段因 `flutter_tester` 缺少官方 Win32 窗口初始化符号而有 26 个测试文件加载失败，Windows Release 构建尚未执行。测试宿主配置与原因见 [测试指南](testing.md#测试宿主与真实窗口)。修复后必须重新运行 Windows CI 才能确认结果，不能沿用 macOS 的通过结论。
+
 2026-10-14 用户已确认文件对话框手工验收完成，记录见 [测试指南](testing.md)。该确认未单独说明 Windows 平台，因此 Windows COM 对话框的验收仍保留。
 
 ## 本地化生成
