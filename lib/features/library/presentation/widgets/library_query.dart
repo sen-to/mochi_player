@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
-import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +17,7 @@ class LibraryQuery<T> extends StatefulWidget {
   });
 
   final Object queryKey;
-  final Stream<T> Function(LibraryRepository) query;
+  final Stream<T> Function(MediaLibraryProvider) query;
   final T initialData;
   final Widget Function(BuildContext, T) builder;
   final bool sliver;
@@ -34,14 +33,14 @@ class _LibraryQueryState<T> extends State<LibraryQuery<T>> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _stream ??= widget.query(context.read<MediaLibraryProvider>().repository);
+    _stream ??= widget.query(context.read<MediaLibraryProvider>());
   }
 
   @override
   void didUpdateWidget(covariant LibraryQuery<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.queryKey != widget.queryKey) {
-      _stream = widget.query(context.read<MediaLibraryProvider>().repository);
+      _stream = widget.query(context.read<MediaLibraryProvider>());
     }
   }
 
@@ -67,7 +66,7 @@ class PagedLibraryQuery<T> extends StatefulWidget {
   const PagedLibraryQuery({super.key, required this.queryKey, required this.query, required this.builder});
 
   final Object queryKey;
-  final Stream<List<T>> Function(LibraryRepository, int limit) query;
+  final Stream<List<T>> Function(MediaLibraryProvider, int limit) query;
   final Widget Function(BuildContext, List<T>) builder;
 
   @override

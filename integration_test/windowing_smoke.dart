@@ -1,3 +1,5 @@
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
 // Run: fvm flutter run -d macos -t integration_test/windowing_smoke.dart
 // Uses the production runner, real media_kit and sandbox-local generated video.
 // SQLite and preferences are isolated from the user's library.
@@ -18,11 +20,11 @@ import 'package:mochi_player/core/infrastructure/database/database_service.dart'
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
-import 'package:mochi_player/features/playback/application/playback_media_store.dart';
+import 'package:mochi_player/features/playback/infrastructure/database_playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
-import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
+import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
@@ -59,6 +61,18 @@ void main() async {
   final sqliteFile = File('${directory.path}/library.sqlite');
   final database = DatabaseService.withDatabase(AppDatabase(NativeDatabase(sqliteFile, setup: configureSqlite)));
   await database.init();
+  await database.saveStorageSource(
+    StorageSourceRow(
+      sourceId: 'smoke',
+      name: 'Smoke source',
+      type: 'local',
+      endpoint: directory.path,
+      rootPath: '/',
+      enabled: true,
+      username: '',
+      password: '',
+    ),
+  );
   await database.saveScannedFiles([
     MediaFile(
       id: 0,
@@ -73,7 +87,7 @@ void main() async {
   final host = DesktopWindowHost();
   final locales = AppLocaleController();
   await locales.load();
-  final settings = AppSettingsProvider();
+  final settings = AppSettingsProvider(settingsService: AppSettingsService(), tmdbService: TmdbService());
   await settings.load();
   final theme = ThemeProvider();
   final mainWindow = host.create(
@@ -98,6 +112,7 @@ void main() async {
       request: request,
       mediaStore: DatabasePlaybackMediaStore(database: database),
       resolver: LocalTarget(),
+      engineFactory: MediaKitPlaybackEngine.new,
     ),
   );
   final exiting = ApplicationExitCoordinator(

@@ -1,3 +1,5 @@
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
 import '../../../support/database_fixture.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,7 +40,10 @@ void main() {
     await saveMediaFixture(db, files);
     await db.updateProgress(files.first, 40, duration: 100);
     await db.setTitleFavorite(const TVShow(tmdbId: '999', title: 'Show'), true);
-    final result = await MetadataScraper(db: db, matchResolver: _EpisodeResolver()).scrapeBatch(files);
+    final result = await MetadataScraper(
+      importer: MetadataImporter(database: db),
+      matchResolver: _EpisodeResolver(db),
+    ).scrapeBatch(files);
     expect(result.successCount, 1);
     expect(result.failCount, 1);
     final first = (await db.getMediaFile('nas', '/1'))!;
@@ -66,7 +71,7 @@ void main() {
       tvShowTmdbId: '1',
       addedAt: DateTime.utc(2026),
     );
-    final resolver = MetadataMatchResolver(database: db);
+    final resolver = MetadataMatchResolver(tmdb: TmdbService(), database: db);
     final candidate = ScrapeCandidate.fromMediaFile(file);
     expect((await resolver.resolveMovie(candidate)).metadata!.tmdbId, '2');
     expect((await resolver.resolveTVShow(candidate)).metadata!.tmdbId, '2');
@@ -74,6 +79,7 @@ void main() {
 }
 
 class _EpisodeResolver extends MetadataMatchResolver {
+  _EpisodeResolver(DatabaseService database) : super(tmdb: TmdbService(), database: database);
   @override
   bool get isConfigured => true;
 

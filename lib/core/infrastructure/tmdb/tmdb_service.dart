@@ -6,14 +6,7 @@ import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 
 /// Coordinates TMDB requests, result matching and metadata conversion.
 class TmdbService {
-  static final TmdbService _instance = TmdbService._internal();
-
-  factory TmdbService() => _instance;
-
-  TmdbService._internal()
-    : _client = TmdbClient(),
-      _mapper = const TmdbMetadataMapper(),
-      _matcher = const TmdbSearchMatcher();
+  TmdbService() : _client = TmdbClient(), _mapper = const TmdbMetadataMapper(), _matcher = const TmdbSearchMatcher();
 
   final TmdbClient _client;
   final TmdbMetadataMapper _mapper;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
+import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
 import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
@@ -20,7 +20,7 @@ class FileBrowserPage extends StatefulWidget {
 }
 
 class _FileBrowserPageState extends State<FileBrowserPage> {
-  final _storageSourceService = StorageSourceService();
+  StorageSourcesController get _storageSources => context.read<StorageSourcesController>();
   var _sources = const <StorageSource>[];
   var _isLoadingSources = true;
   AppFailure? _sourceError;
@@ -121,7 +121,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
       });
     }
     try {
-      final sources = (await _storageSourceService.getAll()).where((source) => source.enabled).toList(growable: false);
+      final sources = (await _storageSources.getAll()).where((source) => source.enabled).toList(growable: false);
       if (!mounted) return;
       setState(() {
         _sources = sources;
@@ -141,9 +141,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
     if (!source.enabled || _openingSourceId != null) return;
     setState(() => _openingSourceId = source.id);
     try {
-      final credentials = await _storageSourceService.readCredentials(source.id);
-      if (!mounted) return;
-      await context.read<FileBrowserProvider>().openStorageSource(source, credentials);
+      await context.read<FileBrowserProvider>().openStorageSource(source);
       if (!mounted) return;
       setState(() => _showSourceList = false);
     } catch (error, stackTrace) {

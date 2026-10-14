@@ -12,6 +12,8 @@
 
 [AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 收集 Dart 表定义及 [media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift) 中的 SQL 表定义，`DatabaseService` 管理连接与写入，`LibraryRepository` 提供读取投影。生产连接使用 `NativeDatabase.createInBackground`；主视图与播放器共用同一个后台 SQLite 连接，播放器关闭不关闭数据库，应用退出统一关闭。
 
+数据库服务是由组装入口创建的普通实例，不通过全局单例获取。[ApplicationServices](../../lib/app/bootstrap/application_services.dart) 将同一实例注入来源仓库、库查询 / 扫描 / 刮削和播放持久化适配。页面通过 `MediaLibraryProvider` 的应用查询入口读取，具体 `LibraryRepository` 不公开给页面。
+
 ## 表概览
 
 | 表定义 | 主键 / 业务唯一键 | 内容 |

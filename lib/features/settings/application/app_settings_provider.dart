@@ -8,8 +8,11 @@ import 'package:mochi_player/features/settings/infrastructure/app_settings_servi
 class AppSettingsProvider extends ChangeNotifier {
   final AppSettingsService _settingsService;
 
-  AppSettingsProvider({AppSettingsService? settingsService})
-    : _settingsService = settingsService ?? AppSettingsService();
+  AppSettingsProvider({required AppSettingsService settingsService, required TmdbService tmdbService})
+    : _settingsService = settingsService,
+      _tmdbService = tmdbService;
+
+  final TmdbService _tmdbService;
 
   AppSettings _settings = const AppSettings();
   AppSettings? _appliedRuntimeSettings;
@@ -138,12 +141,12 @@ class AppSettingsProvider extends ChangeNotifier {
 
   Future<bool> testTmdbConnection() async {
     if (!hasTmdbApiKey) return false;
-    final result = await TmdbService().fetchTrendingMovies(limit: 1);
+    final result = await _tmdbService.fetchTrendingMovies(limit: 1);
     return result.isNotEmpty;
   }
 
   Future<void> _applyRuntimeSettings() async {
-    TmdbService().configure(
+    _tmdbService.configure(
       apiKey: _settings.tmdbApiKey,
       apiBaseUrl: _settings.tmdbApiBaseUrl,
       proxyUrl: _settings.tmdbProxyUrl,

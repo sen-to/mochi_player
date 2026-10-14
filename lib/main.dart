@@ -10,13 +10,14 @@ import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
-import 'package:mochi_player/features/home/application/trending_media_provider.dart';
-import 'package:mochi_player/features/library/application/file_browser_provider.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
-import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
-import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
+import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
+import 'package:mochi_player/app/bootstrap/application_services.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
+import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:mochi_player/l10n/app_locale_controller.dart';
 import 'package:mochi_player/l10n/l10n.dart';
@@ -28,15 +29,27 @@ void main() async {
   final host = DesktopWindowHost();
 
   // 初始化数据库
-  await DatabaseService().init();
+  final services = ApplicationServices(
+    database: DatabaseService(),
+    tmdb: TmdbService(),
+    storageRegistry: StorageProviderRegistry.defaults(),
+    settingsService: AppSettingsService(),
+  );
+  await services.database.init();
 
   final locales = AppLocaleController();
   await locales.load();
-  final appSettingsProvider = AppSettingsProvider();
+  final appSettingsProvider = services.settings;
   await appSettingsProvider.load();
-  final mediaLibraryProvider = MediaLibraryProvider();
+  final mediaLibraryProvider = services.mediaLibrary;
   final playerWindows = PlayerWindowCoordinator(
-    createSession: (request) => createPlayerWindow(host: host, request: request),
+    createSession: (request) => createPlayerWindow(
+      host: host,
+      request: request,
+      mediaStore: services.playbackStore,
+      resolver: services.playbackResolver,
+      engineFactory: MediaKitPlaybackEngine.new,
+    ),
   );
   late final WindowControlsController windowControlsController;
   final router = createAppRouter();
@@ -64,6 +77,8 @@ void main() async {
       locales.beginShutdown();
       playerWindows.beginShutdown();
       mediaLibraryProvider.beginShutdown();
+      services.storageSources.beginShutdown();
+      services.fileBrowser.beginShutdown();
       appSettingsProvider.beginShutdown();
       themeProvider.beginShutdown();
     },
@@ -71,11 +86,13 @@ void main() async {
     cleanUp: () async {
       await Future.wait([
         mediaLibraryProvider.shutdown(),
+        services.storageSources.drain(),
+        services.fileBrowser.shutdown(),
         appSettingsProvider.waitForPendingSave(),
         themeProvider.waitForPendingSave(),
         locales.drain(),
       ]);
-      await DatabaseService().close();
+      await services.database.close();
     },
     exitProcess: windows.exitApplication,
     onFailure: (stage, _) => debugPrint('应用退出阶段失败或超时: $stage'),
@@ -89,9 +106,10 @@ void main() async {
         ChangeNotifierProvider.value(value: locales),
         ChangeNotifierProvider.value(value: appSettingsProvider),
         ChangeNotifierProvider.value(value: themeProvider),
-        ChangeNotifierProvider(create: (_) => FileBrowserProvider()),
+        ChangeNotifierProvider.value(value: services.fileBrowser),
+        Provider<StorageSourcesController>.value(value: services.storageSources),
         ChangeNotifierProvider.value(value: mediaLibraryProvider),
-        ChangeNotifierProvider(create: (_) => TrendingMediaProvider()),
+        ChangeNotifierProvider.value(value: services.trending),
       ],
       child: host.buildRoot(),
     ),

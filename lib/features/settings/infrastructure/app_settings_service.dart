@@ -11,11 +11,7 @@ class AppSettingsService {
   static const _enableHardwareAccelerationKey = 'enable_hardware_acceleration';
   static const _subtitleLanguagePriorityKey = 'subtitle_language_priority';
   static const _subtitleFontSizeKey = 'subtitle_font_size';
-  static final AppSettingsService _instance = AppSettingsService._internal();
-
-  factory AppSettingsService() => _instance;
-
-  AppSettingsService._internal();
+  AppSettingsService();
 
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();

@@ -8,6 +8,7 @@
 | mini 播放器 | 同一窗口缩小、默认置顶、可切换置顶、退出恢复原状态 | 故障重试有单元测试；双平台真实媒体交互仍需回归；系统 PiP 暂不考虑 |
 | [播放引擎门面](decisions/0002-playback-engine.md) | `PlaybackEngine` 已接入，后端为 media_kit / libmpv | 假引擎测试与 RGB AVI 冒烟通过，不代表 HDR、各编码 / 音轨和字幕样片全通过 |
 | [drift + SQLite](decisions/0003-persistence-migration.md) | schema 2 六表、显式季集归属、外键 / CHECK / 组合索引、共享后台连接与字段级写入 | 真实 SQLite、开发库并发重建、标题类型隔离与查询计划测试通过；版本 1 开发数据全部重置，无 Isar 导入；大库容量与发布后迁移仍需验证 |
+| [职责分离](architecture/overview.md#已落实的职责边界) | 媒体源应用入口、私有仓库 / 应用查询、播放数据库适配归位、窗口工厂与界面分离、关键共享依赖显式注入 | 227 项回归与 macOS 原生窗口播放冒烟通过；保留应用层部分具体实现依赖，未宣称严格 Clean Architecture；本轮 Windows 运行时未验收 |
 | [本地化](decisions/0004-i18n-l10n.md) | ARB / gen-l10n、中英与跟随系统、共享语言偏好 | 277 条文案检查与 Widget 回归通过，完整页面布局 / 原生语言交互仍待验收 |
 | 本地与 WebDAV | 浏览、扫描、解析播放 URL 与认证头已实现 | 生产媒体与网络条件分别验证，不以假适配器测试承诺所有服务器 |
 | [SMB 播放路径](decisions/0005-smb-playback-path.md) | SMB 浏览 / 扫描已实现；当前播放器直链打开 / seek 实测失败 | HTTP Range 回源方案已接受，但服务尚未实现；客户端升级不修复播放器协议能力 |

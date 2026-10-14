@@ -4,7 +4,7 @@ import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 
 /// Imports provider metadata and matches atomically, without writing user state.
 class MetadataImporter {
-  MetadataImporter({DatabaseService? database}) : _database = database ?? DatabaseService();
+  MetadataImporter({required DatabaseService database}) : _database = database;
   final DatabaseService _database;
 
   Future<bool> importMovie(Movie movie, MediaFile file) => _database.database.transaction(() async {

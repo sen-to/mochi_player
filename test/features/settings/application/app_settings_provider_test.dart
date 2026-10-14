@@ -1,3 +1,5 @@
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
@@ -6,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   test('exit drains accepted settings saves and rejects new drafts', () async {
     SharedPreferences.setMockInitialValues({});
-    final provider = AppSettingsProvider();
+    final provider = AppSettingsProvider(settingsService: AppSettingsService(), tmdbService: TmdbService());
     await provider.load();
     final first = _save(provider, tmdbApiKey: 'first');
     final second = _save(provider, tmdbApiKey: 'last-accepted');
@@ -20,7 +22,7 @@ void main() {
 
   test('persists drafts without applying network runtime configuration', () async {
     SharedPreferences.setMockInitialValues({});
-    final provider = AppSettingsProvider();
+    final provider = AppSettingsProvider(settingsService: AppSettingsService(), tmdbService: TmdbService());
     await provider.load();
 
     await _save(provider, tmdbApiKey: 'draft-key');

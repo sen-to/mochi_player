@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
+import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/features/playback/application/external_subtitle_track.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
@@ -11,7 +12,7 @@ import 'package:mochi_player/features/playback/application/playback_media_store.
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
-import 'package:mochi_player/features/playback/infrastructure/libmpv_log_buffer.dart';
+import 'package:mochi_player/features/playback/application/playback_log_buffer.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 
 /// Owns the playback engine and the playback state presented by [PlayerPage].
@@ -29,6 +30,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     required List<MediaFile> queueItems,
     required PlaybackTarget initialTarget,
     required this.engine,
+    required PlaybackTargetResolver resolver,
     this.onPlaybackActivity,
   }) : _settings = settings,
        _session = PlaybackSessionController(
@@ -36,6 +38,7 @@ class PlayerPlaybackController extends ChangeNotifier {
          initialItem: initialItem,
          queueItems: queueItems,
          initialTarget: initialTarget,
+         resolver: resolver,
        ) {
     _bindPlayerStreams();
   }
@@ -44,7 +47,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   final PlaybackSessionController _session;
   final VoidCallback? onPlaybackActivity;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
-  final LibmpvLogBuffer _libmpvLogs = LibmpvLogBuffer();
+  final PlaybackLogBuffer _playbackLogs = PlaybackLogBuffer();
 
   final PlaybackEngine engine;
 
@@ -265,13 +268,13 @@ class PlayerPlaybackController extends ChangeNotifier {
     _subscriptions.addAll([
       engine.stream.error.listen((error) {
         if (_isDisposed || _isClosing) return;
-        debugPrint('播放器错误: ${LibmpvLogBuffer.sanitize(error)}');
+        debugPrint('播放器错误: ${PlaybackLogBuffer.sanitize(error)}');
         _dumpLibmpvLogs();
         _playerError = AppFailure.playbackOpen;
         notifyListeners();
       }),
       engine.stream.log.listen((log) {
-        if (!_isDisposed) _libmpvLogs.add(log);
+        if (!_isDisposed) _playbackLogs.add(log);
       }),
       engine.stream.tracks.listen((tracks) {
         if (_isDisposed || _isClosing) return;
@@ -334,7 +337,7 @@ class PlayerPlaybackController extends ChangeNotifier {
       _startProgressSaveTimer();
       onPlaybackActivity?.call();
     } catch (error) {
-      debugPrint('打开媒体失败: ${LibmpvLogBuffer.sanitize(error.toString())}');
+      debugPrint('打开媒体失败: ${PlaybackLogBuffer.sanitize(error.toString())}');
       _dumpLibmpvLogs();
       if (_canUsePlayer(generation)) {
         _playerError = AppFailure.playbackOpen;
@@ -606,7 +609,7 @@ class PlayerPlaybackController extends ChangeNotifier {
       !_isDisposed && !_isClosing && (generation == null || generation == _mediaOpenGeneration);
 
   void _dumpLibmpvLogs() {
-    final entries = _libmpvLogs.snapshot();
+    final entries = _playbackLogs.snapshot();
     if (entries.isEmpty) {
       debugPrint('libmpv 日志上下文为空');
       return;

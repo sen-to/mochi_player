@@ -8,9 +8,9 @@ import 'package:mochi_player/features/library/application/scrape_plan.dart';
 /// Resolves parsed local media into a single, confidence-checked TMDB match.
 /// Persistence of fetched metadata belongs to the importer, not this class.
 class MetadataMatchResolver {
-  MetadataMatchResolver({TmdbService? tmdb, DatabaseService? database, ScrapePlanFactory? planFactory})
-    : _tmdb = tmdb ?? TmdbService(),
-      _database = database ?? DatabaseService(),
+  MetadataMatchResolver({required TmdbService tmdb, required DatabaseService database, ScrapePlanFactory? planFactory})
+    : _tmdb = tmdb,
+      _database = database,
       _planFactory = planFactory ?? const ScrapePlanFactory();
 
   final TmdbService _tmdb;

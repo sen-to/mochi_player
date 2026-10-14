@@ -4,10 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_source_location.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_storage_provider.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
+import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
+import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/library/application/file_browser_provider.dart';
@@ -37,7 +35,7 @@ enum _SettingsTab { general, mediaSource, metadata, playback }
 enum _StorageSourceAddOption { local, webDav, smb }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final _storageSourceService = StorageSourceService();
+  StorageSourcesController get _sourceController => context.read<StorageSourcesController>();
   final _tmdbApiKeyController = TextEditingController();
   final _tmdbApiBaseUrlController = TextEditingController();
   final _tmdbProxyUrlController = TextEditingController();
@@ -354,7 +352,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadStorageSources() async {
     try {
-      final sources = await _storageSourceService.getAll();
+      final sources = await _sourceController.getAll();
       if (!mounted) return;
       setState(() {
         _storageSources = sources;
@@ -425,7 +423,7 @@ class _SettingsPageState extends State<SettingsPage> {
         connectionTestSucceeded = null;
       });
       try {
-        final connection = await StorageProviderRegistry.defaults().connect(
+        final entryCount = await _sourceController.testConnection(
           StorageSource(
             id: source?.id ?? 'connection-test',
             name: nameController.text.trim().isEmpty ? path.basename(directoryPath) : nameController.text.trim(),
@@ -434,10 +432,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           null,
         );
-        final entries = await connection.readDirectory('/');
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = context.l10n.directoryAccessible(entries.length);
+          connectionTestResult = context.l10n.directoryAccessible(entryCount);
         });
       } catch (error, stackTrace) {
         debugPrint('测试本地目录失败: $error\n$stackTrace');
@@ -535,7 +532,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return false;
           }
           try {
-            await _storageSourceService.save(
+            await _sourceController.save(
               StorageSource(
                 id: source?.id ?? const Uuid().v4(),
                 name: nameController.text.trim().isEmpty ? path.basename(directoryPath) : nameController.text.trim(),
@@ -588,7 +585,7 @@ class _SettingsPageState extends State<SettingsPage> {
       text: endpoint?.pathSegments.where((segment) => segment.isNotEmpty).firstOrNull ?? '',
     );
     final rootPathController = TextEditingController(text: source?.rootPath ?? '/');
-    final existingCredentials = source == null ? null : await _storageSourceService.readCredentials(source.id);
+    final existingCredentials = source == null ? null : await _sourceController.readCredentials(source.id);
     final usernameController = TextEditingController(text: existingCredentials?.username ?? '');
     final passwordController = TextEditingController(text: existingCredentials?.password ?? '');
     if (!mounted) {
@@ -644,17 +641,14 @@ class _SettingsPageState extends State<SettingsPage> {
         connectionTestResult = null;
         connectionTestSucceeded = null;
       });
-      SmbStorageConnection? smbConnection;
       try {
-        final connection = await StorageProviderRegistry.defaults().connect(
+        final entryCount = await _sourceController.testConnection(
           draft,
           StorageCredentials(username: usernameController.text.trim(), password: passwordController.text),
         );
-        smbConnection = connection is SmbStorageConnection ? connection : null;
-        final entries = await connection.readDirectory('/');
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = context.l10n.connectionAccessible(entries.length);
+          connectionTestResult = context.l10n.connectionAccessible(entryCount);
         });
       } catch (error, stackTrace) {
         debugPrint('测试 SMB 连接失败: $error\n$stackTrace');
@@ -663,9 +657,6 @@ class _SettingsPageState extends State<SettingsPage> {
           connectionTestResult = context.l10n.connectionFailedDetail(_describeSmbConnectionError(error));
         });
       } finally {
-        if (smbConnection != null) {
-          await smbConnection.close();
-        }
         updateModal?.call(() => isTestingConnection = false);
       }
     }
@@ -761,7 +752,7 @@ class _SettingsPageState extends State<SettingsPage> {
           final draft = draftSource();
           if (draft == null) return false;
           try {
-            await _storageSourceService.save(
+            await _sourceController.save(
               StorageSource(
                 id: source?.id ?? const Uuid().v4(),
                 name: draft.name,
@@ -823,7 +814,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final portController = TextEditingController(
       text: existingEndpoint?.hasPort == true ? '${existingEndpoint!.port}' : '',
     );
-    final existingCredentials = source == null ? null : await _storageSourceService.readCredentials(source.id);
+    final existingCredentials = source == null ? null : await _sourceController.readCredentials(source.id);
     final usernameController = TextEditingController(text: existingCredentials?.username ?? '');
     final passwordController = TextEditingController(text: existingCredentials?.password ?? '');
     if (!mounted) {
@@ -877,7 +868,7 @@ class _SettingsPageState extends State<SettingsPage> {
           port: port,
           path: _normalizeWebDavPath(pathController.text),
         ).toString();
-        final connection = await StorageProviderRegistry.defaults().connect(
+        final entryCount = await _sourceController.testConnection(
           StorageSource(
             id: source?.id ?? 'connection-test',
             name: nameController.text.trim().isEmpty ? host : nameController.text.trim(),
@@ -886,10 +877,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           StorageCredentials(username: usernameController.text.trim(), password: passwordController.text),
         );
-        final entries = await connection.readDirectory('/');
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = context.l10n.connectionAccessible(entries.length);
+          connectionTestResult = context.l10n.connectionAccessible(entryCount);
         });
       } catch (error, stackTrace) {
         debugPrint('测试 WebDAV 连接失败: $error\n$stackTrace');
@@ -1019,7 +1009,7 @@ class _SettingsPageState extends State<SettingsPage> {
             return false;
           }
           try {
-            await _storageSourceService.save(
+            await _sourceController.save(
               StorageSource(
                 id: source?.id ?? const Uuid().v4(),
                 name: nameController.text.trim().isEmpty ? host : nameController.text.trim(),
@@ -1147,17 +1137,13 @@ class _SettingsPageState extends State<SettingsPage> {
     );
     if (confirmed != true) return;
     try {
-      final deletedFileCount = await _storageSourceService.deleteWithMedia(source.id);
+      final deletedFileCount = await _sourceController.deleteWithMedia(source.id);
       if (deletedFileCount == null) {
         if (!mounted) return;
         AppMessage.error(context, context.l10n.sourceMissing);
         return;
       }
       if (!mounted) return;
-      final fileBrowser = context.read<FileBrowserProvider>();
-      if (fileBrowser.activeSource?.id == source.id) {
-        fileBrowser.clearStorageSource();
-      }
       await _loadStorageSources();
       if (mounted) {
         AppMessage.success(context, context.l10n.sourceDeleted(deletedFileCount));

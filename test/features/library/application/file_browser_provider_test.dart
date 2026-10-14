@@ -19,7 +19,7 @@ void main() {
       ],
     );
 
-    await provider.openStorageSource(_source, null);
+    await provider.openStorageSource(_source);
 
     expect(provider.items.map((item) => item.name), ['Movies', 'episode.mp4', 'theme.flac', 'notes.txt']);
     expect(provider.items[0].kind, MediaFileKind.directory);
@@ -40,7 +40,7 @@ void main() {
       if (path == '/second') return second.future;
       return Future.value(const []);
     });
-    await provider.openStorageSource(_source, null);
+    await provider.openStorageSource(_source);
 
     final firstRequest = provider.fetchFiles('/first');
     final secondRequest = provider.fetchFiles('/second');
@@ -56,7 +56,7 @@ void main() {
 
   test('goes to the parent directory instead of navigation history', () async {
     final provider = _provider((_) async => const []);
-    await provider.openStorageSource(_source, null);
+    await provider.openStorageSource(_source);
 
     await provider.fetchFiles('/quark/来自分享/');
     provider.navigateBack();
@@ -71,14 +71,33 @@ void main() {
 
   test('closes the previous storage connection when changing sources', () async {
     final storageProvider = _TrackingStorageProvider();
-    final provider = FileBrowserProvider(storageProviderRegistry: StorageProviderRegistry([storageProvider]));
+    final provider = FileBrowserProvider(
+      readCredentials: (_) async => null,
+      storageProviderRegistry: StorageProviderRegistry([storageProvider]),
+    );
 
-    await provider.openStorageSource(_source, null);
+    await provider.openStorageSource(_source);
     final firstConnection = storageProvider.connections.single;
-    await provider.openStorageSource(_source, null);
+    await provider.openStorageSource(_source);
 
     expect(firstConnection.isClosed, isTrue);
     expect(storageProvider.connections, hasLength(2));
+  });
+  test('an opening connection that finishes after shutdown is closed and never selected', () async {
+    final pending = Completer<StorageConnection>();
+    final connection = _TrackingStorageConnection(_source);
+    final provider = FileBrowserProvider(
+      readCredentials: (_) async => null,
+      storageProviderRegistry: StorageProviderRegistry([_DelayedProvider(pending.future)]),
+    );
+    final opening = provider.openStorageSource(_source);
+    await Future<void>.delayed(Duration.zero);
+    await provider.shutdown();
+    pending.complete(connection);
+    await opening;
+    expect(connection.isClosed, isTrue);
+    expect(provider.hasSelectedStorageSource, isFalse);
+    provider.dispose();
   });
 }
 
@@ -89,8 +108,10 @@ const _source = StorageSource(
   endpoint: 'https://example.com/dav',
 );
 
-FileBrowserProvider _provider(Future<List<StorageEntry>> Function(String path) read) =>
-    FileBrowserProvider(storageProviderRegistry: StorageProviderRegistry([_FakeStorageProvider(read)]));
+FileBrowserProvider _provider(Future<List<StorageEntry>> Function(String path) read) => FileBrowserProvider(
+  readCredentials: (_) async => null,
+  storageProviderRegistry: StorageProviderRegistry([_FakeStorageProvider(read)]),
+);
 
 class _FakeStorageProvider implements StorageProvider {
   const _FakeStorageProvider(this._read);
@@ -153,4 +174,13 @@ class _TrackingStorageConnection implements StorageConnection {
 
   @override
   Future<bool> testConnection() async => true;
+}
+
+class _DelayedProvider implements StorageProvider {
+  _DelayedProvider(this.pending);
+  final Future<StorageConnection> pending;
+  @override
+  StorageSourceType get type => StorageSourceType.webDav;
+  @override
+  Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) => pending;
 }

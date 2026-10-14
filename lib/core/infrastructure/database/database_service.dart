@@ -11,11 +11,7 @@ import 'package:path_provider/path_provider.dart';
 
 /// SQLite connection and write boundary. Read projections live in LibraryRepository.
 class DatabaseService {
-  static final DatabaseService _instance = DatabaseService._internal();
-
-  factory DatabaseService() => _instance;
-
-  DatabaseService._internal();
+  DatabaseService();
 
   DatabaseService.withDatabase(AppDatabase database) : _database = database;
 

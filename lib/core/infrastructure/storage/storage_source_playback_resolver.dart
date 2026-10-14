@@ -11,8 +11,7 @@ import 'package:mochi_player/core/infrastructure/storage/webdav_playback_resolve
 class StorageSourcePlaybackResolver implements PlaybackTargetResolver {
   final StorageSourceRepository _repository;
 
-  StorageSourcePlaybackResolver({StorageSourceRepository? repository})
-    : _repository = repository ?? DatabaseStorageSourceRepository();
+  StorageSourcePlaybackResolver({required StorageSourceRepository repository}) : _repository = repository;
 
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) async {

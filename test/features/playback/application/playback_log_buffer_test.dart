@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/infrastructure/libmpv_log_buffer.dart';
+import 'package:mochi_player/features/playback/application/playback_log_buffer.dart';
 
 void main() {
   test('keeps only the newest libmpv entries', () {
-    final buffer = LibmpvLogBuffer(capacity: 2);
+    final buffer = PlaybackLogBuffer(capacity: 2);
 
     buffer.add(const PlaybackLog(prefix: 'one', level: 'info', text: 'first'));
     buffer.add(const PlaybackLog(prefix: 'two', level: 'warn', text: 'second'));
@@ -18,7 +18,7 @@ void main() {
         'Opening https://admin:secret@example.com/video.mkv?token=secret '
         'Authorization: Bearer bearer-secret';
 
-    final sanitized = LibmpvLogBuffer.sanitize(log);
+    final sanitized = PlaybackLogBuffer.sanitize(log);
 
     expect(sanitized, contains('example.com/video.mkv'));
     expect(sanitized, isNot(contains('admin')));
@@ -27,7 +27,7 @@ void main() {
   });
 
   test('removes credentials from SMB media URLs', () {
-    final sanitized = LibmpvLogBuffer.sanitize('Opening smb://mochi:secret@nas.local/Media/Example.mkv');
+    final sanitized = PlaybackLogBuffer.sanitize('Opening smb://mochi:secret@nas.local/Media/Example.mkv');
 
     expect(sanitized, contains('smb://%3Credacted%3E@nas.local'));
     expect(sanitized, isNot(contains('secret')));

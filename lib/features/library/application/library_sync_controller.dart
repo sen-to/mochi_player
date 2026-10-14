@@ -5,8 +5,7 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_repository.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_service.dart';
+import 'package:mochi_player/features/library/application/storage_sources_controller.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_scraper.dart';
@@ -15,25 +14,26 @@ import 'package:mochi_player/features/library/infrastructure/storage_media_scann
 /// Coordinates storage scans and TMDB metadata scraping.
 class LibrarySyncController extends ChangeNotifier {
   LibrarySyncController({
-    DatabaseService? database,
-    TmdbService? tmdbService,
-    MetadataScraper? metadataScraper,
-    StorageSourceService? storageSourceService,
-    StorageProviderRegistry? storageProviderRegistry,
-    StorageMediaScanner Function(StorageConnection connection)? storageScannerFactory,
-  }) : _db = database ?? DatabaseService(),
-       _tmdbService = tmdbService ?? TmdbService(),
-       _metadataScraper = metadataScraper ?? MetadataScraper(db: database, tmdb: tmdbService),
-       _storageSourceService =
-           storageSourceService ??
-           StorageSourceService(repository: DatabaseStorageSourceRepository(database: database)),
-       _storageProviderRegistry = storageProviderRegistry ?? StorageProviderRegistry.defaults(),
-       _storageScannerFactory = storageScannerFactory ?? StorageMediaScanner.new;
+    required DatabaseService database,
+    required LibraryRepository repository,
+    required TmdbService tmdbService,
+    required MetadataScraper metadataScraper,
+    required StorageSourcesController storageSources,
+    required StorageProviderRegistry storageProviderRegistry,
+    required StorageMediaScanner Function(StorageConnection connection) storageScannerFactory,
+  }) : _db = database,
+       _repository = repository,
+       _tmdbService = tmdbService,
+       _metadataScraper = metadataScraper,
+       _storageSources = storageSources,
+       _storageProviderRegistry = storageProviderRegistry,
+       _storageScannerFactory = storageScannerFactory;
 
   final DatabaseService _db;
+  final LibraryRepository _repository;
   final TmdbService _tmdbService;
   final MetadataScraper _metadataScraper;
-  final StorageSourceService _storageSourceService;
+  final StorageSourcesController _storageSources;
   final StorageProviderRegistry _storageProviderRegistry;
   final StorageMediaScanner Function(StorageConnection connection) _storageScannerFactory;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
@@ -124,7 +124,7 @@ class LibrarySyncController extends ChangeNotifier {
       await _db.init();
 
       if (_shuttingDown) return null;
-      final sources = (await _storageSourceService.getAll())
+      final sources = (await _storageSources.getAll())
           .where((source) => source.enabled && _storageProviderRegistry.supports(source.type))
           .toList(growable: false);
       if (sources.isEmpty) {
@@ -143,7 +143,7 @@ class LibrarySyncController extends ChangeNotifier {
         _scanCurrentSource = source.name;
         _notify();
         try {
-          final credentials = await _storageSourceService.readCredentials(source.id);
+          final credentials = await _storageSources.readCredentials(source.id);
           final connection = await _storageProviderRegistry.connect(source, credentials);
           try {
             final result = await _scanFilesFromStorage(connection);
@@ -236,7 +236,7 @@ class LibrarySyncController extends ChangeNotifier {
 
     try {
       final result = await _metadataScraper.scrapeBatch(
-        await LibraryRepository(_db).scrapeCandidates(),
+        await _repository.scrapeCandidates(),
         shouldStop: () => _shuttingDown,
         onProgress: (progress) async {
           _scrapeCompleted = progress.completed;
@@ -263,8 +263,7 @@ class LibrarySyncController extends ChangeNotifier {
 
   Future<_LibraryScanResult> _scanFilesFromStorage(StorageConnection connection) async {
     final scanner = _storageScannerFactory(connection);
-    final repository = LibraryRepository(_db);
-    final knownPaths = await repository.sourcePaths(connection.source.id);
+    final knownPaths = await _repository.sourcePaths(connection.source.id);
     var newCount = 0;
     var discoveredCount = 0;
     final scannedPaths = <String>{};
@@ -288,7 +287,7 @@ class LibrarySyncController extends ChangeNotifier {
     }
     final removedCount = (_shuttingDown || scanner.hadReadError)
         ? 0
-        : await repository.removeMissingFiles(connection.source.id, scannedPaths);
+        : await _repository.removeMissingFiles(connection.source.id, scannedPaths);
 
     return _LibraryScanResult(
       discoveredCount: discoveredCount,

@@ -1,6 +1,6 @@
 import 'package:dart_smb2/dart_smb2.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_source_location.dart';
+import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
 
 /// A protocol-neutral SMB directory entry, kept small so callers do not
 /// depend on the third-party SMB client package.

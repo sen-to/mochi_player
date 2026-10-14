@@ -5,7 +5,7 @@ import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 
 /// Loads and exposes the non-persistent TMDB collections shown on the home page.
 class TrendingMediaProvider extends ChangeNotifier {
-  TrendingMediaProvider({TmdbService? tmdbService}) : _tmdbService = tmdbService ?? TmdbService();
+  TrendingMediaProvider({required TmdbService tmdbService}) : _tmdbService = tmdbService;
 
   final TmdbService _tmdbService;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));

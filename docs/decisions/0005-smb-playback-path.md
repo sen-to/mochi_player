@@ -13,7 +13,7 @@
 
 1. mpv 的 `smb://` 能力来自 FFmpeg 的 [`libavformat/libsmbclient.c`](https://android.googlesource.com/platform/external/ffmpeg/+/9c75148e6ebc88a0501e3d0242defb6dbdc3c23d%5E%21/libavformat/libsmbclient.c)，**必须在构建时链接 Samba 才存在**；发行版已陆续移除该选项（[FreeBSD 2020 年移除 mpv 的 SMB 支持](https://lists.freebsd.org/pipermail/freebsd-multimedia/2020-November/020926.html)、[Arch 相关工单](https://bugs.archlinux.org/task/69798)）。
 2. `media_kit_libs_video` 捆绑的 libmpv 已由用户实测不能打开 / seek SMB 文件；具体是否因为缺少该协议仍需构建信息或日志确认。解析器注释本身也把它写成假设：「once the bundled libmpv has SMB support」。
-3. 该路径把凭据放进 URL 的 `userInfo`，会出现在日志与进程信息中（现有 [libmpv_log_buffer.dart](../../lib/features/playback/infrastructure/libmpv_log_buffer.dart) 已对 URL 与 Authorization 做脱敏，说明团队已意识到该风险，但脱敏是补救而非消除）。
+3. 该路径把凭据放进 URL 的 `userInfo`，会出现在日志与进程信息中（现有 [playback_log_buffer.dart](../../lib/features/playback/application/playback_log_buffer.dart) 已对 URL 与 Authorization 做脱敏，说明团队已意识到该风险，但脱敏是补救而非消除）。
 
 对照：WebDAV 走 HTTP(S) 直链并附加 `Authorization` 头（[webdav_playback_resolver.dart](../../lib/core/infrastructure/storage/webdav_playback_resolver.dart)），由 FFmpeg 的 http 协议 + Range 支撑，是健康路径，本次不动。
 

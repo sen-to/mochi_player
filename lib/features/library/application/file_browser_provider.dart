@@ -18,11 +18,15 @@ enum FileSortField { name, size, modifiedAt }
 /// Owns directory navigation, filtering and sorting for the file browser.
 class FileBrowserProvider extends ChangeNotifier {
   final StorageProviderRegistry _storageProviderRegistry;
+  final Future<StorageCredentials?> Function(String) _readCredentials;
   StorageConnection? _storageConnection;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
-  FileBrowserProvider({StorageProviderRegistry? storageProviderRegistry})
-    : _storageProviderRegistry = storageProviderRegistry ?? StorageProviderRegistry.defaults();
+  FileBrowserProvider({
+    required StorageProviderRegistry storageProviderRegistry,
+    required Future<StorageCredentials?> Function(String) readCredentials,
+  }) : _storageProviderRegistry = storageProviderRegistry,
+       _readCredentials = readCredentials;
 
   String get sourceId => _storageConnection?.source.id ?? '';
 
@@ -41,6 +45,7 @@ class FileBrowserProvider extends ChangeNotifier {
   bool _sortAscending = true;
   String _searchQuery = '';
   int _requestGeneration = 0;
+  bool _shuttingDown = false;
 
   // === Getters ===
   List<FileBrowserEntry> get items => _items;
@@ -93,6 +98,7 @@ class FileBrowserProvider extends ChangeNotifier {
 
   // 加载指定路径的文件
   Future<void> fetchFiles(String path) async {
+    if (_shuttingDown) return;
     final requestGeneration = ++_requestGeneration;
     _isLoading = true;
     _error = null;
@@ -129,8 +135,16 @@ class FileBrowserProvider extends ChangeNotifier {
   }
 
   /// Selects a configured storage source and starts its browser at the root.
-  Future<void> openStorageSource(StorageSource source, StorageCredentials? credentials) async {
+  Future<void> openStorageSource(StorageSource source) async {
+    if (_shuttingDown) return;
+    final generation = ++_requestGeneration;
+    final credentials = await _readCredentials(source.id);
+    if (_shuttingDown || generation != _requestGeneration) return;
     final connection = await _storageProviderRegistry.connect(source, credentials);
+    if (_shuttingDown || generation != _requestGeneration) {
+      await connection.close();
+      return;
+    }
     final previousConnection = _storageConnection;
     _storageConnection = connection;
     if (previousConnection != null) unawaited(previousConnection.close());
@@ -244,10 +258,23 @@ class FileBrowserProvider extends ChangeNotifier {
 
   DateTime _modifiedAt(FileBrowserEntry item) => item.modifiedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
 
+  void beginShutdown() {
+    _shuttingDown = true;
+    _requestGeneration++;
+  }
+
+  Future<void> shutdown() async {
+    beginShutdown();
+    final connection = _storageConnection;
+    _storageConnection = null;
+    await connection?.close();
+  }
+
   @override
   void dispose() {
-    _requestGeneration++;
+    beginShutdown();
     final connection = _storageConnection;
+    _storageConnection = null;
     if (connection != null) unawaited(connection.close());
     super.dispose();
   }

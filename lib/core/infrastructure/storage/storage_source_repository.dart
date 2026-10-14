@@ -22,7 +22,7 @@ abstract interface class StorageSourceRepository {
 class DatabaseStorageSourceRepository implements StorageSourceRepository {
   final DatabaseService _database;
 
-  DatabaseStorageSourceRepository({DatabaseService? database}) : _database = database ?? DatabaseService();
+  DatabaseStorageSourceRepository({required DatabaseService database}) : _database = database;
 
   @override
   Future<List<StorageSource>> getAll() async {

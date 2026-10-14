@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_source_location.dart';
+import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
 import 'package:mochi_player/core/infrastructure/storage/smb_storage_provider.dart';
 
 void main() {

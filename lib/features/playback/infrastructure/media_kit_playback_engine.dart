@@ -4,7 +4,7 @@ import 'package:media_kit_video/media_kit_video.dart' as video;
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
-import 'package:mochi_player/features/playback/infrastructure/libmpv_log_buffer.dart';
+import 'package:mochi_player/features/playback/application/playback_log_buffer.dart';
 
 /// Current libmpv backend. Owns media_kit, rendering and all mpv property access.
 class MediaKitPlaybackEngine implements PlaybackEngine {
@@ -31,9 +31,9 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
       playing: events.playing,
       volume: events.volume,
       rate: events.rate,
-      error: events.error.map(LibmpvLogBuffer.sanitize),
+      error: events.error.map(PlaybackLogBuffer.sanitize),
       log: events.log.map(
-        (entry) => PlaybackLog(prefix: entry.prefix, level: entry.level, text: LibmpvLogBuffer.sanitize(entry.text)),
+        (entry) => PlaybackLog(prefix: entry.prefix, level: entry.level, text: PlaybackLogBuffer.sanitize(entry.text)),
       ),
       tracks: events.tracks.map(_tracks),
       track: events.track.map(
@@ -142,7 +142,7 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
       try {
         await native.setProperty(entry.key, entry.value);
       } catch (error) {
-        debugPrint('应用播放设置失败 ${entry.key}: ${LibmpvLogBuffer.sanitize(error.toString())}');
+        debugPrint('应用播放设置失败 ${entry.key}: ${PlaybackLogBuffer.sanitize(error.toString())}');
       }
     }
   }

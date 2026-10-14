@@ -28,7 +28,8 @@ sequenceDiagram
 - 入口：`PlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[playback_launcher.dart](../../lib/features/playback/presentation/playback_launcher.dart)）。
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
 - 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，在同一 isolate 内传递 `MediaFile`、队列和请求 ID，不再序列化 JSON 或维护版本协议。
-- [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器，不依赖全局静态转发层。[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 创建独立视图，并使用共享设置、语言、主题和后台数据库连接。
+- [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器，不依赖全局静态转发层。[player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建独立视图并协调窗口生命周期；[PlayerWindowState](../../lib/features/playback/application/player_window_state.dart) 加载启动数据与维护会话展示状态；[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 负责界面，共享设置、语言与主题。引擎工厂、数据库播放适配和目标解析器均由组装入口注入。
+- [PlaybackMediaStore](../../lib/features/playback/application/playback_media_store.dart) 是应用契约；[DatabasePlaybackMediaStore](../../lib/features/playback/infrastructure/database_playback_media_store.dart) 是基础设施实现，使用注入的共享数据库。播放会话不自行创建数据库服务或媒体源解析器。
 - 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
 ## 播放目标解析

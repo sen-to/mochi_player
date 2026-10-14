@@ -10,14 +10,19 @@ import 'package:mochi_player/features/library/infrastructure/library_repository.
 
 /// UI facade. SQLite owns persisted records; only bounded home projections are retained.
 class MediaLibraryProvider extends ChangeNotifier {
-  MediaLibraryProvider({DatabaseService? database}) : _db = database ?? DatabaseService() {
-    repository = LibraryRepository(_db);
-    _sync = LibrarySyncController(database: _db)..addListener(_relay);
+  MediaLibraryProvider({
+    required DatabaseService database,
+    required LibraryRepository repository,
+    required LibrarySyncController syncController,
+  }) : _db = database,
+       _repository = repository,
+       _sync = syncController {
+    _sync.addListener(_relay);
   }
 
   final DatabaseService _db;
-  late final LibraryRepository repository;
-  late final LibrarySyncController _sync;
+  final LibraryRepository _repository;
+  final LibrarySyncController _sync;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   Future<void>? _loading;
   bool _initialized = false;
@@ -80,13 +85,13 @@ class MediaLibraryProvider extends ChangeNotifier {
         );
       }
 
-      subscribe(repository.watchFileCount(), (value) => totalFiles = value);
-      subscribe(repository.watchTitles(recent: true, limit: 15), (value) => recentlyAddedContent = value);
+      subscribe(_repository.watchFileCount(), (value) => totalFiles = value);
+      subscribe(_repository.watchTitles(recent: true, limit: 15), (value) => recentlyAddedContent = value);
       subscribe(
-        repository.watchContinueWatching(limit: 15),
+        _repository.watchContinueWatching(limit: 15),
         (value) => continueWatchingItems = List.unmodifiable(value),
       );
-      subscribe(repository.watchHero(), (value) => _hero = value);
+      subscribe(_repository.watchHero(), (value) => _hero = value);
       await Future.wait(initial);
     } catch (error) {
       _loadError = AppFailure.contentLoad;
@@ -96,20 +101,26 @@ class MediaLibraryProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<MediaFile>> getVersions(LibraryItem item) => repository.getVersions(item);
+  Stream<List<LibraryItem>> watchTitles({String? kind, String query = '', bool recent = false, int limit = 100}) =>
+      _repository.watchTitles(kind: kind, query: query, recent: recent, limit: limit);
 
-  Future<List<MediaFile>> getPlaybackQueue(MediaFile file) => repository.getPlaybackQueue(file);
+  Stream<LibraryItem?> watchDetail(LibraryItem item) => _repository.watchDetail(item);
 
-  Future<MediaFile?> getEpisodeFile(String id) => repository.getEpisodeFile(id);
+  Stream<List<MediaFile>> watchVersions(LibraryItem item) => _repository.watchVersions(item);
 
-  Future<MediaFile?> getLatestMediaFile(MediaFile file) => _db.getMediaFile(file.sourceId, file.path);
+  Stream<List<MediaCardViewData>> watchFavorites({String query = '', int limit = 100}) =>
+      _repository.watchFavorites(query: query, limit: limit);
+
+  Stream<List<MediaCardViewData>> watchContinueWatching({int limit = 100}) =>
+      _repository.watchContinueWatching(limit: limit);
+
+  Future<List<MediaFile>> getVersions(LibraryItem item) => _repository.getVersions(item);
+
+  Future<List<MediaFile>> getPlaybackQueue(MediaFile file) => _repository.getPlaybackQueue(file);
+
+  Future<MediaFile?> getEpisodeFile(String id) => _repository.getEpisodeFile(id);
 
   Future<MediaSourceScanSummary?> scanMediaSources() => _sync.scanEnabledMediaSources();
-
-  Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {
-    final latest = await getLatestMediaFile(file);
-    if (latest != null) await _db.updateProgress(latest, position, duration: duration);
-  }
 
   Future<bool> setFavorite(LibraryItem item, {required bool isFavorite}) => _db.setTitleFavorite(item, isFavorite);
 

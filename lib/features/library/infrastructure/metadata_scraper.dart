@@ -1,7 +1,5 @@
 import 'package:logger/logger.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
 import 'package:mochi_player/features/library/application/scrape_plan.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
@@ -42,14 +40,10 @@ class MetadataScraper {
   final MetadataImporter _importer;
   final Logger _logger;
 
-  MetadataScraper({
-    TmdbService? tmdb,
-    DatabaseService? db,
-    MetadataMatchResolver? matchResolver,
-    MetadataImporter? importer,
-  }) : _matchResolver = matchResolver ?? MetadataMatchResolver(tmdb: tmdb, database: db),
-       _importer = importer ?? MetadataImporter(database: db),
-       _logger = Logger(printer: PrettyPrinter(methodCount: 0));
+  MetadataScraper({required MetadataMatchResolver matchResolver, required MetadataImporter importer})
+    : _matchResolver = matchResolver,
+      _importer = importer,
+      _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
   // ===== 公开 API =====
 

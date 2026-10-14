@@ -1,7 +1,6 @@
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_source_playback_resolver.dart';
 import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/application/playback_progress_writer.dart';
 import 'package:mochi_player/features/playback/domain/playback_queue.dart';
@@ -17,9 +16,9 @@ class PlaybackSessionController {
     required MediaFile initialItem,
     required List<MediaFile> queueItems,
     required PlaybackTarget initialTarget,
-    PlaybackTargetResolver? resolver,
+    required PlaybackTargetResolver resolver,
   }) : _mediaStore = mediaStore,
-       _resolver = resolver ?? StorageSourcePlaybackResolver(),
+       _resolver = resolver,
        _queue = PlaybackQueue(initialItem: initialItem, items: queueItems),
        _currentTarget = initialTarget,
        _progressWriter = PlaybackProgressWriter(mediaStore.updateProgress);

@@ -44,10 +44,10 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 | 验证 | 已记录结果 | 证据范围 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 数据库结构优化后 218 项通过 | 数据库、查询、设置、播放 / 窗口协调、UI；含外键 / CHECK、级联删除与订阅刷新、开发库并发重建、标题 ID 隔离与组合索引查询计划；不等于大库负载测试 |
+| macOS 全量 Dart 回归 | 职责分离后 227 项通过 | 数据库、查询、设置、播放 / 窗口协调、UI；新增临时连接成功 / 失败释放、退出拒绝 / 排空操作、迟到连接关闭、共享依赖、应用查询刷新与启动数据 / 关闭状态测试；不等于大库负载测试 |
 | 文案检查与生成 | 277 条检查通过，gen-l10n 成功 | 不等于所有页面布局与原生菜单语言已验收 |
 | macOS Debug / Release | 迁移期间构建通过，依赖升级后 Debug 构建通过 | 不等于签名 / 公证或所有旧产物反映最新源码 |
-| macOS 原生播放冒烟 | 修正全屏动画等待后，完成播放、退出、SQLite 重开 | RGB AVI 与隔离数据；主窗口关闭由程序内回调触发 |
+| macOS 原生播放冒烟 | 职责分离后重新通过；末尾输出 `WINDOWING SMOKE COMPLETE` | 新工厂创建 / 替换播放器、共享语言、置顶与 mini 尺寸、全屏、反复关闭重开、最终进度落库 / SQLite 重开；RGB AVI 与隔离数据，主窗口关闭由程序内回调触发，不是手工覆盖所有媒体 |
 | Windows 自动测试 | [第二次 CI](https://github.com/sen-to/mochi_player/actions/runs/38509922678/job/115675829212) 静态检查与 209 项测试通过 | 同次原生构建失败，后续单独修复 |
 | Windows CI 最终结果 | 修复宏冲突后，用户确认 CI 成功 | 确认构建通过；未记录成功运行链接，不代替运行时验收 |
 | 文件对话框 | 用户确认手工验收完成 | 未逐项列出平台 / 边界，不能推广为 Windows 全套对话框验收 |
@@ -62,6 +62,8 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 | 数据层 | `test/core/infrastructure/database/` | 组合唯一键、外键 / CHECK、JSON、日期、事务、局部更新、级联 / 禁止删除、开发库并发重建、双后台连接、关闭重开 |
 | 库查询 | `test/features/library/application/library_repository_test.dart` | 标题可用性、搜索 / 收藏 / 续播排序、有限结果、SQL 与领域规则一致性、共享订阅 |
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
+| 媒体源应用入口 | `test/features/library/application/storage_sources_controller_test.dart`、`file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知及迟到连接关闭 |
+| 应用组装 | `test/app/bootstrap/` | 设置与趋势共享 TMDB 实例、应用查询与播放写入共享数据库，独立实例无隐藏全局配置 |
 | 应用退出 | `test/app/application/` | 重复请求、保存 / 释放顺序、失败与超时、最终快照持久化 |
 | 播放 | `test/features/playback/` | 引擎门面、轨道 / 字幕、seek、进度队列、创建 / 替换 / 关闭、mini / 全屏失败重试 |
 | 本地化 | `test/l10n/` | 三种偏好、保存失败重试、ICU 与格式化、语言切换不重建会话 |

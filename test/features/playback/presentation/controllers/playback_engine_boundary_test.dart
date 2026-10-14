@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
+import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_media_store.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
@@ -59,6 +60,7 @@ void main() {
       initialItem: item,
       queueItems: [item],
       initialTarget: target,
+      resolver: _Resolver(),
     );
   });
   tearDown(() async {
@@ -143,4 +145,9 @@ void main() {
     expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
+}
+
+class _Resolver implements PlaybackTargetResolver {
+  @override
+  Future<PlaybackTarget?> resolve(MediaFile file) async => const PlaybackTarget(url: 'https://example.com/movie.mkv');
 }

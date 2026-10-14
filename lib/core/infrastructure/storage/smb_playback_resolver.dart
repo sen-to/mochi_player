@@ -2,7 +2,7 @@ import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_source_location.dart';
+import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
 
 /// Resolves SMB media into an URL that libmpv opens and streams directly.
 ///

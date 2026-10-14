@@ -1,3 +1,7 @@
+import 'package:mochi_player/app/bootstrap/application_services.dart';
+import 'package:mochi_player/core/infrastructure/storage/storage_provider_registry.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/features/settings/infrastructure/app_settings_service.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -17,7 +21,12 @@ void main() {
   setUp(() async {
     db = DatabaseService.withDatabase(AppDatabase(NativeDatabase.memory(setup: configureSqlite)));
     await db.init();
-    provider = MediaLibraryProvider(database: db);
+    provider = ApplicationServices(
+      database: db,
+      tmdb: TmdbService(),
+      storageRegistry: StorageProviderRegistry.defaults(),
+      settingsService: AppSettingsService(),
+    ).mediaLibrary;
   });
   tearDown(() async {
     provider.dispose();

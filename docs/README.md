@@ -5,7 +5,7 @@
 ## 建议阅读顺序
 
 1. [当前实施状态](status.md)：哪些已实现、哪些只是已接受的计划、哪些尚待验证。
-2. [架构总览](architecture/overview.md)：系统数据流、分层职责、实际调用路径、架构问题与资源所有权。
+2. [架构总览](architecture/overview.md)：系统数据流、分层职责、实际调用路径、已落实的职责边界与资源所有权。
 3. [数据模型](architecture/data-model.md) → [媒体流水线](architecture/media-pipeline.md) → [播放](architecture/playback.md)：按实际调用链理解代码。
 4. [算法说明](architecture/algorithms.md)：文件解析、搜索评分、续播、任务调度及复杂度边界。
 5. [测试指南](guides/testing.md) 与对应平台构建指南：复现、验收和排障。
@@ -25,7 +25,7 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| [架构总览](architecture/overview.md) | 分层职责、模块归属、实际业务调用、运行时资源及整改顺序 |
+| [架构总览](architecture/overview.md) | 分层职责、模块归属、实际业务调用、共享依赖组装及运行时资源 |
 | [数据模型](architecture/data-model.md) | 六表完整字段字典、类型 / 主外键 / 约束 / 索引、设计取舍、ORM 与读写边界 |
 | [媒体流水线](architecture/media-pipeline.md) | 扫描、文件名解析、TMDB 刮削、错误边界与索引展示 |
 | [播放](architecture/playback.md) | 请求、目标解析、引擎门面、mini / 全屏、退出时序、字幕与进度 |
