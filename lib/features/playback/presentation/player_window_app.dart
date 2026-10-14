@@ -298,26 +298,22 @@ class _PlayerWindowHome extends StatelessWidget {
       excluding: isClosing,
       child: IgnorePointer(
         ignoring: isClosing,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: !isOpen
-                  ? const ColoredBox(color: Colors.black)
-                  : bootstrap.isReady
-                  ? PlayerPage(
-                      key: ValueKey(bootstrap.request.requestId),
-                      videoItem: bootstrap.initialMedia!,
-                      engineFactory: MediaKitPlaybackEngine.new,
-                      target: bootstrap.initialTarget!,
-                      contextTitle: bootstrap.request.contextTitle,
-                      playlist: bootstrap.queue,
-                      mediaStore: bootstrap.mediaStore,
-                      regularMinimumWindowSize: const Size(720, 405),
-                      closeCoordinator: closeCoordinator,
-                    )
-                  : _PlayerWindowLaunchFailure(bootstrap: bootstrap, onCloseRequested: onCloseRequested),
-            ),
-          ],
+        child: SizedBox.expand(
+          child: !isOpen
+              ? const ColoredBox(color: Colors.black)
+              : bootstrap.isReady
+              ? PlayerPage(
+                  key: ValueKey(bootstrap.request.requestId),
+                  videoItem: bootstrap.initialMedia!,
+                  engineFactory: MediaKitPlaybackEngine.new,
+                  target: bootstrap.initialTarget!,
+                  contextTitle: bootstrap.request.contextTitle,
+                  playlist: bootstrap.queue,
+                  mediaStore: bootstrap.mediaStore,
+                  regularMinimumWindowSize: const Size(720, 405),
+                  closeCoordinator: closeCoordinator,
+                )
+              : _PlayerWindowLaunchFailure(bootstrap: bootstrap, onCloseRequested: onCloseRequested),
         ),
       ),
     );

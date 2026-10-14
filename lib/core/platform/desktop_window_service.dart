@@ -159,8 +159,7 @@ class _DesktopWindowService extends WindowService with official.WindowController
       _stateChanged();
       return;
     }
-    // AppKit completes fullscreen asynchronously. Sending the request is not
-    // confirmation; keep transitions serialized until the native state agrees.
+    // Keep transitions serialized until the controller confirms native state.
     final deadline = DateTime.now().add(const Duration(seconds: 5));
     while (_controller.isFullscreen != value) {
       if (_closing != null) throw StateError('Window closed during fullscreen transition.');

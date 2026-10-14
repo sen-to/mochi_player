@@ -125,10 +125,6 @@ class MochiPlayerApp extends StatelessWidget {
       // 直接使用从 AppTheme 类中导入的主题
       theme: AppTheme.lightThemeFor(themeProvider.accentColor.color),
       darkTheme: AppTheme.darkThemeFor(themeProvider.accentColor.color),
-
-      builder: (context, child) {
-        return child ?? const SizedBox.shrink();
-      },
     );
   }
 }

@@ -16,10 +16,8 @@ class DatabasePlaybackMediaStore implements PlaybackMediaStore {
 
   final DatabaseService _database;
   @override
-  Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async {
-    final row = await _database.getMediaFile(sourceId, path);
-    return row;
-  }
+  Future<MediaFile?> readMediaFile({required String sourceId, required String path}) =>
+      _database.getMediaFile(sourceId, path);
 
   @override
   Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {

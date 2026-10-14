@@ -5,13 +5,13 @@ import FlutterMacOS
 class AppDelegate: FlutterAppDelegate {
   private var engine: FlutterEngine?
   private var controls: NativeWindowControls?
-  static var lifecycleChannel: FlutterMethodChannel?
+  private var lifecycleChannel: FlutterMethodChannel?
   private var exitRequested = false
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
     let engine = FlutterEngine(name: "Mochi Player", project: nil)
     self.engine = engine
-    Self.lifecycleChannel = FlutterMethodChannel(
+    lifecycleChannel = FlutterMethodChannel(
       name: "mochi_player/application_lifecycle", binaryMessenger: engine.binaryMessenger)
     controls = NativeWindowControls(engine: engine)
     RegisterGeneratedPlugins(registry: engine)
@@ -20,7 +20,7 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-    guard let channel = Self.lifecycleChannel else {
+    guard let channel = lifecycleChannel else {
       return .terminateNow
     }
     if !exitRequested {
