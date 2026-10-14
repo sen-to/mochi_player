@@ -51,7 +51,7 @@ Future<PlayerWindowSession> createPlayerWindow({
   windows.addListener(lifecycle);
   try {
     await WidgetsBinding.instance.endOfFrame;
-    await lifecycle.windowControls.positionNativeWindowButtons();
+    await lifecycle.windowControls.configureTitlebar();
     return lifecycle;
   } catch (_) {
     // A creation that fails after registration still owns a live native view.

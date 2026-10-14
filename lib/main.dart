@@ -97,7 +97,7 @@ void main() async {
     ),
   );
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!exitCoordinator.isExiting) unawaited(windowControlsController.positionNativeWindowButtons());
+    if (!exitCoordinator.isExiting) unawaited(windowControlsController.configureTitlebar());
   });
 }
 

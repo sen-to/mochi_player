@@ -64,7 +64,7 @@ final class NativeWindowControls {
           request.result(FlutterError(code: "fullscreen_timeout",
                                      message: "AppKit did not finish the fullscreen transition.", details: nil))
         }
-      case "positionNativeWindowButtons":
+      case "configureTitlebar":
         // Use the system titlebar in all views. Full-size content keeps the
         // existing Flutter header, with the traffic lights above it.
         window.titlebarAppearsTransparent = true

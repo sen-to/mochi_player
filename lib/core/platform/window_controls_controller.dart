@@ -13,9 +13,9 @@ class WindowControlsController extends ChangeNotifier {
 
   bool get isMiniPlayer => _isMiniPlayer;
 
-  Future<void> positionNativeWindowButtons() async {
+  Future<void> configureTitlebar() async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.macOS) return;
-    await _nativeChannel.invokeMethod<void>('positionNativeWindowButtons', {'viewId': viewId});
+    await _nativeChannel.invokeMethod<void>('configureTitlebar', {'viewId': viewId});
   }
 
   Future<void> setMiniPlayerMode(bool enabled) async {

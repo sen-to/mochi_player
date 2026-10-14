@@ -23,12 +23,12 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
-  test('positions native macOS buttons through the platform bridge', () async {
+  test('configures the macOS titlebar through the platform bridge', () async {
     final controller = WindowControlsController(viewId: 7);
 
-    await controller.positionNativeWindowButtons();
+    await controller.configureTitlebar();
 
-    expect(calls.single.method, 'positionNativeWindowButtons');
+    expect(calls.single.method, 'configureTitlebar');
     expect(calls.single.arguments, {'viewId': 7});
   });
 
