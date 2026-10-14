@@ -1,3 +1,4 @@
+import '../../../support/database_fixture.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -30,23 +31,23 @@ void main() {
           parsedEpisode: e,
           mediaType: MediaType.episode,
           tvShowTmdbId: '999',
-          episodeTmdbId: '999_s1e$e',
+          episodeKey: '999_s1e$e',
           addedAt: DateTime.utc(2026),
         ),
     ];
-    await db.saveScannedFiles(files);
+    await saveMediaFixture(db, files);
     await db.updateProgress(files.first, 40, duration: 100);
-    await db.setTitleFavorite('999', true);
+    await db.setTitleFavorite(const TVShow(tmdbId: '999', title: 'Show'), true);
     final result = await MetadataScraper(db: db, matchResolver: _EpisodeResolver()).scrapeBatch(files);
     expect(result.successCount, 1);
     expect(result.failCount, 1);
     final first = (await db.getMediaFile('nas', '/1'))!;
     final second = (await db.getMediaFile('nas', '/2'))!;
-    expect(first.episodeTmdbId, '123_s1e1');
+    expect(first.episodeKey, '123_s1e1');
     expect(first.metadataMatchStatus, MetadataMatchStatus.confirmed);
     expect(first.position, 40);
     expect(first.isFavorite, isTrue);
-    expect(second.episodeTmdbId, isNull);
+    expect(second.episodeKey, isNull);
     expect(second.metadataMatchStatus, MetadataMatchStatus.unmatched);
   });
 
@@ -85,7 +86,7 @@ class _EpisodeResolver extends MetadataMatchResolver {
   @override
   Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) async =>
       const TmdbSeasonResult(
-        season: Season(seasonKey: '123_s1', seasonNumber: 1, title: 'Season'),
-        episodes: [Episode(tmdbId: '123_s1e1', episodeNumber: 1, title: 'One')],
+        season: Season(tvShowTmdbId: '123', seasonNumber: 1, title: 'Season'),
+        episodes: [Episode(tvShowTmdbId: '123', seasonNumber: 1, episodeNumber: 1, title: 'One')],
       );
 }

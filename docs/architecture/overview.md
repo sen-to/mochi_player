@@ -37,6 +37,24 @@ flowchart LR
 
 项目采用按功能组织的分层模块化单体：首页、媒体库、播放和设置各自组织页面与应用逻辑，共用存储、数据库、平台和 UI 能力。这里的分层是职责划分，尚未形成所有上层只依赖接口的严格依赖约束。
 
+### 各层职责
+
+展示层处理用户交互，应用层编排业务用例，基础设施层提供持久化与外部能力。各层的当前实现如下：
+
+| 职责 | 当前项目的代码 | 实际边界 |
+| --- | --- | --- |
+| 展示与交互 | `presentation/` 页面、组件与界面控制器 | 接收点击 / 输入，渲染状态与错误；处理窗口交互与视频表面 |
+| 应用用例与状态协调 | [MediaLibraryProvider](../../lib/features/library/application/media_library_provider.dart)、[LibrarySyncController](../../lib/features/library/application/library_sync_controller.dart)、[AppSettingsProvider](../../lib/features/settings/application/app_settings_provider.dart)、[PlaybackSessionController](../../lib/features/playback/application/playback_session_controller.dart) | 协调扫描、刮削、偏好保存、播放队列和进度；Provider 同时负责界面状态通知 |
+| 持久化访问 | [LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart)、[DatabaseService](../../lib/core/infrastructure/database/database_service.dart)、[DatabaseStorageSourceRepository](../../lib/core/infrastructure/storage/storage_source_repository.dart) | SQL 查询 / 订阅、字段级写入、事务与媒体源存储 |
+| 持久化框架与映射实现 | [AppDatabase](../../lib/core/infrastructure/database/app_database.dart)、[media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift)、`app_database.g.dart` | drift 表定义、约束、Companion、模型映射与生成的数据库代码；生成文件不手工修改 |
+| 业务模型与结果对象 | `core/domain/media/`、`features/*/domain/`、[MediaCardViewData](../../lib/features/library/application/media_card_view_data.dart) | 领域模型和页面投影；当前部分领域模型直接作为 drift 行模型，没有独立 Entity → Domain 转换层 |
+
+`DatabaseService` 位于基础设施层，是共享数据库连接与多表持久化写入边界。`StorageSourceService` 是媒体源仓库的薄协调入口，位于 `core/infrastructure/storage/`。职责由实现与依赖决定，不由类名中的 `Service` 决定。
+
+常规业务方向是“展示交互 → 应用用例 → 数据访问 / 外部能力适配”。应用入口按业务用例组织，持久化访问按读写职责组织；例如扫描媒体库涉及来源、文件与元数据，不与单张表绑定。drift 提供映射与查询能力，任务编排由应用逻辑负责。
+
+当前职责分离仍有例外：界面读查询公开具体仓库，部分页面直接管理存储；`MetadataScraper` 与 `MetadataImporter` 等位于基础设施目录的类也承担匹配 / 导入协调。下面分别记录当前路径与整改建议，目录归属不代表依赖边界已全部收拢。
+
 ### 模块职责
 
 下图只表示目录归属，不表示调用或导入。各功能按需要设置子目录，并非每个功能都有完整的四层。
@@ -81,13 +99,27 @@ flowchart LR
     SettingsPage -. "页面直接管理媒体源" .-> Storage["StorageSourceService / 存储实现"]
   end
   subgraph PlaybackPath["播放"]
-    Player["播放器界面与控制器"] --> Session["播放会话与进度逻辑"]
-    Session --> Contract["PlaybackEngine / PlaybackMediaStore 契约"]
-    Contract --> Backend["运行时实现：media_kit / 数据库适配"]
+    Player["PlayerPlaybackController：界面播放控制"] --> Session["PlaybackSessionController：队列与进度"]
+    Player --> EngineContract["PlaybackEngine"]
+    EngineContract --> Backend["MediaKitPlaybackEngine"]
+    Session --> StoreContract["PlaybackMediaStore"]
+    StoreContract --> Store["DatabasePlaybackMediaStore"]
   end
 ```
 
-播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
+播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。`PlaybackSessionController` 不调用播放引擎；真正的 open / seek 与状态流绑定由展示目录中的 `PlayerPlaybackController` 负责。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
+
+### 可沿代码追踪的业务路径
+
+| 操作 | 当前调用路径 | 需要注意的边界 |
+| --- | --- | --- |
+| 扫描媒体库 | `SettingsPage` → `MediaLibraryProvider.scanMediaSources()` → `LibrarySyncController.scanEnabledMediaSources()` → 存储连接 / `StorageMediaScanner` → `DatabaseService.saveScannedFiles()` | 应用控制器负责批次、取消、错误与清理；SQL 文件写入后，库查询订阅刷新；配置了 TMDB 时后续进行刮削 |
+| 收藏标题 | `FavoriteButton` → `MediaLibraryProvider.setFavorite(LibraryItem)` → `DatabaseService.setTitleFavorite()` | 应用层目前是薄转发；数据层按标题类型批量更新文件，页面通过 `LibraryQuery` 直接订阅具体仓库 |
+| 查询详情 | `MediaDetailPage` → `LibraryQuery` → `MediaLibraryProvider.repository` → `LibraryRepository.watchDetail()` / `watchVersions()` | 这是当前存在的读侧越层路径，不是已封装好的应用查询接口 |
+| 保存播放进度 | `PlayerPlaybackController` → `PlaybackSessionController` → `PlaybackProgressWriter` → `PlaybackMediaStore` → `DatabasePlaybackMediaStore` → `DatabaseService.updateProgress()` | 定时与关闭时提交；串行写入局部字段；数据库适配当前仍与契约同处应用目录 |
+| 保存普通偏好 | `SettingsPage` → `AppSettingsProvider.saveSettings()` → `AppSettingsService` | 保存到 SharedPreferences；媒体源编辑走另一条直接存储服务路径，不写成全部设置都经同一应用入口 |
+
+扫描 / 刮削的具体步骤见 [媒体流水线](media-pipeline.md)，播放的关闭与保存顺序见 [播放](playback.md)，SQL 映射与写入边界见 [数据模型](data-model.md)。
 
 以下依赖有明确用途，不应仅因跨目录就判为架构问题：
 
@@ -111,6 +143,8 @@ flowchart LR
 | 数据库与 TMDB 存在单例及默认构造；应用对象内部仍选择具体服务 | 依赖来源部分隐含，隔离测试和替换实现需要额外处理 | 最后按实际需求集中关键依赖组装；避免给每个类机械增加接口 |
 
 建议顺序为：页面业务收拢 → 查询边界收拢 → 适配器归位与播放器组装分离 → 关键依赖显式注入。整改应维持现有功能和生命周期契约，并验证相关行为；仅调整目录名或补接口不能视为问题已解决。
+
+后续按业务用例收拢应用入口、按查询 / 写入职责划分持久化访问，不要求每次调用都有三层转发，也不要求给每张表增加独立 DAO。当前 `DatabaseService` 管理多表写入，`LibraryRepository` 提供媒体库读取；这是现状，尚未拆成每个实体的仓库。
 
 ## 运行时：一个引擎、两个视图、一个共享数据库连接
 

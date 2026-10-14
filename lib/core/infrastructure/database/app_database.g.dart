@@ -3,1440 +3,11 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $MediaFilesTable extends MediaFiles with TableInfo<$MediaFilesTable, MediaFile> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-
-  $MediaFilesTable(this.attachedDatabase, [this._alias]);
-
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'),
-  );
-  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
-  @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-    'source_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _storageKeyMeta = const VerificationMeta('storageKey');
-  @override
-  late final GeneratedColumn<String> storageKey = GeneratedColumn<String>(
-    'storage_key',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
-  static const VerificationMeta _pathMeta = const VerificationMeta('path');
-  @override
-  late final GeneratedColumn<String> path = GeneratedColumn<String>(
-    'path',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _fileNameMeta = const VerificationMeta('fileName');
-  @override
-  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
-    'file_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _parsedTitleMeta = const VerificationMeta('parsedTitle');
-  @override
-  late final GeneratedColumn<String> parsedTitle = GeneratedColumn<String>(
-    'parsed_title',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _parsedYearMeta = const VerificationMeta('parsedYear');
-  @override
-  late final GeneratedColumn<int> parsedYear = GeneratedColumn<int>(
-    'parsed_year',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _parsedSeasonMeta = const VerificationMeta('parsedSeason');
-  @override
-  late final GeneratedColumn<int> parsedSeason = GeneratedColumn<int>(
-    'parsed_season',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _parsedEpisodeMeta = const VerificationMeta('parsedEpisode');
-  @override
-  late final GeneratedColumn<int> parsedEpisode = GeneratedColumn<int>(
-    'parsed_episode',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<MediaType, String> mediaType = GeneratedColumn<String>(
-    'media_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  ).withConverter<MediaType>($MediaFilesTable.$convertermediaType);
-  static const VerificationMeta _explicitTmdbIdMeta = const VerificationMeta('explicitTmdbId');
-  @override
-  late final GeneratedColumn<String> explicitTmdbId = GeneratedColumn<String>(
-    'explicit_tmdb_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _movieTmdbIdMeta = const VerificationMeta('movieTmdbId');
-  @override
-  late final GeneratedColumn<String> movieTmdbId = GeneratedColumn<String>(
-    'movie_tmdb_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _tvShowTmdbIdMeta = const VerificationMeta('tvShowTmdbId');
-  @override
-  late final GeneratedColumn<String> tvShowTmdbId = GeneratedColumn<String>(
-    'tv_show_tmdb_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _episodeTmdbIdMeta = const VerificationMeta('episodeTmdbId');
-  @override
-  late final GeneratedColumn<String> episodeTmdbId = GeneratedColumn<String>(
-    'episode_tmdb_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<MetadataMatchStatus, String> metadataMatchStatus =
-      GeneratedColumn<String>(
-        'metadata_match_status',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<MetadataMatchStatus>($MediaFilesTable.$convertermetadataMatchStatus);
-  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
-  @override
-  late final GeneratedColumn<int> size = GeneratedColumn<int>(
-    'size',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _containerMeta = const VerificationMeta('container');
-  @override
-  late final GeneratedColumn<String> container = GeneratedColumn<String>(
-    'container',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _widthMeta = const VerificationMeta('width');
-  @override
-  late final GeneratedColumn<int> width = GeneratedColumn<int>(
-    'width',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _heightMeta = const VerificationMeta('height');
-  @override
-  late final GeneratedColumn<int> height = GeneratedColumn<int>(
-    'height',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _videoCodecMeta = const VerificationMeta('videoCodec');
-  @override
-  late final GeneratedColumn<String> videoCodec = GeneratedColumn<String>(
-    'video_codec',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _audioCodecMeta = const VerificationMeta('audioCodec');
-  @override
-  late final GeneratedColumn<String> audioCodec = GeneratedColumn<String>(
-    'audio_codec',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _audioChannelsMeta = const VerificationMeta('audioChannels');
-  @override
-  late final GeneratedColumn<String> audioChannels = GeneratedColumn<String>(
-    'audio_channels',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isHdrMeta = const VerificationMeta('isHdr');
-  @override
-  late final GeneratedColumn<bool> isHdr = GeneratedColumn<bool>(
-    'is_hdr',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("is_hdr" IN (0, 1))'),
-  );
-  static const VerificationMeta _hdrFormatMeta = const VerificationMeta('hdrFormat');
-  @override
-  late final GeneratedColumn<String> hdrFormat = GeneratedColumn<String>(
-    'hdr_format',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _versionLabelMeta = const VerificationMeta('versionLabel');
-  @override
-  late final GeneratedColumn<String> versionLabel = GeneratedColumn<String>(
-    'version_label',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _durationMeta = const VerificationMeta('duration');
-  @override
-  late final GeneratedColumn<int> duration = GeneratedColumn<int>(
-    'duration',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _positionMeta = const VerificationMeta('position');
-  @override
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<WatchStatus, String> watchStatus = GeneratedColumn<String>(
-    'watch_status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  ).withConverter<WatchStatus>($MediaFilesTable.$converterwatchStatus);
-  static const VerificationMeta _lastWatchedAtMeta = const VerificationMeta('lastWatchedAt');
-  @override
-  late final GeneratedColumn<DateTime> lastWatchedAt = GeneratedColumn<DateTime>(
-    'last_watched_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isFavoriteMeta = const VerificationMeta('isFavorite');
-  @override
-  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
-    'is_favorite',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
-  );
-  static const VerificationMeta _addedAtMeta = const VerificationMeta('addedAt');
-  @override
-  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
-    'added_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    sourceId,
-    storageKey,
-    path,
-    fileName,
-    parsedTitle,
-    parsedYear,
-    parsedSeason,
-    parsedEpisode,
-    mediaType,
-    explicitTmdbId,
-    movieTmdbId,
-    tvShowTmdbId,
-    episodeTmdbId,
-    metadataMatchStatus,
-    size,
-    container,
-    width,
-    height,
-    videoCodec,
-    audioCodec,
-    audioChannels,
-    isHdr,
-    hdrFormat,
-    versionLabel,
-    duration,
-    position,
-    watchStatus,
-    lastWatchedAt,
-    isFavorite,
-    addedAt,
-  ];
-
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'media_files';
-
-  @override
-  VerificationContext validateIntegrity(Insertable<MediaFile> instance, {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
-    } else if (isInserting) {
-      context.missing(_sourceIdMeta);
-    }
-    if (data.containsKey('storage_key')) {
-      context.handle(_storageKeyMeta, storageKey.isAcceptableOrUnknown(data['storage_key']!, _storageKeyMeta));
-    } else if (isInserting) {
-      context.missing(_storageKeyMeta);
-    }
-    if (data.containsKey('path')) {
-      context.handle(_pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
-    } else if (isInserting) {
-      context.missing(_pathMeta);
-    }
-    if (data.containsKey('file_name')) {
-      context.handle(_fileNameMeta, fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta));
-    } else if (isInserting) {
-      context.missing(_fileNameMeta);
-    }
-    if (data.containsKey('parsed_title')) {
-      context.handle(_parsedTitleMeta, parsedTitle.isAcceptableOrUnknown(data['parsed_title']!, _parsedTitleMeta));
-    } else if (isInserting) {
-      context.missing(_parsedTitleMeta);
-    }
-    if (data.containsKey('parsed_year')) {
-      context.handle(_parsedYearMeta, parsedYear.isAcceptableOrUnknown(data['parsed_year']!, _parsedYearMeta));
-    }
-    if (data.containsKey('parsed_season')) {
-      context.handle(_parsedSeasonMeta, parsedSeason.isAcceptableOrUnknown(data['parsed_season']!, _parsedSeasonMeta));
-    }
-    if (data.containsKey('parsed_episode')) {
-      context.handle(
-        _parsedEpisodeMeta,
-        parsedEpisode.isAcceptableOrUnknown(data['parsed_episode']!, _parsedEpisodeMeta),
-      );
-    }
-    if (data.containsKey('explicit_tmdb_id')) {
-      context.handle(
-        _explicitTmdbIdMeta,
-        explicitTmdbId.isAcceptableOrUnknown(data['explicit_tmdb_id']!, _explicitTmdbIdMeta),
-      );
-    }
-    if (data.containsKey('movie_tmdb_id')) {
-      context.handle(_movieTmdbIdMeta, movieTmdbId.isAcceptableOrUnknown(data['movie_tmdb_id']!, _movieTmdbIdMeta));
-    }
-    if (data.containsKey('tv_show_tmdb_id')) {
-      context.handle(
-        _tvShowTmdbIdMeta,
-        tvShowTmdbId.isAcceptableOrUnknown(data['tv_show_tmdb_id']!, _tvShowTmdbIdMeta),
-      );
-    }
-    if (data.containsKey('episode_tmdb_id')) {
-      context.handle(
-        _episodeTmdbIdMeta,
-        episodeTmdbId.isAcceptableOrUnknown(data['episode_tmdb_id']!, _episodeTmdbIdMeta),
-      );
-    }
-    if (data.containsKey('size')) {
-      context.handle(_sizeMeta, size.isAcceptableOrUnknown(data['size']!, _sizeMeta));
-    } else if (isInserting) {
-      context.missing(_sizeMeta);
-    }
-    if (data.containsKey('container')) {
-      context.handle(_containerMeta, container.isAcceptableOrUnknown(data['container']!, _containerMeta));
-    }
-    if (data.containsKey('width')) {
-      context.handle(_widthMeta, width.isAcceptableOrUnknown(data['width']!, _widthMeta));
-    }
-    if (data.containsKey('height')) {
-      context.handle(_heightMeta, height.isAcceptableOrUnknown(data['height']!, _heightMeta));
-    }
-    if (data.containsKey('video_codec')) {
-      context.handle(_videoCodecMeta, videoCodec.isAcceptableOrUnknown(data['video_codec']!, _videoCodecMeta));
-    }
-    if (data.containsKey('audio_codec')) {
-      context.handle(_audioCodecMeta, audioCodec.isAcceptableOrUnknown(data['audio_codec']!, _audioCodecMeta));
-    }
-    if (data.containsKey('audio_channels')) {
-      context.handle(
-        _audioChannelsMeta,
-        audioChannels.isAcceptableOrUnknown(data['audio_channels']!, _audioChannelsMeta),
-      );
-    }
-    if (data.containsKey('is_hdr')) {
-      context.handle(_isHdrMeta, isHdr.isAcceptableOrUnknown(data['is_hdr']!, _isHdrMeta));
-    } else if (isInserting) {
-      context.missing(_isHdrMeta);
-    }
-    if (data.containsKey('hdr_format')) {
-      context.handle(_hdrFormatMeta, hdrFormat.isAcceptableOrUnknown(data['hdr_format']!, _hdrFormatMeta));
-    }
-    if (data.containsKey('version_label')) {
-      context.handle(_versionLabelMeta, versionLabel.isAcceptableOrUnknown(data['version_label']!, _versionLabelMeta));
-    }
-    if (data.containsKey('duration')) {
-      context.handle(_durationMeta, duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
-    } else if (isInserting) {
-      context.missing(_durationMeta);
-    }
-    if (data.containsKey('position')) {
-      context.handle(_positionMeta, position.isAcceptableOrUnknown(data['position']!, _positionMeta));
-    } else if (isInserting) {
-      context.missing(_positionMeta);
-    }
-    if (data.containsKey('last_watched_at')) {
-      context.handle(
-        _lastWatchedAtMeta,
-        lastWatchedAt.isAcceptableOrUnknown(data['last_watched_at']!, _lastWatchedAtMeta),
-      );
-    }
-    if (data.containsKey('is_favorite')) {
-      context.handle(_isFavoriteMeta, isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta));
-    } else if (isInserting) {
-      context.missing(_isFavoriteMeta);
-    }
-    if (data.containsKey('added_at')) {
-      context.handle(_addedAtMeta, addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
-    } else if (isInserting) {
-      context.missing(_addedAtMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-
-  @override
-  MediaFile map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MediaFile(
-      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      path: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}path'])!,
-      fileName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}file_name'])!,
-      parsedTitle: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}parsed_title'])!,
-      parsedYear: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}parsed_year']),
-      parsedSeason: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}parsed_season']),
-      parsedEpisode: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}parsed_episode']),
-      mediaType: $MediaFilesTable.$convertermediaType.fromSql(
-        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}media_type'])!,
-      ),
-      explicitTmdbId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}explicit_tmdb_id'],
-      ),
-      metadataMatchStatus: $MediaFilesTable.$convertermetadataMatchStatus.fromSql(
-        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}metadata_match_status'])!,
-      ),
-      movieTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}movie_tmdb_id']),
-      tvShowTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tv_show_tmdb_id']),
-      episodeTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_tmdb_id']),
-      size: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}size'])!,
-      container: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}container']),
-      width: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}width']),
-      height: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}height']),
-      videoCodec: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}video_codec']),
-      audioCodec: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}audio_codec']),
-      audioChannels: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}audio_channels']),
-      isHdr: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}is_hdr'])!,
-      hdrFormat: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}hdr_format']),
-      versionLabel: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}version_label']),
-      duration: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}duration'])!,
-      position: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}position'])!,
-      watchStatus: $MediaFilesTable.$converterwatchStatus.fromSql(
-        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}watch_status'])!,
-      ),
-      lastWatchedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}last_watched_at'],
-      ),
-      isFavorite: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
-      addedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}added_at'])!,
-    );
-  }
-
-  @override
-  $MediaFilesTable createAlias(String alias) {
-    return $MediaFilesTable(attachedDatabase, alias);
-  }
-
-  static JsonTypeConverter2<MediaType, String, String> $convertermediaType = const EnumNameConverter<MediaType>(
-    MediaType.values,
-  );
-  static JsonTypeConverter2<MetadataMatchStatus, String, String> $convertermetadataMatchStatus =
-      const EnumNameConverter<MetadataMatchStatus>(MetadataMatchStatus.values);
-  static JsonTypeConverter2<WatchStatus, String, String> $converterwatchStatus = const EnumNameConverter<WatchStatus>(
-    WatchStatus.values,
-  );
-}
-
-class MediaFilesCompanion extends UpdateCompanion<MediaFile> {
-  final Value<int> id;
-  final Value<String> sourceId;
-  final Value<String> storageKey;
-  final Value<String> path;
-  final Value<String> fileName;
-  final Value<String> parsedTitle;
-  final Value<int?> parsedYear;
-  final Value<int?> parsedSeason;
-  final Value<int?> parsedEpisode;
-  final Value<MediaType> mediaType;
-  final Value<String?> explicitTmdbId;
-  final Value<String?> movieTmdbId;
-  final Value<String?> tvShowTmdbId;
-  final Value<String?> episodeTmdbId;
-  final Value<MetadataMatchStatus> metadataMatchStatus;
-  final Value<int> size;
-  final Value<String?> container;
-  final Value<int?> width;
-  final Value<int?> height;
-  final Value<String?> videoCodec;
-  final Value<String?> audioCodec;
-  final Value<String?> audioChannels;
-  final Value<bool> isHdr;
-  final Value<String?> hdrFormat;
-  final Value<String?> versionLabel;
-  final Value<int> duration;
-  final Value<int> position;
-  final Value<WatchStatus> watchStatus;
-  final Value<DateTime?> lastWatchedAt;
-  final Value<bool> isFavorite;
-  final Value<DateTime> addedAt;
-
-  const MediaFilesCompanion({
-    this.id = const Value.absent(),
-    this.sourceId = const Value.absent(),
-    this.storageKey = const Value.absent(),
-    this.path = const Value.absent(),
-    this.fileName = const Value.absent(),
-    this.parsedTitle = const Value.absent(),
-    this.parsedYear = const Value.absent(),
-    this.parsedSeason = const Value.absent(),
-    this.parsedEpisode = const Value.absent(),
-    this.mediaType = const Value.absent(),
-    this.explicitTmdbId = const Value.absent(),
-    this.movieTmdbId = const Value.absent(),
-    this.tvShowTmdbId = const Value.absent(),
-    this.episodeTmdbId = const Value.absent(),
-    this.metadataMatchStatus = const Value.absent(),
-    this.size = const Value.absent(),
-    this.container = const Value.absent(),
-    this.width = const Value.absent(),
-    this.height = const Value.absent(),
-    this.videoCodec = const Value.absent(),
-    this.audioCodec = const Value.absent(),
-    this.audioChannels = const Value.absent(),
-    this.isHdr = const Value.absent(),
-    this.hdrFormat = const Value.absent(),
-    this.versionLabel = const Value.absent(),
-    this.duration = const Value.absent(),
-    this.position = const Value.absent(),
-    this.watchStatus = const Value.absent(),
-    this.lastWatchedAt = const Value.absent(),
-    this.isFavorite = const Value.absent(),
-    this.addedAt = const Value.absent(),
-  });
-
-  MediaFilesCompanion.insert({
-    this.id = const Value.absent(),
-    required String sourceId,
-    required String storageKey,
-    required String path,
-    required String fileName,
-    required String parsedTitle,
-    this.parsedYear = const Value.absent(),
-    this.parsedSeason = const Value.absent(),
-    this.parsedEpisode = const Value.absent(),
-    required MediaType mediaType,
-    this.explicitTmdbId = const Value.absent(),
-    this.movieTmdbId = const Value.absent(),
-    this.tvShowTmdbId = const Value.absent(),
-    this.episodeTmdbId = const Value.absent(),
-    required MetadataMatchStatus metadataMatchStatus,
-    required int size,
-    this.container = const Value.absent(),
-    this.width = const Value.absent(),
-    this.height = const Value.absent(),
-    this.videoCodec = const Value.absent(),
-    this.audioCodec = const Value.absent(),
-    this.audioChannels = const Value.absent(),
-    required bool isHdr,
-    this.hdrFormat = const Value.absent(),
-    this.versionLabel = const Value.absent(),
-    required int duration,
-    required int position,
-    required WatchStatus watchStatus,
-    this.lastWatchedAt = const Value.absent(),
-    required bool isFavorite,
-    required DateTime addedAt,
-  }) : sourceId = Value(sourceId),
-       storageKey = Value(storageKey),
-       path = Value(path),
-       fileName = Value(fileName),
-       parsedTitle = Value(parsedTitle),
-       mediaType = Value(mediaType),
-       metadataMatchStatus = Value(metadataMatchStatus),
-       size = Value(size),
-       isHdr = Value(isHdr),
-       duration = Value(duration),
-       position = Value(position),
-       watchStatus = Value(watchStatus),
-       isFavorite = Value(isFavorite),
-       addedAt = Value(addedAt);
-
-  static Insertable<MediaFile> custom({
-    Expression<int>? id,
-    Expression<String>? sourceId,
-    Expression<String>? storageKey,
-    Expression<String>? path,
-    Expression<String>? fileName,
-    Expression<String>? parsedTitle,
-    Expression<int>? parsedYear,
-    Expression<int>? parsedSeason,
-    Expression<int>? parsedEpisode,
-    Expression<String>? mediaType,
-    Expression<String>? explicitTmdbId,
-    Expression<String>? movieTmdbId,
-    Expression<String>? tvShowTmdbId,
-    Expression<String>? episodeTmdbId,
-    Expression<String>? metadataMatchStatus,
-    Expression<int>? size,
-    Expression<String>? container,
-    Expression<int>? width,
-    Expression<int>? height,
-    Expression<String>? videoCodec,
-    Expression<String>? audioCodec,
-    Expression<String>? audioChannels,
-    Expression<bool>? isHdr,
-    Expression<String>? hdrFormat,
-    Expression<String>? versionLabel,
-    Expression<int>? duration,
-    Expression<int>? position,
-    Expression<String>? watchStatus,
-    Expression<DateTime>? lastWatchedAt,
-    Expression<bool>? isFavorite,
-    Expression<DateTime>? addedAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (sourceId != null) 'source_id': sourceId,
-      if (storageKey != null) 'storage_key': storageKey,
-      if (path != null) 'path': path,
-      if (fileName != null) 'file_name': fileName,
-      if (parsedTitle != null) 'parsed_title': parsedTitle,
-      if (parsedYear != null) 'parsed_year': parsedYear,
-      if (parsedSeason != null) 'parsed_season': parsedSeason,
-      if (parsedEpisode != null) 'parsed_episode': parsedEpisode,
-      if (mediaType != null) 'media_type': mediaType,
-      if (explicitTmdbId != null) 'explicit_tmdb_id': explicitTmdbId,
-      if (movieTmdbId != null) 'movie_tmdb_id': movieTmdbId,
-      if (tvShowTmdbId != null) 'tv_show_tmdb_id': tvShowTmdbId,
-      if (episodeTmdbId != null) 'episode_tmdb_id': episodeTmdbId,
-      if (metadataMatchStatus != null) 'metadata_match_status': metadataMatchStatus,
-      if (size != null) 'size': size,
-      if (container != null) 'container': container,
-      if (width != null) 'width': width,
-      if (height != null) 'height': height,
-      if (videoCodec != null) 'video_codec': videoCodec,
-      if (audioCodec != null) 'audio_codec': audioCodec,
-      if (audioChannels != null) 'audio_channels': audioChannels,
-      if (isHdr != null) 'is_hdr': isHdr,
-      if (hdrFormat != null) 'hdr_format': hdrFormat,
-      if (versionLabel != null) 'version_label': versionLabel,
-      if (duration != null) 'duration': duration,
-      if (position != null) 'position': position,
-      if (watchStatus != null) 'watch_status': watchStatus,
-      if (lastWatchedAt != null) 'last_watched_at': lastWatchedAt,
-      if (isFavorite != null) 'is_favorite': isFavorite,
-      if (addedAt != null) 'added_at': addedAt,
-    });
-  }
-
-  MediaFilesCompanion copyWith({
-    Value<int>? id,
-    Value<String>? sourceId,
-    Value<String>? storageKey,
-    Value<String>? path,
-    Value<String>? fileName,
-    Value<String>? parsedTitle,
-    Value<int?>? parsedYear,
-    Value<int?>? parsedSeason,
-    Value<int?>? parsedEpisode,
-    Value<MediaType>? mediaType,
-    Value<String?>? explicitTmdbId,
-    Value<String?>? movieTmdbId,
-    Value<String?>? tvShowTmdbId,
-    Value<String?>? episodeTmdbId,
-    Value<MetadataMatchStatus>? metadataMatchStatus,
-    Value<int>? size,
-    Value<String?>? container,
-    Value<int?>? width,
-    Value<int?>? height,
-    Value<String?>? videoCodec,
-    Value<String?>? audioCodec,
-    Value<String?>? audioChannels,
-    Value<bool>? isHdr,
-    Value<String?>? hdrFormat,
-    Value<String?>? versionLabel,
-    Value<int>? duration,
-    Value<int>? position,
-    Value<WatchStatus>? watchStatus,
-    Value<DateTime?>? lastWatchedAt,
-    Value<bool>? isFavorite,
-    Value<DateTime>? addedAt,
-  }) {
-    return MediaFilesCompanion(
-      id: id ?? this.id,
-      sourceId: sourceId ?? this.sourceId,
-      storageKey: storageKey ?? this.storageKey,
-      path: path ?? this.path,
-      fileName: fileName ?? this.fileName,
-      parsedTitle: parsedTitle ?? this.parsedTitle,
-      parsedYear: parsedYear ?? this.parsedYear,
-      parsedSeason: parsedSeason ?? this.parsedSeason,
-      parsedEpisode: parsedEpisode ?? this.parsedEpisode,
-      mediaType: mediaType ?? this.mediaType,
-      explicitTmdbId: explicitTmdbId ?? this.explicitTmdbId,
-      movieTmdbId: movieTmdbId ?? this.movieTmdbId,
-      tvShowTmdbId: tvShowTmdbId ?? this.tvShowTmdbId,
-      episodeTmdbId: episodeTmdbId ?? this.episodeTmdbId,
-      metadataMatchStatus: metadataMatchStatus ?? this.metadataMatchStatus,
-      size: size ?? this.size,
-      container: container ?? this.container,
-      width: width ?? this.width,
-      height: height ?? this.height,
-      videoCodec: videoCodec ?? this.videoCodec,
-      audioCodec: audioCodec ?? this.audioCodec,
-      audioChannels: audioChannels ?? this.audioChannels,
-      isHdr: isHdr ?? this.isHdr,
-      hdrFormat: hdrFormat ?? this.hdrFormat,
-      versionLabel: versionLabel ?? this.versionLabel,
-      duration: duration ?? this.duration,
-      position: position ?? this.position,
-      watchStatus: watchStatus ?? this.watchStatus,
-      lastWatchedAt: lastWatchedAt ?? this.lastWatchedAt,
-      isFavorite: isFavorite ?? this.isFavorite,
-      addedAt: addedAt ?? this.addedAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (sourceId.present) {
-      map['source_id'] = Variable<String>(sourceId.value);
-    }
-    if (storageKey.present) {
-      map['storage_key'] = Variable<String>(storageKey.value);
-    }
-    if (path.present) {
-      map['path'] = Variable<String>(path.value);
-    }
-    if (fileName.present) {
-      map['file_name'] = Variable<String>(fileName.value);
-    }
-    if (parsedTitle.present) {
-      map['parsed_title'] = Variable<String>(parsedTitle.value);
-    }
-    if (parsedYear.present) {
-      map['parsed_year'] = Variable<int>(parsedYear.value);
-    }
-    if (parsedSeason.present) {
-      map['parsed_season'] = Variable<int>(parsedSeason.value);
-    }
-    if (parsedEpisode.present) {
-      map['parsed_episode'] = Variable<int>(parsedEpisode.value);
-    }
-    if (mediaType.present) {
-      map['media_type'] = Variable<String>($MediaFilesTable.$convertermediaType.toSql(mediaType.value));
-    }
-    if (explicitTmdbId.present) {
-      map['explicit_tmdb_id'] = Variable<String>(explicitTmdbId.value);
-    }
-    if (movieTmdbId.present) {
-      map['movie_tmdb_id'] = Variable<String>(movieTmdbId.value);
-    }
-    if (tvShowTmdbId.present) {
-      map['tv_show_tmdb_id'] = Variable<String>(tvShowTmdbId.value);
-    }
-    if (episodeTmdbId.present) {
-      map['episode_tmdb_id'] = Variable<String>(episodeTmdbId.value);
-    }
-    if (metadataMatchStatus.present) {
-      map['metadata_match_status'] = Variable<String>(
-        $MediaFilesTable.$convertermetadataMatchStatus.toSql(metadataMatchStatus.value),
-      );
-    }
-    if (size.present) {
-      map['size'] = Variable<int>(size.value);
-    }
-    if (container.present) {
-      map['container'] = Variable<String>(container.value);
-    }
-    if (width.present) {
-      map['width'] = Variable<int>(width.value);
-    }
-    if (height.present) {
-      map['height'] = Variable<int>(height.value);
-    }
-    if (videoCodec.present) {
-      map['video_codec'] = Variable<String>(videoCodec.value);
-    }
-    if (audioCodec.present) {
-      map['audio_codec'] = Variable<String>(audioCodec.value);
-    }
-    if (audioChannels.present) {
-      map['audio_channels'] = Variable<String>(audioChannels.value);
-    }
-    if (isHdr.present) {
-      map['is_hdr'] = Variable<bool>(isHdr.value);
-    }
-    if (hdrFormat.present) {
-      map['hdr_format'] = Variable<String>(hdrFormat.value);
-    }
-    if (versionLabel.present) {
-      map['version_label'] = Variable<String>(versionLabel.value);
-    }
-    if (duration.present) {
-      map['duration'] = Variable<int>(duration.value);
-    }
-    if (position.present) {
-      map['position'] = Variable<int>(position.value);
-    }
-    if (watchStatus.present) {
-      map['watch_status'] = Variable<String>($MediaFilesTable.$converterwatchStatus.toSql(watchStatus.value));
-    }
-    if (lastWatchedAt.present) {
-      map['last_watched_at'] = Variable<DateTime>(lastWatchedAt.value);
-    }
-    if (isFavorite.present) {
-      map['is_favorite'] = Variable<bool>(isFavorite.value);
-    }
-    if (addedAt.present) {
-      map['added_at'] = Variable<DateTime>(addedAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MediaFilesCompanion(')
-          ..write('id: $id, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('storageKey: $storageKey, ')
-          ..write('path: $path, ')
-          ..write('fileName: $fileName, ')
-          ..write('parsedTitle: $parsedTitle, ')
-          ..write('parsedYear: $parsedYear, ')
-          ..write('parsedSeason: $parsedSeason, ')
-          ..write('parsedEpisode: $parsedEpisode, ')
-          ..write('mediaType: $mediaType, ')
-          ..write('explicitTmdbId: $explicitTmdbId, ')
-          ..write('movieTmdbId: $movieTmdbId, ')
-          ..write('tvShowTmdbId: $tvShowTmdbId, ')
-          ..write('episodeTmdbId: $episodeTmdbId, ')
-          ..write('metadataMatchStatus: $metadataMatchStatus, ')
-          ..write('size: $size, ')
-          ..write('container: $container, ')
-          ..write('width: $width, ')
-          ..write('height: $height, ')
-          ..write('videoCodec: $videoCodec, ')
-          ..write('audioCodec: $audioCodec, ')
-          ..write('audioChannels: $audioChannels, ')
-          ..write('isHdr: $isHdr, ')
-          ..write('hdrFormat: $hdrFormat, ')
-          ..write('versionLabel: $versionLabel, ')
-          ..write('duration: $duration, ')
-          ..write('position: $position, ')
-          ..write('watchStatus: $watchStatus, ')
-          ..write('lastWatchedAt: $lastWatchedAt, ')
-          ..write('isFavorite: $isFavorite, ')
-          ..write('addedAt: $addedAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class _$MediaFileInsertable implements Insertable<MediaFile> {
-  MediaFile _object;
-
-  _$MediaFileInsertable(this._object);
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    return MediaFilesCompanion(
-      id: Value(_object.id),
-      sourceId: Value(_object.sourceId),
-      storageKey: Value(_object.storageKey),
-      path: Value(_object.path),
-      fileName: Value(_object.fileName),
-      parsedTitle: Value(_object.parsedTitle),
-      parsedYear: Value(_object.parsedYear),
-      parsedSeason: Value(_object.parsedSeason),
-      parsedEpisode: Value(_object.parsedEpisode),
-      mediaType: Value(_object.mediaType),
-      explicitTmdbId: Value(_object.explicitTmdbId),
-      movieTmdbId: Value(_object.movieTmdbId),
-      tvShowTmdbId: Value(_object.tvShowTmdbId),
-      episodeTmdbId: Value(_object.episodeTmdbId),
-      metadataMatchStatus: Value(_object.metadataMatchStatus),
-      size: Value(_object.size),
-      container: Value(_object.container),
-      width: Value(_object.width),
-      height: Value(_object.height),
-      videoCodec: Value(_object.videoCodec),
-      audioCodec: Value(_object.audioCodec),
-      audioChannels: Value(_object.audioChannels),
-      isHdr: Value(_object.isHdr),
-      hdrFormat: Value(_object.hdrFormat),
-      versionLabel: Value(_object.versionLabel),
-      duration: Value(_object.duration),
-      position: Value(_object.position),
-      watchStatus: Value(_object.watchStatus),
-      lastWatchedAt: Value(_object.lastWatchedAt),
-      isFavorite: Value(_object.isFavorite),
-      addedAt: Value(_object.addedAt),
-    ).toColumns(false);
-  }
-}
-
-extension MediaFileToInsertable on MediaFile {
-  _$MediaFileInsertable toInsertable() {
-    return _$MediaFileInsertable(this);
-  }
-}
-
-class $MoviesTable extends Movies with TableInfo<$MoviesTable, Movie> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-
-  $MoviesTable(this.attachedDatabase, [this._alias]);
-
-  static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
-  @override
-  late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
-    'tmdb_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _originalTitleMeta = const VerificationMeta('originalTitle');
-  @override
-  late final GeneratedColumn<String> originalTitle = GeneratedColumn<String>(
-    'original_title',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _releaseYearMeta = const VerificationMeta('releaseYear');
-  @override
-  late final GeneratedColumn<int> releaseYear = GeneratedColumn<int>(
-    'release_year',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _releaseDateMeta = const VerificationMeta('releaseDate');
-  @override
-  late final GeneratedColumn<DateTime> releaseDate = GeneratedColumn<DateTime>(
-    'release_date',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _posterUrlMeta = const VerificationMeta('posterUrl');
-  @override
-  late final GeneratedColumn<String> posterUrl = GeneratedColumn<String>(
-    'poster_url',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _backdropUrlMeta = const VerificationMeta('backdropUrl');
-  @override
-  late final GeneratedColumn<String> backdropUrl = GeneratedColumn<String>(
-    'backdrop_url',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _logoUrlMeta = const VerificationMeta('logoUrl');
-  @override
-  late final GeneratedColumn<String> logoUrl = GeneratedColumn<String>(
-    'logo_url',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _overviewMeta = const VerificationMeta('overview');
-  @override
-  late final GeneratedColumn<String> overview = GeneratedColumn<String>(
-    'overview',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _certificationMeta = const VerificationMeta('certification');
-  @override
-  late final GeneratedColumn<String> certification = GeneratedColumn<String>(
-    'certification',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
-  @override
-  late final GeneratedColumn<double> rating = GeneratedColumn<double>(
-    'rating',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<List<String>, String> genres = GeneratedColumn<String>(
-    'genres',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  ).withConverter<List<String>>($MoviesTable.$convertergenres);
-  @override
-  late final GeneratedColumnWithTypeConverter<List<Artist>, String> cast = GeneratedColumn<String>(
-    'cast',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  ).withConverter<List<Artist>>($MoviesTable.$convertercast);
-
-  @override
-  List<GeneratedColumn> get $columns => [
-    tmdbId,
-    title,
-    originalTitle,
-    releaseYear,
-    releaseDate,
-    posterUrl,
-    backdropUrl,
-    logoUrl,
-    overview,
-    certification,
-    rating,
-    genres,
-    cast,
-  ];
-
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'movies';
-
-  @override
-  VerificationContext validateIntegrity(Insertable<Movie> instance, {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('tmdb_id')) {
-      context.handle(_tmdbIdMeta, tmdbId.isAcceptableOrUnknown(data['tmdb_id']!, _tmdbIdMeta));
-    } else if (isInserting) {
-      context.missing(_tmdbIdMeta);
-    }
-    if (data.containsKey('title')) {
-      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('original_title')) {
-      context.handle(
-        _originalTitleMeta,
-        originalTitle.isAcceptableOrUnknown(data['original_title']!, _originalTitleMeta),
-      );
-    }
-    if (data.containsKey('release_year')) {
-      context.handle(_releaseYearMeta, releaseYear.isAcceptableOrUnknown(data['release_year']!, _releaseYearMeta));
-    }
-    if (data.containsKey('release_date')) {
-      context.handle(_releaseDateMeta, releaseDate.isAcceptableOrUnknown(data['release_date']!, _releaseDateMeta));
-    }
-    if (data.containsKey('poster_url')) {
-      context.handle(_posterUrlMeta, posterUrl.isAcceptableOrUnknown(data['poster_url']!, _posterUrlMeta));
-    }
-    if (data.containsKey('backdrop_url')) {
-      context.handle(_backdropUrlMeta, backdropUrl.isAcceptableOrUnknown(data['backdrop_url']!, _backdropUrlMeta));
-    }
-    if (data.containsKey('logo_url')) {
-      context.handle(_logoUrlMeta, logoUrl.isAcceptableOrUnknown(data['logo_url']!, _logoUrlMeta));
-    }
-    if (data.containsKey('overview')) {
-      context.handle(_overviewMeta, overview.isAcceptableOrUnknown(data['overview']!, _overviewMeta));
-    }
-    if (data.containsKey('certification')) {
-      context.handle(
-        _certificationMeta,
-        certification.isAcceptableOrUnknown(data['certification']!, _certificationMeta),
-      );
-    }
-    if (data.containsKey('rating')) {
-      context.handle(_ratingMeta, rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta));
-    } else if (isInserting) {
-      context.missing(_ratingMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {tmdbId};
-
-  @override
-  Movie map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Movie(
-      tmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tmdb_id'])!,
-      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      originalTitle: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}original_title']),
-      releaseYear: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}release_year']),
-      releaseDate: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}release_date']),
-      posterUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}poster_url']),
-      backdropUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}backdrop_url']),
-      logoUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}logo_url']),
-      overview: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}overview']),
-      certification: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}certification']),
-      rating: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}rating'])!,
-      genres: $MoviesTable.$convertergenres.fromSql(
-        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}genres'])!,
-      ),
-      cast: $MoviesTable.$convertercast.fromSql(
-        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cast'])!,
-      ),
-    );
-  }
-
-  @override
-  $MoviesTable createAlias(String alias) {
-    return $MoviesTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<List<String>, String> $convertergenres = const StringListConverter();
-  static TypeConverter<List<Artist>, String> $convertercast = const ArtistListConverter();
-}
-
-class MoviesCompanion extends UpdateCompanion<Movie> {
-  final Value<String> tmdbId;
-  final Value<String> title;
-  final Value<String?> originalTitle;
-  final Value<int?> releaseYear;
-  final Value<DateTime?> releaseDate;
-  final Value<String?> posterUrl;
-  final Value<String?> backdropUrl;
-  final Value<String?> logoUrl;
-  final Value<String?> overview;
-  final Value<String?> certification;
-  final Value<double> rating;
-  final Value<List<String>> genres;
-  final Value<List<Artist>> cast;
-  final Value<int> rowid;
-
-  const MoviesCompanion({
-    this.tmdbId = const Value.absent(),
-    this.title = const Value.absent(),
-    this.originalTitle = const Value.absent(),
-    this.releaseYear = const Value.absent(),
-    this.releaseDate = const Value.absent(),
-    this.posterUrl = const Value.absent(),
-    this.backdropUrl = const Value.absent(),
-    this.logoUrl = const Value.absent(),
-    this.overview = const Value.absent(),
-    this.certification = const Value.absent(),
-    this.rating = const Value.absent(),
-    this.genres = const Value.absent(),
-    this.cast = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-
-  MoviesCompanion.insert({
-    required String tmdbId,
-    required String title,
-    this.originalTitle = const Value.absent(),
-    this.releaseYear = const Value.absent(),
-    this.releaseDate = const Value.absent(),
-    this.posterUrl = const Value.absent(),
-    this.backdropUrl = const Value.absent(),
-    this.logoUrl = const Value.absent(),
-    this.overview = const Value.absent(),
-    this.certification = const Value.absent(),
-    required double rating,
-    required List<String> genres,
-    required List<Artist> cast,
-    this.rowid = const Value.absent(),
-  }) : tmdbId = Value(tmdbId),
-       title = Value(title),
-       rating = Value(rating),
-       genres = Value(genres),
-       cast = Value(cast);
-
-  static Insertable<Movie> custom({
-    Expression<String>? tmdbId,
-    Expression<String>? title,
-    Expression<String>? originalTitle,
-    Expression<int>? releaseYear,
-    Expression<DateTime>? releaseDate,
-    Expression<String>? posterUrl,
-    Expression<String>? backdropUrl,
-    Expression<String>? logoUrl,
-    Expression<String>? overview,
-    Expression<String>? certification,
-    Expression<double>? rating,
-    Expression<String>? genres,
-    Expression<String>? cast,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (tmdbId != null) 'tmdb_id': tmdbId,
-      if (title != null) 'title': title,
-      if (originalTitle != null) 'original_title': originalTitle,
-      if (releaseYear != null) 'release_year': releaseYear,
-      if (releaseDate != null) 'release_date': releaseDate,
-      if (posterUrl != null) 'poster_url': posterUrl,
-      if (backdropUrl != null) 'backdrop_url': backdropUrl,
-      if (logoUrl != null) 'logo_url': logoUrl,
-      if (overview != null) 'overview': overview,
-      if (certification != null) 'certification': certification,
-      if (rating != null) 'rating': rating,
-      if (genres != null) 'genres': genres,
-      if (cast != null) 'cast': cast,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  MoviesCompanion copyWith({
-    Value<String>? tmdbId,
-    Value<String>? title,
-    Value<String?>? originalTitle,
-    Value<int?>? releaseYear,
-    Value<DateTime?>? releaseDate,
-    Value<String?>? posterUrl,
-    Value<String?>? backdropUrl,
-    Value<String?>? logoUrl,
-    Value<String?>? overview,
-    Value<String?>? certification,
-    Value<double>? rating,
-    Value<List<String>>? genres,
-    Value<List<Artist>>? cast,
-    Value<int>? rowid,
-  }) {
-    return MoviesCompanion(
-      tmdbId: tmdbId ?? this.tmdbId,
-      title: title ?? this.title,
-      originalTitle: originalTitle ?? this.originalTitle,
-      releaseYear: releaseYear ?? this.releaseYear,
-      releaseDate: releaseDate ?? this.releaseDate,
-      posterUrl: posterUrl ?? this.posterUrl,
-      backdropUrl: backdropUrl ?? this.backdropUrl,
-      logoUrl: logoUrl ?? this.logoUrl,
-      overview: overview ?? this.overview,
-      certification: certification ?? this.certification,
-      rating: rating ?? this.rating,
-      genres: genres ?? this.genres,
-      cast: cast ?? this.cast,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (tmdbId.present) {
-      map['tmdb_id'] = Variable<String>(tmdbId.value);
-    }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (originalTitle.present) {
-      map['original_title'] = Variable<String>(originalTitle.value);
-    }
-    if (releaseYear.present) {
-      map['release_year'] = Variable<int>(releaseYear.value);
-    }
-    if (releaseDate.present) {
-      map['release_date'] = Variable<DateTime>(releaseDate.value);
-    }
-    if (posterUrl.present) {
-      map['poster_url'] = Variable<String>(posterUrl.value);
-    }
-    if (backdropUrl.present) {
-      map['backdrop_url'] = Variable<String>(backdropUrl.value);
-    }
-    if (logoUrl.present) {
-      map['logo_url'] = Variable<String>(logoUrl.value);
-    }
-    if (overview.present) {
-      map['overview'] = Variable<String>(overview.value);
-    }
-    if (certification.present) {
-      map['certification'] = Variable<String>(certification.value);
-    }
-    if (rating.present) {
-      map['rating'] = Variable<double>(rating.value);
-    }
-    if (genres.present) {
-      map['genres'] = Variable<String>($MoviesTable.$convertergenres.toSql(genres.value));
-    }
-    if (cast.present) {
-      map['cast'] = Variable<String>($MoviesTable.$convertercast.toSql(cast.value));
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MoviesCompanion(')
-          ..write('tmdbId: $tmdbId, ')
-          ..write('title: $title, ')
-          ..write('originalTitle: $originalTitle, ')
-          ..write('releaseYear: $releaseYear, ')
-          ..write('releaseDate: $releaseDate, ')
-          ..write('posterUrl: $posterUrl, ')
-          ..write('backdropUrl: $backdropUrl, ')
-          ..write('logoUrl: $logoUrl, ')
-          ..write('overview: $overview, ')
-          ..write('certification: $certification, ')
-          ..write('rating: $rating, ')
-          ..write('genres: $genres, ')
-          ..write('cast: $cast, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class _$MovieInsertable implements Insertable<Movie> {
-  Movie _object;
-
-  _$MovieInsertable(this._object);
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    return MoviesCompanion(
-      tmdbId: Value(_object.tmdbId),
-      title: Value(_object.title),
-      originalTitle: Value(_object.originalTitle),
-      releaseYear: Value(_object.releaseYear),
-      releaseDate: Value(_object.releaseDate),
-      posterUrl: Value(_object.posterUrl),
-      backdropUrl: Value(_object.backdropUrl),
-      logoUrl: Value(_object.logoUrl),
-      overview: Value(_object.overview),
-      certification: Value(_object.certification),
-      rating: Value(_object.rating),
-      genres: Value(_object.genres),
-      cast: Value(_object.cast),
-    ).toColumns(false);
-  }
-}
-
-extension MovieToInsertable on Movie {
-  _$MovieInsertable toInsertable() {
-    return _$MovieInsertable(this);
-  }
-}
-
 class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
   $TVShowsTable(this.attachedDatabase, [this._alias]);
-
   static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
   @override
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
@@ -1579,7 +150,6 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-
   @override
   List<GeneratedColumn> get $columns => [
     tmdbId,
@@ -1599,14 +169,11 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
     numberOfSeasons,
     numberOfEpisodes,
   ];
-
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 't_v_shows';
-
   @override
   VerificationContext validateIntegrity(Insertable<TVShow> instance, {bool isInserting = false}) {
     final context = VerificationContext();
@@ -1676,7 +243,6 @@ class $TVShowsTable extends TVShows with TableInfo<$TVShowsTable, TVShow> {
 
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
-
   @override
   TVShow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -1734,7 +300,6 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
   final Value<int?> numberOfSeasons;
   final Value<int?> numberOfEpisodes;
   final Value<int> rowid;
-
   const TVShowsCompanion({
     this.tmdbId = const Value.absent(),
     this.title = const Value.absent(),
@@ -1754,7 +319,6 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
     this.numberOfEpisodes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-
   TVShowsCompanion.insert({
     required String tmdbId,
     required String title,
@@ -1778,7 +342,6 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
        rating = Value(rating),
        genres = Value(genres),
        cast = Value(cast);
-
   static Insertable<TVShow> custom({
     Expression<String>? tmdbId,
     Expression<String>? title,
@@ -1943,9 +506,7 @@ class TVShowsCompanion extends UpdateCompanion<TVShow> {
 
 class _$TVShowInsertable implements Insertable<TVShow> {
   TVShow _object;
-
   _$TVShowInsertable(this._object);
-
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return TVShowsCompanion(
@@ -1979,17 +540,16 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
   $SeasonsTable(this.attachedDatabase, [this._alias]);
-
-  static const VerificationMeta _seasonKeyMeta = const VerificationMeta('seasonKey');
+  static const VerificationMeta _tvShowTmdbIdMeta = const VerificationMeta('tvShowTmdbId');
   @override
-  late final GeneratedColumn<String> seasonKey = GeneratedColumn<String>(
-    'season_key',
+  late final GeneratedColumn<String> tvShowTmdbId = GeneratedColumn<String>(
+    'tv_show_tmdb_id',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES t_v_shows (tmdb_id) ON DELETE CASCADE'),
   );
   static const VerificationMeta _seasonNumberMeta = const VerificationMeta('seasonNumber');
   @override
@@ -2036,25 +596,24 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-
   @override
-  List<GeneratedColumn> get $columns => [seasonKey, seasonNumber, title, posterUrl, overview, numberOfEpisodes];
-
+  List<GeneratedColumn> get $columns => [tvShowTmdbId, seasonNumber, title, posterUrl, overview, numberOfEpisodes];
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 'seasons';
-
   @override
   VerificationContext validateIntegrity(Insertable<Season> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('season_key')) {
-      context.handle(_seasonKeyMeta, seasonKey.isAcceptableOrUnknown(data['season_key']!, _seasonKeyMeta));
+    if (data.containsKey('tv_show_tmdb_id')) {
+      context.handle(
+        _tvShowTmdbIdMeta,
+        tvShowTmdbId.isAcceptableOrUnknown(data['tv_show_tmdb_id']!, _tvShowTmdbIdMeta),
+      );
     } else if (isInserting) {
-      context.missing(_seasonKeyMeta);
+      context.missing(_tvShowTmdbIdMeta);
     }
     if (data.containsKey('season_number')) {
       context.handle(_seasonNumberMeta, seasonNumber.isAcceptableOrUnknown(data['season_number']!, _seasonNumberMeta));
@@ -2082,13 +641,12 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {seasonKey};
-
+  Set<GeneratedColumn> get $primaryKey => {tvShowTmdbId, seasonNumber};
   @override
   Season map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Season(
-      seasonKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}season_key'])!,
+      tvShowTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tv_show_tmdb_id'])!,
       seasonNumber: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}season_number'])!,
       title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       posterUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}poster_url']),
@@ -2107,16 +665,15 @@ class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
 }
 
 class SeasonsCompanion extends UpdateCompanion<Season> {
-  final Value<String> seasonKey;
+  final Value<String> tvShowTmdbId;
   final Value<int> seasonNumber;
   final Value<String> title;
   final Value<String?> posterUrl;
   final Value<String?> overview;
   final Value<int?> numberOfEpisodes;
   final Value<int> rowid;
-
   const SeasonsCompanion({
-    this.seasonKey = const Value.absent(),
+    this.tvShowTmdbId = const Value.absent(),
     this.seasonNumber = const Value.absent(),
     this.title = const Value.absent(),
     this.posterUrl = const Value.absent(),
@@ -2124,21 +681,19 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
     this.numberOfEpisodes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-
   SeasonsCompanion.insert({
-    required String seasonKey,
+    required String tvShowTmdbId,
     required int seasonNumber,
     required String title,
     this.posterUrl = const Value.absent(),
     this.overview = const Value.absent(),
     this.numberOfEpisodes = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : seasonKey = Value(seasonKey),
+  }) : tvShowTmdbId = Value(tvShowTmdbId),
        seasonNumber = Value(seasonNumber),
        title = Value(title);
-
   static Insertable<Season> custom({
-    Expression<String>? seasonKey,
+    Expression<String>? tvShowTmdbId,
     Expression<int>? seasonNumber,
     Expression<String>? title,
     Expression<String>? posterUrl,
@@ -2147,7 +702,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (seasonKey != null) 'season_key': seasonKey,
+      if (tvShowTmdbId != null) 'tv_show_tmdb_id': tvShowTmdbId,
       if (seasonNumber != null) 'season_number': seasonNumber,
       if (title != null) 'title': title,
       if (posterUrl != null) 'poster_url': posterUrl,
@@ -2158,7 +713,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
   }
 
   SeasonsCompanion copyWith({
-    Value<String>? seasonKey,
+    Value<String>? tvShowTmdbId,
     Value<int>? seasonNumber,
     Value<String>? title,
     Value<String?>? posterUrl,
@@ -2167,7 +722,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
     Value<int>? rowid,
   }) {
     return SeasonsCompanion(
-      seasonKey: seasonKey ?? this.seasonKey,
+      tvShowTmdbId: tvShowTmdbId ?? this.tvShowTmdbId,
       seasonNumber: seasonNumber ?? this.seasonNumber,
       title: title ?? this.title,
       posterUrl: posterUrl ?? this.posterUrl,
@@ -2180,8 +735,8 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (seasonKey.present) {
-      map['season_key'] = Variable<String>(seasonKey.value);
+    if (tvShowTmdbId.present) {
+      map['tv_show_tmdb_id'] = Variable<String>(tvShowTmdbId.value);
     }
     if (seasonNumber.present) {
       map['season_number'] = Variable<int>(seasonNumber.value);
@@ -2207,7 +762,7 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
   @override
   String toString() {
     return (StringBuffer('SeasonsCompanion(')
-          ..write('seasonKey: $seasonKey, ')
+          ..write('tvShowTmdbId: $tvShowTmdbId, ')
           ..write('seasonNumber: $seasonNumber, ')
           ..write('title: $title, ')
           ..write('posterUrl: $posterUrl, ')
@@ -2221,13 +776,11 @@ class SeasonsCompanion extends UpdateCompanion<Season> {
 
 class _$SeasonInsertable implements Insertable<Season> {
   Season _object;
-
   _$SeasonInsertable(this._object);
-
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     return SeasonsCompanion(
-      seasonKey: Value(_object.seasonKey),
+      tvShowTmdbId: Value(_object.tvShowTmdbId),
       seasonNumber: Value(_object.seasonNumber),
       title: Value(_object.title),
       posterUrl: Value(_object.posterUrl),
@@ -2243,94 +796,142 @@ extension SeasonToInsertable on Season {
   }
 }
 
-class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
+class Episodes extends Table with TableInfo<Episodes, Episode> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
-  $EpisodesTable(this.attachedDatabase, [this._alias]);
-
-  static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
-  @override
-  late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
-    'tmdb_id',
+  Episodes(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _episodeKeyMeta = const VerificationMeta('episodeKey');
+  late final GeneratedColumn<String> episodeKey = GeneratedColumn<String>(
+    'episode_key',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL PRIMARY KEY',
+  );
+  static const VerificationMeta _tvShowTmdbIdMeta = const VerificationMeta('tvShowTmdbId');
+  late final GeneratedColumn<String> tvShowTmdbId = GeneratedColumn<String>(
+    'tv_show_tmdb_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _seasonNumberMeta = const VerificationMeta('seasonNumber');
+  late final GeneratedColumn<int> seasonNumber = GeneratedColumn<int>(
+    'season_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
+  late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
+    'tmdb_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
   );
   static const VerificationMeta _episodeNumberMeta = const VerificationMeta('episodeNumber');
-  @override
   late final GeneratedColumn<int> episodeNumber = GeneratedColumn<int>(
     'episode_number',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
     'title',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
   );
   static const VerificationMeta _airDateMeta = const VerificationMeta('airDate');
-  @override
   late final GeneratedColumn<DateTime> airDate = GeneratedColumn<DateTime>(
     'air_date',
     aliasedName,
     true,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
+    $customConstraints: '',
   );
   static const VerificationMeta _overviewMeta = const VerificationMeta('overview');
-  @override
   late final GeneratedColumn<String> overview = GeneratedColumn<String>(
     'overview',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: '',
   );
   static const VerificationMeta _stillUrlMeta = const VerificationMeta('stillUrl');
-  @override
   late final GeneratedColumn<String> stillUrl = GeneratedColumn<String>(
     'still_url',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
+    $customConstraints: '',
   );
-  @override
   late final GeneratedColumnWithTypeConverter<List<Artist>, String> guestStars = GeneratedColumn<String>(
     'guest_stars',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-  ).withConverter<List<Artist>>($EpisodesTable.$converterguestStars);
-
+    $customConstraints: 'NOT NULL',
+  ).withConverter<List<Artist>>(Episodes.$converterguestStars);
   @override
-  List<GeneratedColumn> get $columns => [tmdbId, episodeNumber, title, airDate, overview, stillUrl, guestStars];
-
+  List<GeneratedColumn> get $columns => [
+    episodeKey,
+    tvShowTmdbId,
+    seasonNumber,
+    tmdbId,
+    episodeNumber,
+    title,
+    airDate,
+    overview,
+    stillUrl,
+    guestStars,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 'episodes';
-
   @override
   VerificationContext validateIntegrity(Insertable<Episode> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('episode_key')) {
+      context.handle(_episodeKeyMeta, episodeKey.isAcceptableOrUnknown(data['episode_key']!, _episodeKeyMeta));
+    } else if (isInserting) {
+      context.missing(_episodeKeyMeta);
+    }
+    if (data.containsKey('tv_show_tmdb_id')) {
+      context.handle(
+        _tvShowTmdbIdMeta,
+        tvShowTmdbId.isAcceptableOrUnknown(data['tv_show_tmdb_id']!, _tvShowTmdbIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tvShowTmdbIdMeta);
+    }
+    if (data.containsKey('season_number')) {
+      context.handle(_seasonNumberMeta, seasonNumber.isAcceptableOrUnknown(data['season_number']!, _seasonNumberMeta));
+    } else if (isInserting) {
+      context.missing(_seasonNumberMeta);
+    }
     if (data.containsKey('tmdb_id')) {
       context.handle(_tmdbIdMeta, tmdbId.isAcceptableOrUnknown(data['tmdb_id']!, _tmdbIdMeta));
-    } else if (isInserting) {
-      context.missing(_tmdbIdMeta);
     }
     if (data.containsKey('episode_number')) {
       context.handle(
@@ -2358,34 +959,53 @@ class $EpisodesTable extends Episodes with TableInfo<$EpisodesTable, Episode> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {tmdbId};
-
+  Set<GeneratedColumn> get $primaryKey => {episodeKey};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {tvShowTmdbId, seasonNumber, episodeNumber},
+    {episodeKey, tvShowTmdbId},
+  ];
   @override
   Episode map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Episode(
-      tmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tmdb_id'])!,
+      tvShowTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tv_show_tmdb_id'])!,
+      seasonNumber: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}season_number'])!,
+      tmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tmdb_id']),
       episodeNumber: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}episode_number'])!,
       title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       airDate: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}air_date']),
       overview: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}overview']),
       stillUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}still_url']),
-      guestStars: $EpisodesTable.$converterguestStars.fromSql(
+      guestStars: Episodes.$converterguestStars.fromSql(
         attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}guest_stars'])!,
       ),
     );
   }
 
   @override
-  $EpisodesTable createAlias(String alias) {
-    return $EpisodesTable(attachedDatabase, alias);
+  Episodes createAlias(String alias) {
+    return Episodes(attachedDatabase, alias);
   }
 
   static TypeConverter<List<Artist>, String> $converterguestStars = const ArtistListConverter();
+  @override
+  List<String> get customConstraints => const [
+    'UNIQUE(tv_show_tmdb_id, season_number, episode_number)',
+    'UNIQUE(episode_key, tv_show_tmdb_id)',
+    'FOREIGN KEY(tv_show_tmdb_id, season_number)REFERENCES seasons(tv_show_tmdb_id, season_number)ON DELETE CASCADE',
+    'CHECK(season_number >= 0 AND episode_number >= 0)',
+    'CHECK(episode_key = tv_show_tmdb_id || \'_s\' || season_number || \'e\' || episode_number)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class EpisodesCompanion extends UpdateCompanion<Episode> {
-  final Value<String> tmdbId;
+  final Value<String> episodeKey;
+  final Value<String> tvShowTmdbId;
+  final Value<int> seasonNumber;
+  final Value<String?> tmdbId;
   final Value<int> episodeNumber;
   final Value<String> title;
   final Value<DateTime?> airDate;
@@ -2393,8 +1013,10 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
   final Value<String?> stillUrl;
   final Value<List<Artist>> guestStars;
   final Value<int> rowid;
-
   const EpisodesCompanion({
+    this.episodeKey = const Value.absent(),
+    this.tvShowTmdbId = const Value.absent(),
+    this.seasonNumber = const Value.absent(),
     this.tmdbId = const Value.absent(),
     this.episodeNumber = const Value.absent(),
     this.title = const Value.absent(),
@@ -2404,9 +1026,11 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
     this.guestStars = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-
   EpisodesCompanion.insert({
-    required String tmdbId,
+    required String episodeKey,
+    required String tvShowTmdbId,
+    required int seasonNumber,
+    this.tmdbId = const Value.absent(),
     required int episodeNumber,
     required String title,
     this.airDate = const Value.absent(),
@@ -2414,12 +1038,16 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
     this.stillUrl = const Value.absent(),
     required List<Artist> guestStars,
     this.rowid = const Value.absent(),
-  }) : tmdbId = Value(tmdbId),
+  }) : episodeKey = Value(episodeKey),
+       tvShowTmdbId = Value(tvShowTmdbId),
+       seasonNumber = Value(seasonNumber),
        episodeNumber = Value(episodeNumber),
        title = Value(title),
        guestStars = Value(guestStars);
-
   static Insertable<Episode> custom({
+    Expression<String>? episodeKey,
+    Expression<String>? tvShowTmdbId,
+    Expression<int>? seasonNumber,
     Expression<String>? tmdbId,
     Expression<int>? episodeNumber,
     Expression<String>? title,
@@ -2430,6 +1058,9 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (episodeKey != null) 'episode_key': episodeKey,
+      if (tvShowTmdbId != null) 'tv_show_tmdb_id': tvShowTmdbId,
+      if (seasonNumber != null) 'season_number': seasonNumber,
       if (tmdbId != null) 'tmdb_id': tmdbId,
       if (episodeNumber != null) 'episode_number': episodeNumber,
       if (title != null) 'title': title,
@@ -2442,7 +1073,10 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
   }
 
   EpisodesCompanion copyWith({
-    Value<String>? tmdbId,
+    Value<String>? episodeKey,
+    Value<String>? tvShowTmdbId,
+    Value<int>? seasonNumber,
+    Value<String?>? tmdbId,
     Value<int>? episodeNumber,
     Value<String>? title,
     Value<DateTime?>? airDate,
@@ -2452,6 +1086,9 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
     Value<int>? rowid,
   }) {
     return EpisodesCompanion(
+      episodeKey: episodeKey ?? this.episodeKey,
+      tvShowTmdbId: tvShowTmdbId ?? this.tvShowTmdbId,
+      seasonNumber: seasonNumber ?? this.seasonNumber,
       tmdbId: tmdbId ?? this.tmdbId,
       episodeNumber: episodeNumber ?? this.episodeNumber,
       title: title ?? this.title,
@@ -2466,6 +1103,15 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (episodeKey.present) {
+      map['episode_key'] = Variable<String>(episodeKey.value);
+    }
+    if (tvShowTmdbId.present) {
+      map['tv_show_tmdb_id'] = Variable<String>(tvShowTmdbId.value);
+    }
+    if (seasonNumber.present) {
+      map['season_number'] = Variable<int>(seasonNumber.value);
+    }
     if (tmdbId.present) {
       map['tmdb_id'] = Variable<String>(tmdbId.value);
     }
@@ -2485,7 +1131,7 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
       map['still_url'] = Variable<String>(stillUrl.value);
     }
     if (guestStars.present) {
-      map['guest_stars'] = Variable<String>($EpisodesTable.$converterguestStars.toSql(guestStars.value));
+      map['guest_stars'] = Variable<String>(Episodes.$converterguestStars.toSql(guestStars.value));
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2496,6 +1142,9 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
   @override
   String toString() {
     return (StringBuffer('EpisodesCompanion(')
+          ..write('episodeKey: $episodeKey, ')
+          ..write('tvShowTmdbId: $tvShowTmdbId, ')
+          ..write('seasonNumber: $seasonNumber, ')
           ..write('tmdbId: $tmdbId, ')
           ..write('episodeNumber: $episodeNumber, ')
           ..write('title: $title, ')
@@ -2509,49 +1158,11 @@ class EpisodesCompanion extends UpdateCompanion<Episode> {
   }
 }
 
-class _$EpisodeInsertable implements Insertable<Episode> {
-  Episode _object;
-
-  _$EpisodeInsertable(this._object);
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    return EpisodesCompanion(
-      tmdbId: Value(_object.tmdbId),
-      episodeNumber: Value(_object.episodeNumber),
-      title: Value(_object.title),
-      airDate: Value(_object.airDate),
-      overview: Value(_object.overview),
-      stillUrl: Value(_object.stillUrl),
-      guestStars: Value(_object.guestStars),
-    ).toColumns(false);
-  }
-}
-
-extension EpisodeToInsertable on Episode {
-  _$EpisodeInsertable toInsertable() {
-    return _$EpisodeInsertable(this);
-  }
-}
-
 class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSourcesTable, StorageSourceRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
   $StorageSourcesTable(this.attachedDatabase, [this._alias]);
-
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'),
-  );
   static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
   @override
   late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
@@ -2560,7 +1171,6 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -2626,24 +1236,17 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-
   @override
-  List<GeneratedColumn> get $columns => [id, sourceId, name, type, endpoint, rootPath, enabled, username, password];
-
+  List<GeneratedColumn> get $columns => [sourceId, name, type, endpoint, rootPath, enabled, username, password];
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 'storage_sources';
-
   @override
   VerificationContext validateIntegrity(Insertable<StorageSourceRow> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
     if (data.containsKey('source_id')) {
       context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
@@ -2688,13 +1291,11 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-
+  Set<GeneratedColumn> get $primaryKey => {sourceId};
   @override
   StorageSourceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StorageSourceRow(
-      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
       name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       type: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}type'])!,
@@ -2713,7 +1314,6 @@ class $StorageSourcesTable extends StorageSources with TableInfo<$StorageSources
 }
 
 class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow> {
-  final int id;
   final String sourceId;
   final String name;
   final String type;
@@ -2722,9 +1322,7 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
   final bool enabled;
   final String username;
   final String password;
-
   const StorageSourceRow({
-    required this.id,
     required this.sourceId,
     required this.name,
     required this.type,
@@ -2734,11 +1332,9 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
     required this.username,
     required this.password,
   });
-
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['source_id'] = Variable<String>(sourceId);
     map['name'] = Variable<String>(name);
     map['type'] = Variable<String>(type);
@@ -2752,7 +1348,6 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
 
   StorageSourcesCompanion toCompanion(bool nullToAbsent) {
     return StorageSourcesCompanion(
-      id: Value(id),
       sourceId: Value(sourceId),
       name: Value(name),
       type: Value(type),
@@ -2767,7 +1362,6 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
   factory StorageSourceRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return StorageSourceRow(
-      id: serializer.fromJson<int>(json['id']),
       sourceId: serializer.fromJson<String>(json['sourceId']),
       name: serializer.fromJson<String>(json['name']),
       type: serializer.fromJson<String>(json['type']),
@@ -2778,12 +1372,10 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
       password: serializer.fromJson<String>(json['password']),
     );
   }
-
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'sourceId': serializer.toJson<String>(sourceId),
       'name': serializer.toJson<String>(name),
       'type': serializer.toJson<String>(type),
@@ -2796,7 +1388,6 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
   }
 
   StorageSourceRow copyWith({
-    int? id,
     String? sourceId,
     String? name,
     String? type,
@@ -2806,7 +1397,6 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
     String? username,
     String? password,
   }) => StorageSourceRow(
-    id: id ?? this.id,
     sourceId: sourceId ?? this.sourceId,
     name: name ?? this.name,
     type: type ?? this.type,
@@ -2816,10 +1406,8 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
     username: username ?? this.username,
     password: password ?? this.password,
   );
-
   StorageSourceRow copyWithCompanion(StorageSourcesCompanion data) {
     return StorageSourceRow(
-      id: data.id.present ? data.id.value : this.id,
       sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
@@ -2834,7 +1422,6 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
   @override
   String toString() {
     return (StringBuffer('StorageSourceRow(')
-          ..write('id: $id, ')
           ..write('sourceId: $sourceId, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
@@ -2848,13 +1435,11 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
   }
 
   @override
-  int get hashCode => Object.hash(id, sourceId, name, type, endpoint, rootPath, enabled, username, password);
-
+  int get hashCode => Object.hash(sourceId, name, type, endpoint, rootPath, enabled, username, password);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StorageSourceRow &&
-          other.id == this.id &&
           other.sourceId == this.sourceId &&
           other.name == this.name &&
           other.type == this.type &&
@@ -2866,7 +1451,6 @@ class StorageSourceRow extends DataClass implements Insertable<StorageSourceRow>
 }
 
 class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
-  final Value<int> id;
   final Value<String> sourceId;
   final Value<String> name;
   final Value<String> type;
@@ -2875,9 +1459,8 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
   final Value<bool> enabled;
   final Value<String> username;
   final Value<String> password;
-
+  final Value<int> rowid;
   const StorageSourcesCompanion({
-    this.id = const Value.absent(),
     this.sourceId = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
@@ -2886,10 +1469,9 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
     this.enabled = const Value.absent(),
     this.username = const Value.absent(),
     this.password = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
-
   StorageSourcesCompanion.insert({
-    this.id = const Value.absent(),
     required String sourceId,
     required String name,
     required String type,
@@ -2898,6 +1480,7 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
     required bool enabled,
     required String username,
     required String password,
+    this.rowid = const Value.absent(),
   }) : sourceId = Value(sourceId),
        name = Value(name),
        type = Value(type),
@@ -2906,9 +1489,7 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
        enabled = Value(enabled),
        username = Value(username),
        password = Value(password);
-
   static Insertable<StorageSourceRow> custom({
-    Expression<int>? id,
     Expression<String>? sourceId,
     Expression<String>? name,
     Expression<String>? type,
@@ -2917,9 +1498,9 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
     Expression<bool>? enabled,
     Expression<String>? username,
     Expression<String>? password,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (sourceId != null) 'source_id': sourceId,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
@@ -2928,11 +1509,11 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
       if (enabled != null) 'enabled': enabled,
       if (username != null) 'username': username,
       if (password != null) 'password': password,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   StorageSourcesCompanion copyWith({
-    Value<int>? id,
     Value<String>? sourceId,
     Value<String>? name,
     Value<String>? type,
@@ -2941,9 +1522,9 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
     Value<bool>? enabled,
     Value<String>? username,
     Value<String>? password,
+    Value<int>? rowid,
   }) {
     return StorageSourcesCompanion(
-      id: id ?? this.id,
       sourceId: sourceId ?? this.sourceId,
       name: name ?? this.name,
       type: type ?? this.type,
@@ -2952,15 +1533,13 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
       enabled: enabled ?? this.enabled,
       username: username ?? this.username,
       password: password ?? this.password,
+      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (sourceId.present) {
       map['source_id'] = Variable<String>(sourceId.value);
     }
@@ -2985,13 +1564,15 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
     if (password.present) {
       map['password'] = Variable<String>(password.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('StorageSourcesCompanion(')
-          ..write('id: $id, ')
           ..write('sourceId: $sourceId, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
@@ -2999,7 +1580,1347 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
           ..write('rootPath: $rootPath, ')
           ..write('enabled: $enabled, ')
           ..write('username: $username, ')
-          ..write('password: $password')
+          ..write('password: $password, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MoviesTable extends Movies with TableInfo<$MoviesTable, Movie> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MoviesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _tmdbIdMeta = const VerificationMeta('tmdbId');
+  @override
+  late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
+    'tmdb_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalTitleMeta = const VerificationMeta('originalTitle');
+  @override
+  late final GeneratedColumn<String> originalTitle = GeneratedColumn<String>(
+    'original_title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _releaseYearMeta = const VerificationMeta('releaseYear');
+  @override
+  late final GeneratedColumn<int> releaseYear = GeneratedColumn<int>(
+    'release_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _releaseDateMeta = const VerificationMeta('releaseDate');
+  @override
+  late final GeneratedColumn<DateTime> releaseDate = GeneratedColumn<DateTime>(
+    'release_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _posterUrlMeta = const VerificationMeta('posterUrl');
+  @override
+  late final GeneratedColumn<String> posterUrl = GeneratedColumn<String>(
+    'poster_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _backdropUrlMeta = const VerificationMeta('backdropUrl');
+  @override
+  late final GeneratedColumn<String> backdropUrl = GeneratedColumn<String>(
+    'backdrop_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _logoUrlMeta = const VerificationMeta('logoUrl');
+  @override
+  late final GeneratedColumn<String> logoUrl = GeneratedColumn<String>(
+    'logo_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _overviewMeta = const VerificationMeta('overview');
+  @override
+  late final GeneratedColumn<String> overview = GeneratedColumn<String>(
+    'overview',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _certificationMeta = const VerificationMeta('certification');
+  @override
+  late final GeneratedColumn<String> certification = GeneratedColumn<String>(
+    'certification',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  @override
+  late final GeneratedColumn<double> rating = GeneratedColumn<double>(
+    'rating',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String> genres = GeneratedColumn<String>(
+    'genres',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<List<String>>($MoviesTable.$convertergenres);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<Artist>, String> cast = GeneratedColumn<String>(
+    'cast',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<List<Artist>>($MoviesTable.$convertercast);
+  @override
+  List<GeneratedColumn> get $columns => [
+    tmdbId,
+    title,
+    originalTitle,
+    releaseYear,
+    releaseDate,
+    posterUrl,
+    backdropUrl,
+    logoUrl,
+    overview,
+    certification,
+    rating,
+    genres,
+    cast,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'movies';
+  @override
+  VerificationContext validateIntegrity(Insertable<Movie> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('tmdb_id')) {
+      context.handle(_tmdbIdMeta, tmdbId.isAcceptableOrUnknown(data['tmdb_id']!, _tmdbIdMeta));
+    } else if (isInserting) {
+      context.missing(_tmdbIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('original_title')) {
+      context.handle(
+        _originalTitleMeta,
+        originalTitle.isAcceptableOrUnknown(data['original_title']!, _originalTitleMeta),
+      );
+    }
+    if (data.containsKey('release_year')) {
+      context.handle(_releaseYearMeta, releaseYear.isAcceptableOrUnknown(data['release_year']!, _releaseYearMeta));
+    }
+    if (data.containsKey('release_date')) {
+      context.handle(_releaseDateMeta, releaseDate.isAcceptableOrUnknown(data['release_date']!, _releaseDateMeta));
+    }
+    if (data.containsKey('poster_url')) {
+      context.handle(_posterUrlMeta, posterUrl.isAcceptableOrUnknown(data['poster_url']!, _posterUrlMeta));
+    }
+    if (data.containsKey('backdrop_url')) {
+      context.handle(_backdropUrlMeta, backdropUrl.isAcceptableOrUnknown(data['backdrop_url']!, _backdropUrlMeta));
+    }
+    if (data.containsKey('logo_url')) {
+      context.handle(_logoUrlMeta, logoUrl.isAcceptableOrUnknown(data['logo_url']!, _logoUrlMeta));
+    }
+    if (data.containsKey('overview')) {
+      context.handle(_overviewMeta, overview.isAcceptableOrUnknown(data['overview']!, _overviewMeta));
+    }
+    if (data.containsKey('certification')) {
+      context.handle(
+        _certificationMeta,
+        certification.isAcceptableOrUnknown(data['certification']!, _certificationMeta),
+      );
+    }
+    if (data.containsKey('rating')) {
+      context.handle(_ratingMeta, rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta));
+    } else if (isInserting) {
+      context.missing(_ratingMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {tmdbId};
+  @override
+  Movie map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Movie(
+      tmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tmdb_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      originalTitle: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}original_title']),
+      releaseYear: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}release_year']),
+      releaseDate: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}release_date']),
+      posterUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}poster_url']),
+      backdropUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}backdrop_url']),
+      logoUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}logo_url']),
+      overview: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}overview']),
+      certification: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}certification']),
+      rating: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}rating'])!,
+      genres: $MoviesTable.$convertergenres.fromSql(
+        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}genres'])!,
+      ),
+      cast: $MoviesTable.$convertercast.fromSql(
+        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cast'])!,
+      ),
+    );
+  }
+
+  @override
+  $MoviesTable createAlias(String alias) {
+    return $MoviesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<List<String>, String> $convertergenres = const StringListConverter();
+  static TypeConverter<List<Artist>, String> $convertercast = const ArtistListConverter();
+}
+
+class MoviesCompanion extends UpdateCompanion<Movie> {
+  final Value<String> tmdbId;
+  final Value<String> title;
+  final Value<String?> originalTitle;
+  final Value<int?> releaseYear;
+  final Value<DateTime?> releaseDate;
+  final Value<String?> posterUrl;
+  final Value<String?> backdropUrl;
+  final Value<String?> logoUrl;
+  final Value<String?> overview;
+  final Value<String?> certification;
+  final Value<double> rating;
+  final Value<List<String>> genres;
+  final Value<List<Artist>> cast;
+  final Value<int> rowid;
+  const MoviesCompanion({
+    this.tmdbId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.originalTitle = const Value.absent(),
+    this.releaseYear = const Value.absent(),
+    this.releaseDate = const Value.absent(),
+    this.posterUrl = const Value.absent(),
+    this.backdropUrl = const Value.absent(),
+    this.logoUrl = const Value.absent(),
+    this.overview = const Value.absent(),
+    this.certification = const Value.absent(),
+    this.rating = const Value.absent(),
+    this.genres = const Value.absent(),
+    this.cast = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MoviesCompanion.insert({
+    required String tmdbId,
+    required String title,
+    this.originalTitle = const Value.absent(),
+    this.releaseYear = const Value.absent(),
+    this.releaseDate = const Value.absent(),
+    this.posterUrl = const Value.absent(),
+    this.backdropUrl = const Value.absent(),
+    this.logoUrl = const Value.absent(),
+    this.overview = const Value.absent(),
+    this.certification = const Value.absent(),
+    required double rating,
+    required List<String> genres,
+    required List<Artist> cast,
+    this.rowid = const Value.absent(),
+  }) : tmdbId = Value(tmdbId),
+       title = Value(title),
+       rating = Value(rating),
+       genres = Value(genres),
+       cast = Value(cast);
+  static Insertable<Movie> custom({
+    Expression<String>? tmdbId,
+    Expression<String>? title,
+    Expression<String>? originalTitle,
+    Expression<int>? releaseYear,
+    Expression<DateTime>? releaseDate,
+    Expression<String>? posterUrl,
+    Expression<String>? backdropUrl,
+    Expression<String>? logoUrl,
+    Expression<String>? overview,
+    Expression<String>? certification,
+    Expression<double>? rating,
+    Expression<String>? genres,
+    Expression<String>? cast,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (tmdbId != null) 'tmdb_id': tmdbId,
+      if (title != null) 'title': title,
+      if (originalTitle != null) 'original_title': originalTitle,
+      if (releaseYear != null) 'release_year': releaseYear,
+      if (releaseDate != null) 'release_date': releaseDate,
+      if (posterUrl != null) 'poster_url': posterUrl,
+      if (backdropUrl != null) 'backdrop_url': backdropUrl,
+      if (logoUrl != null) 'logo_url': logoUrl,
+      if (overview != null) 'overview': overview,
+      if (certification != null) 'certification': certification,
+      if (rating != null) 'rating': rating,
+      if (genres != null) 'genres': genres,
+      if (cast != null) 'cast': cast,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MoviesCompanion copyWith({
+    Value<String>? tmdbId,
+    Value<String>? title,
+    Value<String?>? originalTitle,
+    Value<int?>? releaseYear,
+    Value<DateTime?>? releaseDate,
+    Value<String?>? posterUrl,
+    Value<String?>? backdropUrl,
+    Value<String?>? logoUrl,
+    Value<String?>? overview,
+    Value<String?>? certification,
+    Value<double>? rating,
+    Value<List<String>>? genres,
+    Value<List<Artist>>? cast,
+    Value<int>? rowid,
+  }) {
+    return MoviesCompanion(
+      tmdbId: tmdbId ?? this.tmdbId,
+      title: title ?? this.title,
+      originalTitle: originalTitle ?? this.originalTitle,
+      releaseYear: releaseYear ?? this.releaseYear,
+      releaseDate: releaseDate ?? this.releaseDate,
+      posterUrl: posterUrl ?? this.posterUrl,
+      backdropUrl: backdropUrl ?? this.backdropUrl,
+      logoUrl: logoUrl ?? this.logoUrl,
+      overview: overview ?? this.overview,
+      certification: certification ?? this.certification,
+      rating: rating ?? this.rating,
+      genres: genres ?? this.genres,
+      cast: cast ?? this.cast,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (tmdbId.present) {
+      map['tmdb_id'] = Variable<String>(tmdbId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (originalTitle.present) {
+      map['original_title'] = Variable<String>(originalTitle.value);
+    }
+    if (releaseYear.present) {
+      map['release_year'] = Variable<int>(releaseYear.value);
+    }
+    if (releaseDate.present) {
+      map['release_date'] = Variable<DateTime>(releaseDate.value);
+    }
+    if (posterUrl.present) {
+      map['poster_url'] = Variable<String>(posterUrl.value);
+    }
+    if (backdropUrl.present) {
+      map['backdrop_url'] = Variable<String>(backdropUrl.value);
+    }
+    if (logoUrl.present) {
+      map['logo_url'] = Variable<String>(logoUrl.value);
+    }
+    if (overview.present) {
+      map['overview'] = Variable<String>(overview.value);
+    }
+    if (certification.present) {
+      map['certification'] = Variable<String>(certification.value);
+    }
+    if (rating.present) {
+      map['rating'] = Variable<double>(rating.value);
+    }
+    if (genres.present) {
+      map['genres'] = Variable<String>($MoviesTable.$convertergenres.toSql(genres.value));
+    }
+    if (cast.present) {
+      map['cast'] = Variable<String>($MoviesTable.$convertercast.toSql(cast.value));
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MoviesCompanion(')
+          ..write('tmdbId: $tmdbId, ')
+          ..write('title: $title, ')
+          ..write('originalTitle: $originalTitle, ')
+          ..write('releaseYear: $releaseYear, ')
+          ..write('releaseDate: $releaseDate, ')
+          ..write('posterUrl: $posterUrl, ')
+          ..write('backdropUrl: $backdropUrl, ')
+          ..write('logoUrl: $logoUrl, ')
+          ..write('overview: $overview, ')
+          ..write('certification: $certification, ')
+          ..write('rating: $rating, ')
+          ..write('genres: $genres, ')
+          ..write('cast: $cast, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class _$MovieInsertable implements Insertable<Movie> {
+  Movie _object;
+  _$MovieInsertable(this._object);
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    return MoviesCompanion(
+      tmdbId: Value(_object.tmdbId),
+      title: Value(_object.title),
+      originalTitle: Value(_object.originalTitle),
+      releaseYear: Value(_object.releaseYear),
+      releaseDate: Value(_object.releaseDate),
+      posterUrl: Value(_object.posterUrl),
+      backdropUrl: Value(_object.backdropUrl),
+      logoUrl: Value(_object.logoUrl),
+      overview: Value(_object.overview),
+      certification: Value(_object.certification),
+      rating: Value(_object.rating),
+      genres: Value(_object.genres),
+      cast: Value(_object.cast),
+    ).toColumns(false);
+  }
+}
+
+extension MovieToInsertable on Movie {
+  _$MovieInsertable toInsertable() {
+    return _$MovieInsertable(this);
+  }
+}
+
+class MediaFiles extends Table with TableInfo<MediaFiles, MediaFile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MediaFiles(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL REFERENCES storage_sources(source_id)ON DELETE CASCADE',
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta('fileName');
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _parsedTitleMeta = const VerificationMeta('parsedTitle');
+  late final GeneratedColumn<String> parsedTitle = GeneratedColumn<String>(
+    'parsed_title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _parsedYearMeta = const VerificationMeta('parsedYear');
+  late final GeneratedColumn<int> parsedYear = GeneratedColumn<int>(
+    'parsed_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _parsedSeasonMeta = const VerificationMeta('parsedSeason');
+  late final GeneratedColumn<int> parsedSeason = GeneratedColumn<int>(
+    'parsed_season',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _parsedEpisodeMeta = const VerificationMeta('parsedEpisode');
+  late final GeneratedColumn<int> parsedEpisode = GeneratedColumn<int>(
+    'parsed_episode',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  late final GeneratedColumnWithTypeConverter<MediaType, String> mediaType = GeneratedColumn<String>(
+    'media_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  ).withConverter<MediaType>(MediaFiles.$convertermediaType);
+  static const VerificationMeta _explicitTmdbIdMeta = const VerificationMeta('explicitTmdbId');
+  late final GeneratedColumn<String> explicitTmdbId = GeneratedColumn<String>(
+    'explicit_tmdb_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _movieTmdbIdMeta = const VerificationMeta('movieTmdbId');
+  late final GeneratedColumn<String> movieTmdbId = GeneratedColumn<String>(
+    'movie_tmdb_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES movies(tmdb_id)',
+  );
+  static const VerificationMeta _tvShowTmdbIdMeta = const VerificationMeta('tvShowTmdbId');
+  late final GeneratedColumn<String> tvShowTmdbId = GeneratedColumn<String>(
+    'tv_show_tmdb_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'REFERENCES t_v_shows(tmdb_id)',
+  );
+  static const VerificationMeta _episodeKeyMeta = const VerificationMeta('episodeKey');
+  late final GeneratedColumn<String> episodeKey = GeneratedColumn<String>(
+    'episode_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  late final GeneratedColumnWithTypeConverter<MetadataMatchStatus, String> metadataMatchStatus =
+      GeneratedColumn<String>(
+        'metadata_match_status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      ).withConverter<MetadataMatchStatus>(MediaFiles.$convertermetadataMatchStatus);
+  static const VerificationMeta _sizeMeta = const VerificationMeta('size');
+  late final GeneratedColumn<int> size = GeneratedColumn<int>(
+    'size',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _containerMeta = const VerificationMeta('container');
+  late final GeneratedColumn<String> container = GeneratedColumn<String>(
+    'container',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _widthMeta = const VerificationMeta('width');
+  late final GeneratedColumn<int> width = GeneratedColumn<int>(
+    'width',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _heightMeta = const VerificationMeta('height');
+  late final GeneratedColumn<int> height = GeneratedColumn<int>(
+    'height',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _videoCodecMeta = const VerificationMeta('videoCodec');
+  late final GeneratedColumn<String> videoCodec = GeneratedColumn<String>(
+    'video_codec',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _audioCodecMeta = const VerificationMeta('audioCodec');
+  late final GeneratedColumn<String> audioCodec = GeneratedColumn<String>(
+    'audio_codec',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _audioChannelsMeta = const VerificationMeta('audioChannels');
+  late final GeneratedColumn<String> audioChannels = GeneratedColumn<String>(
+    'audio_channels',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isHdrMeta = const VerificationMeta('isHdr');
+  late final GeneratedColumn<bool> isHdr = GeneratedColumn<bool>(
+    'is_hdr',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _hdrFormatMeta = const VerificationMeta('hdrFormat');
+  late final GeneratedColumn<String> hdrFormat = GeneratedColumn<String>(
+    'hdr_format',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _versionLabelMeta = const VerificationMeta('versionLabel');
+  late final GeneratedColumn<String> versionLabel = GeneratedColumn<String>(
+    'version_label',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _durationMeta = const VerificationMeta('duration');
+  late final GeneratedColumn<int> duration = GeneratedColumn<int>(
+    'duration',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta('position');
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumnWithTypeConverter<WatchStatus, String> watchStatus = GeneratedColumn<String>(
+    'watch_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  ).withConverter<WatchStatus>(MediaFiles.$converterwatchStatus);
+  static const VerificationMeta _lastWatchedAtMeta = const VerificationMeta('lastWatchedAt');
+  late final GeneratedColumn<DateTime> lastWatchedAt = GeneratedColumn<DateTime>(
+    'last_watched_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: '',
+  );
+  static const VerificationMeta _isFavoriteMeta = const VerificationMeta('isFavorite');
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+    'is_favorite',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _addedAtMeta = const VerificationMeta('addedAt');
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+    'added_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sourceId,
+    path,
+    fileName,
+    parsedTitle,
+    parsedYear,
+    parsedSeason,
+    parsedEpisode,
+    mediaType,
+    explicitTmdbId,
+    movieTmdbId,
+    tvShowTmdbId,
+    episodeKey,
+    metadataMatchStatus,
+    size,
+    container,
+    width,
+    height,
+    videoCodec,
+    audioCodec,
+    audioChannels,
+    isHdr,
+    hdrFormat,
+    versionLabel,
+    duration,
+    position,
+    watchStatus,
+    lastWatchedAt,
+    isFavorite,
+    addedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_files';
+  @override
+  VerificationContext validateIntegrity(Insertable<MediaFile> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('path')) {
+      context.handle(_pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
+    } else if (isInserting) {
+      context.missing(_pathMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(_fileNameMeta, fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta));
+    } else if (isInserting) {
+      context.missing(_fileNameMeta);
+    }
+    if (data.containsKey('parsed_title')) {
+      context.handle(_parsedTitleMeta, parsedTitle.isAcceptableOrUnknown(data['parsed_title']!, _parsedTitleMeta));
+    } else if (isInserting) {
+      context.missing(_parsedTitleMeta);
+    }
+    if (data.containsKey('parsed_year')) {
+      context.handle(_parsedYearMeta, parsedYear.isAcceptableOrUnknown(data['parsed_year']!, _parsedYearMeta));
+    }
+    if (data.containsKey('parsed_season')) {
+      context.handle(_parsedSeasonMeta, parsedSeason.isAcceptableOrUnknown(data['parsed_season']!, _parsedSeasonMeta));
+    }
+    if (data.containsKey('parsed_episode')) {
+      context.handle(
+        _parsedEpisodeMeta,
+        parsedEpisode.isAcceptableOrUnknown(data['parsed_episode']!, _parsedEpisodeMeta),
+      );
+    }
+    if (data.containsKey('explicit_tmdb_id')) {
+      context.handle(
+        _explicitTmdbIdMeta,
+        explicitTmdbId.isAcceptableOrUnknown(data['explicit_tmdb_id']!, _explicitTmdbIdMeta),
+      );
+    }
+    if (data.containsKey('movie_tmdb_id')) {
+      context.handle(_movieTmdbIdMeta, movieTmdbId.isAcceptableOrUnknown(data['movie_tmdb_id']!, _movieTmdbIdMeta));
+    }
+    if (data.containsKey('tv_show_tmdb_id')) {
+      context.handle(
+        _tvShowTmdbIdMeta,
+        tvShowTmdbId.isAcceptableOrUnknown(data['tv_show_tmdb_id']!, _tvShowTmdbIdMeta),
+      );
+    }
+    if (data.containsKey('episode_key')) {
+      context.handle(_episodeKeyMeta, episodeKey.isAcceptableOrUnknown(data['episode_key']!, _episodeKeyMeta));
+    }
+    if (data.containsKey('size')) {
+      context.handle(_sizeMeta, size.isAcceptableOrUnknown(data['size']!, _sizeMeta));
+    } else if (isInserting) {
+      context.missing(_sizeMeta);
+    }
+    if (data.containsKey('container')) {
+      context.handle(_containerMeta, container.isAcceptableOrUnknown(data['container']!, _containerMeta));
+    }
+    if (data.containsKey('width')) {
+      context.handle(_widthMeta, width.isAcceptableOrUnknown(data['width']!, _widthMeta));
+    }
+    if (data.containsKey('height')) {
+      context.handle(_heightMeta, height.isAcceptableOrUnknown(data['height']!, _heightMeta));
+    }
+    if (data.containsKey('video_codec')) {
+      context.handle(_videoCodecMeta, videoCodec.isAcceptableOrUnknown(data['video_codec']!, _videoCodecMeta));
+    }
+    if (data.containsKey('audio_codec')) {
+      context.handle(_audioCodecMeta, audioCodec.isAcceptableOrUnknown(data['audio_codec']!, _audioCodecMeta));
+    }
+    if (data.containsKey('audio_channels')) {
+      context.handle(
+        _audioChannelsMeta,
+        audioChannels.isAcceptableOrUnknown(data['audio_channels']!, _audioChannelsMeta),
+      );
+    }
+    if (data.containsKey('is_hdr')) {
+      context.handle(_isHdrMeta, isHdr.isAcceptableOrUnknown(data['is_hdr']!, _isHdrMeta));
+    } else if (isInserting) {
+      context.missing(_isHdrMeta);
+    }
+    if (data.containsKey('hdr_format')) {
+      context.handle(_hdrFormatMeta, hdrFormat.isAcceptableOrUnknown(data['hdr_format']!, _hdrFormatMeta));
+    }
+    if (data.containsKey('version_label')) {
+      context.handle(_versionLabelMeta, versionLabel.isAcceptableOrUnknown(data['version_label']!, _versionLabelMeta));
+    }
+    if (data.containsKey('duration')) {
+      context.handle(_durationMeta, duration.isAcceptableOrUnknown(data['duration']!, _durationMeta));
+    } else if (isInserting) {
+      context.missing(_durationMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(_positionMeta, position.isAcceptableOrUnknown(data['position']!, _positionMeta));
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('last_watched_at')) {
+      context.handle(
+        _lastWatchedAtMeta,
+        lastWatchedAt.isAcceptableOrUnknown(data['last_watched_at']!, _lastWatchedAtMeta),
+      );
+    }
+    if (data.containsKey('is_favorite')) {
+      context.handle(_isFavoriteMeta, isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta));
+    } else if (isInserting) {
+      context.missing(_isFavoriteMeta);
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(_addedAtMeta, addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {sourceId, path},
+  ];
+  @override
+  MediaFile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaFile(
+      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      path: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}path'])!,
+      fileName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}file_name'])!,
+      parsedTitle: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}parsed_title'])!,
+      parsedYear: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}parsed_year']),
+      parsedSeason: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}parsed_season']),
+      parsedEpisode: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}parsed_episode']),
+      mediaType: MediaFiles.$convertermediaType.fromSql(
+        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}media_type'])!,
+      ),
+      explicitTmdbId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}explicit_tmdb_id'],
+      ),
+      metadataMatchStatus: MediaFiles.$convertermetadataMatchStatus.fromSql(
+        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}metadata_match_status'])!,
+      ),
+      movieTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}movie_tmdb_id']),
+      tvShowTmdbId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}tv_show_tmdb_id']),
+      episodeKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_key']),
+      size: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}size'])!,
+      container: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}container']),
+      width: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}width']),
+      height: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}height']),
+      videoCodec: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}video_codec']),
+      audioCodec: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}audio_codec']),
+      audioChannels: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}audio_channels']),
+      isHdr: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}is_hdr'])!,
+      hdrFormat: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}hdr_format']),
+      versionLabel: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}version_label']),
+      duration: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}duration'])!,
+      position: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}position'])!,
+      watchStatus: MediaFiles.$converterwatchStatus.fromSql(
+        attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}watch_status'])!,
+      ),
+      lastWatchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_watched_at'],
+      ),
+      isFavorite: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
+      addedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}added_at'])!,
+    );
+  }
+
+  @override
+  MediaFiles createAlias(String alias) {
+    return MediaFiles(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<MediaType, String, String> $convertermediaType = const EnumNameConverter<MediaType>(
+    MediaType.values,
+  );
+  static JsonTypeConverter2<MetadataMatchStatus, String, String> $convertermetadataMatchStatus =
+      const EnumNameConverter<MetadataMatchStatus>(MetadataMatchStatus.values);
+  static JsonTypeConverter2<WatchStatus, String, String> $converterwatchStatus = const EnumNameConverter<WatchStatus>(
+    WatchStatus.values,
+  );
+  @override
+  List<String> get customConstraints => const [
+    'UNIQUE(source_id, path)',
+    'FOREIGN KEY(episode_key, tv_show_tmdb_id)REFERENCES episodes(episode_key, tv_show_tmdb_id)',
+    'CHECK(movie_tmdb_id IS NULL OR(media_type = \'movie\' AND tv_show_tmdb_id IS NULL AND episode_key IS NULL))',
+    'CHECK(tv_show_tmdb_id IS NULL OR media_type = \'episode\')',
+    'CHECK(episode_key IS NULL OR tv_show_tmdb_id IS NOT NULL)',
+    'CHECK(size >= 0 AND duration >= 0 AND position >= 0)',
+    'CHECK(parsed_season IS NULL OR parsed_season >= 0)',
+    'CHECK(parsed_episode IS NULL OR parsed_episode >= 0)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MediaFilesCompanion extends UpdateCompanion<MediaFile> {
+  final Value<int> id;
+  final Value<String> sourceId;
+  final Value<String> path;
+  final Value<String> fileName;
+  final Value<String> parsedTitle;
+  final Value<int?> parsedYear;
+  final Value<int?> parsedSeason;
+  final Value<int?> parsedEpisode;
+  final Value<MediaType> mediaType;
+  final Value<String?> explicitTmdbId;
+  final Value<String?> movieTmdbId;
+  final Value<String?> tvShowTmdbId;
+  final Value<String?> episodeKey;
+  final Value<MetadataMatchStatus> metadataMatchStatus;
+  final Value<int> size;
+  final Value<String?> container;
+  final Value<int?> width;
+  final Value<int?> height;
+  final Value<String?> videoCodec;
+  final Value<String?> audioCodec;
+  final Value<String?> audioChannels;
+  final Value<bool> isHdr;
+  final Value<String?> hdrFormat;
+  final Value<String?> versionLabel;
+  final Value<int> duration;
+  final Value<int> position;
+  final Value<WatchStatus> watchStatus;
+  final Value<DateTime?> lastWatchedAt;
+  final Value<bool> isFavorite;
+  final Value<DateTime> addedAt;
+  const MediaFilesCompanion({
+    this.id = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.parsedTitle = const Value.absent(),
+    this.parsedYear = const Value.absent(),
+    this.parsedSeason = const Value.absent(),
+    this.parsedEpisode = const Value.absent(),
+    this.mediaType = const Value.absent(),
+    this.explicitTmdbId = const Value.absent(),
+    this.movieTmdbId = const Value.absent(),
+    this.tvShowTmdbId = const Value.absent(),
+    this.episodeKey = const Value.absent(),
+    this.metadataMatchStatus = const Value.absent(),
+    this.size = const Value.absent(),
+    this.container = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.videoCodec = const Value.absent(),
+    this.audioCodec = const Value.absent(),
+    this.audioChannels = const Value.absent(),
+    this.isHdr = const Value.absent(),
+    this.hdrFormat = const Value.absent(),
+    this.versionLabel = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.position = const Value.absent(),
+    this.watchStatus = const Value.absent(),
+    this.lastWatchedAt = const Value.absent(),
+    this.isFavorite = const Value.absent(),
+    this.addedAt = const Value.absent(),
+  });
+  MediaFilesCompanion.insert({
+    this.id = const Value.absent(),
+    required String sourceId,
+    required String path,
+    required String fileName,
+    required String parsedTitle,
+    this.parsedYear = const Value.absent(),
+    this.parsedSeason = const Value.absent(),
+    this.parsedEpisode = const Value.absent(),
+    required MediaType mediaType,
+    this.explicitTmdbId = const Value.absent(),
+    this.movieTmdbId = const Value.absent(),
+    this.tvShowTmdbId = const Value.absent(),
+    this.episodeKey = const Value.absent(),
+    required MetadataMatchStatus metadataMatchStatus,
+    required int size,
+    this.container = const Value.absent(),
+    this.width = const Value.absent(),
+    this.height = const Value.absent(),
+    this.videoCodec = const Value.absent(),
+    this.audioCodec = const Value.absent(),
+    this.audioChannels = const Value.absent(),
+    required bool isHdr,
+    this.hdrFormat = const Value.absent(),
+    this.versionLabel = const Value.absent(),
+    required int duration,
+    required int position,
+    required WatchStatus watchStatus,
+    this.lastWatchedAt = const Value.absent(),
+    required bool isFavorite,
+    required DateTime addedAt,
+  }) : sourceId = Value(sourceId),
+       path = Value(path),
+       fileName = Value(fileName),
+       parsedTitle = Value(parsedTitle),
+       mediaType = Value(mediaType),
+       metadataMatchStatus = Value(metadataMatchStatus),
+       size = Value(size),
+       isHdr = Value(isHdr),
+       duration = Value(duration),
+       position = Value(position),
+       watchStatus = Value(watchStatus),
+       isFavorite = Value(isFavorite),
+       addedAt = Value(addedAt);
+  static Insertable<MediaFile> custom({
+    Expression<int>? id,
+    Expression<String>? sourceId,
+    Expression<String>? path,
+    Expression<String>? fileName,
+    Expression<String>? parsedTitle,
+    Expression<int>? parsedYear,
+    Expression<int>? parsedSeason,
+    Expression<int>? parsedEpisode,
+    Expression<String>? mediaType,
+    Expression<String>? explicitTmdbId,
+    Expression<String>? movieTmdbId,
+    Expression<String>? tvShowTmdbId,
+    Expression<String>? episodeKey,
+    Expression<String>? metadataMatchStatus,
+    Expression<int>? size,
+    Expression<String>? container,
+    Expression<int>? width,
+    Expression<int>? height,
+    Expression<String>? videoCodec,
+    Expression<String>? audioCodec,
+    Expression<String>? audioChannels,
+    Expression<bool>? isHdr,
+    Expression<String>? hdrFormat,
+    Expression<String>? versionLabel,
+    Expression<int>? duration,
+    Expression<int>? position,
+    Expression<String>? watchStatus,
+    Expression<DateTime>? lastWatchedAt,
+    Expression<bool>? isFavorite,
+    Expression<DateTime>? addedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourceId != null) 'source_id': sourceId,
+      if (path != null) 'path': path,
+      if (fileName != null) 'file_name': fileName,
+      if (parsedTitle != null) 'parsed_title': parsedTitle,
+      if (parsedYear != null) 'parsed_year': parsedYear,
+      if (parsedSeason != null) 'parsed_season': parsedSeason,
+      if (parsedEpisode != null) 'parsed_episode': parsedEpisode,
+      if (mediaType != null) 'media_type': mediaType,
+      if (explicitTmdbId != null) 'explicit_tmdb_id': explicitTmdbId,
+      if (movieTmdbId != null) 'movie_tmdb_id': movieTmdbId,
+      if (tvShowTmdbId != null) 'tv_show_tmdb_id': tvShowTmdbId,
+      if (episodeKey != null) 'episode_key': episodeKey,
+      if (metadataMatchStatus != null) 'metadata_match_status': metadataMatchStatus,
+      if (size != null) 'size': size,
+      if (container != null) 'container': container,
+      if (width != null) 'width': width,
+      if (height != null) 'height': height,
+      if (videoCodec != null) 'video_codec': videoCodec,
+      if (audioCodec != null) 'audio_codec': audioCodec,
+      if (audioChannels != null) 'audio_channels': audioChannels,
+      if (isHdr != null) 'is_hdr': isHdr,
+      if (hdrFormat != null) 'hdr_format': hdrFormat,
+      if (versionLabel != null) 'version_label': versionLabel,
+      if (duration != null) 'duration': duration,
+      if (position != null) 'position': position,
+      if (watchStatus != null) 'watch_status': watchStatus,
+      if (lastWatchedAt != null) 'last_watched_at': lastWatchedAt,
+      if (isFavorite != null) 'is_favorite': isFavorite,
+      if (addedAt != null) 'added_at': addedAt,
+    });
+  }
+
+  MediaFilesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? sourceId,
+    Value<String>? path,
+    Value<String>? fileName,
+    Value<String>? parsedTitle,
+    Value<int?>? parsedYear,
+    Value<int?>? parsedSeason,
+    Value<int?>? parsedEpisode,
+    Value<MediaType>? mediaType,
+    Value<String?>? explicitTmdbId,
+    Value<String?>? movieTmdbId,
+    Value<String?>? tvShowTmdbId,
+    Value<String?>? episodeKey,
+    Value<MetadataMatchStatus>? metadataMatchStatus,
+    Value<int>? size,
+    Value<String?>? container,
+    Value<int?>? width,
+    Value<int?>? height,
+    Value<String?>? videoCodec,
+    Value<String?>? audioCodec,
+    Value<String?>? audioChannels,
+    Value<bool>? isHdr,
+    Value<String?>? hdrFormat,
+    Value<String?>? versionLabel,
+    Value<int>? duration,
+    Value<int>? position,
+    Value<WatchStatus>? watchStatus,
+    Value<DateTime?>? lastWatchedAt,
+    Value<bool>? isFavorite,
+    Value<DateTime>? addedAt,
+  }) {
+    return MediaFilesCompanion(
+      id: id ?? this.id,
+      sourceId: sourceId ?? this.sourceId,
+      path: path ?? this.path,
+      fileName: fileName ?? this.fileName,
+      parsedTitle: parsedTitle ?? this.parsedTitle,
+      parsedYear: parsedYear ?? this.parsedYear,
+      parsedSeason: parsedSeason ?? this.parsedSeason,
+      parsedEpisode: parsedEpisode ?? this.parsedEpisode,
+      mediaType: mediaType ?? this.mediaType,
+      explicitTmdbId: explicitTmdbId ?? this.explicitTmdbId,
+      movieTmdbId: movieTmdbId ?? this.movieTmdbId,
+      tvShowTmdbId: tvShowTmdbId ?? this.tvShowTmdbId,
+      episodeKey: episodeKey ?? this.episodeKey,
+      metadataMatchStatus: metadataMatchStatus ?? this.metadataMatchStatus,
+      size: size ?? this.size,
+      container: container ?? this.container,
+      width: width ?? this.width,
+      height: height ?? this.height,
+      videoCodec: videoCodec ?? this.videoCodec,
+      audioCodec: audioCodec ?? this.audioCodec,
+      audioChannels: audioChannels ?? this.audioChannels,
+      isHdr: isHdr ?? this.isHdr,
+      hdrFormat: hdrFormat ?? this.hdrFormat,
+      versionLabel: versionLabel ?? this.versionLabel,
+      duration: duration ?? this.duration,
+      position: position ?? this.position,
+      watchStatus: watchStatus ?? this.watchStatus,
+      lastWatchedAt: lastWatchedAt ?? this.lastWatchedAt,
+      isFavorite: isFavorite ?? this.isFavorite,
+      addedAt: addedAt ?? this.addedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (parsedTitle.present) {
+      map['parsed_title'] = Variable<String>(parsedTitle.value);
+    }
+    if (parsedYear.present) {
+      map['parsed_year'] = Variable<int>(parsedYear.value);
+    }
+    if (parsedSeason.present) {
+      map['parsed_season'] = Variable<int>(parsedSeason.value);
+    }
+    if (parsedEpisode.present) {
+      map['parsed_episode'] = Variable<int>(parsedEpisode.value);
+    }
+    if (mediaType.present) {
+      map['media_type'] = Variable<String>(MediaFiles.$convertermediaType.toSql(mediaType.value));
+    }
+    if (explicitTmdbId.present) {
+      map['explicit_tmdb_id'] = Variable<String>(explicitTmdbId.value);
+    }
+    if (movieTmdbId.present) {
+      map['movie_tmdb_id'] = Variable<String>(movieTmdbId.value);
+    }
+    if (tvShowTmdbId.present) {
+      map['tv_show_tmdb_id'] = Variable<String>(tvShowTmdbId.value);
+    }
+    if (episodeKey.present) {
+      map['episode_key'] = Variable<String>(episodeKey.value);
+    }
+    if (metadataMatchStatus.present) {
+      map['metadata_match_status'] = Variable<String>(
+        MediaFiles.$convertermetadataMatchStatus.toSql(metadataMatchStatus.value),
+      );
+    }
+    if (size.present) {
+      map['size'] = Variable<int>(size.value);
+    }
+    if (container.present) {
+      map['container'] = Variable<String>(container.value);
+    }
+    if (width.present) {
+      map['width'] = Variable<int>(width.value);
+    }
+    if (height.present) {
+      map['height'] = Variable<int>(height.value);
+    }
+    if (videoCodec.present) {
+      map['video_codec'] = Variable<String>(videoCodec.value);
+    }
+    if (audioCodec.present) {
+      map['audio_codec'] = Variable<String>(audioCodec.value);
+    }
+    if (audioChannels.present) {
+      map['audio_channels'] = Variable<String>(audioChannels.value);
+    }
+    if (isHdr.present) {
+      map['is_hdr'] = Variable<bool>(isHdr.value);
+    }
+    if (hdrFormat.present) {
+      map['hdr_format'] = Variable<String>(hdrFormat.value);
+    }
+    if (versionLabel.present) {
+      map['version_label'] = Variable<String>(versionLabel.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<int>(duration.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (watchStatus.present) {
+      map['watch_status'] = Variable<String>(MediaFiles.$converterwatchStatus.toSql(watchStatus.value));
+    }
+    if (lastWatchedAt.present) {
+      map['last_watched_at'] = Variable<DateTime>(lastWatchedAt.value);
+    }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaFilesCompanion(')
+          ..write('id: $id, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('path: $path, ')
+          ..write('fileName: $fileName, ')
+          ..write('parsedTitle: $parsedTitle, ')
+          ..write('parsedYear: $parsedYear, ')
+          ..write('parsedSeason: $parsedSeason, ')
+          ..write('parsedEpisode: $parsedEpisode, ')
+          ..write('mediaType: $mediaType, ')
+          ..write('explicitTmdbId: $explicitTmdbId, ')
+          ..write('movieTmdbId: $movieTmdbId, ')
+          ..write('tvShowTmdbId: $tvShowTmdbId, ')
+          ..write('episodeKey: $episodeKey, ')
+          ..write('metadataMatchStatus: $metadataMatchStatus, ')
+          ..write('size: $size, ')
+          ..write('container: $container, ')
+          ..write('width: $width, ')
+          ..write('height: $height, ')
+          ..write('videoCodec: $videoCodec, ')
+          ..write('audioCodec: $audioCodec, ')
+          ..write('audioChannels: $audioChannels, ')
+          ..write('isHdr: $isHdr, ')
+          ..write('hdrFormat: $hdrFormat, ')
+          ..write('versionLabel: $versionLabel, ')
+          ..write('duration: $duration, ')
+          ..write('position: $position, ')
+          ..write('watchStatus: $watchStatus, ')
+          ..write('lastWatchedAt: $lastWatchedAt, ')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('addedAt: $addedAt')
           ..write(')'))
         .toString();
   }
@@ -3007,33 +2928,24 @@ class StorageSourcesCompanion extends UpdateCompanion<StorageSourceRow> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
-
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
-  late final $MediaFilesTable mediaFiles = $MediaFilesTable(this);
-  late final $MoviesTable movies = $MoviesTable(this);
   late final $TVShowsTable tVShows = $TVShowsTable(this);
   late final $SeasonsTable seasons = $SeasonsTable(this);
-  late final $EpisodesTable episodes = $EpisodesTable(this);
+  late final Episodes episodes = Episodes(this);
   late final $StorageSourcesTable storageSources = $StorageSourcesTable(this);
-  late final Index mediaFilesSourceIdIdx = Index(
-    'media_files_source_id_idx',
-    'CREATE INDEX media_files_source_id_idx ON media_files (source_id)',
+  late final $MoviesTable movies = $MoviesTable(this);
+  late final MediaFiles mediaFiles = MediaFiles(this);
+  late final Index mediaFilesMovieAddedIdx = Index(
+    'media_files_movie_added_idx',
+    'CREATE INDEX media_files_movie_added_idx ON media_files (movie_tmdb_id, added_at)',
   );
-  late final Index mediaFilesExplicitTmdbIdIdx = Index(
-    'media_files_explicit_tmdb_id_idx',
-    'CREATE INDEX media_files_explicit_tmdb_id_idx ON media_files (explicit_tmdb_id)',
+  late final Index mediaFilesShowOrderIdx = Index(
+    'media_files_show_order_idx',
+    'CREATE INDEX media_files_show_order_idx ON media_files (tv_show_tmdb_id, parsed_season, parsed_episode, path)',
   );
-  late final Index mediaFilesMovieTmdbIdIdx = Index(
-    'media_files_movie_tmdb_id_idx',
-    'CREATE INDEX media_files_movie_tmdb_id_idx ON media_files (movie_tmdb_id)',
-  );
-  late final Index mediaFilesTvShowTmdbIdIdx = Index(
-    'media_files_tv_show_tmdb_id_idx',
-    'CREATE INDEX media_files_tv_show_tmdb_id_idx ON media_files (tv_show_tmdb_id)',
-  );
-  late final Index mediaFilesEpisodeTmdbIdIdx = Index(
-    'media_files_episode_tmdb_id_idx',
-    'CREATE INDEX media_files_episode_tmdb_id_idx ON media_files (episode_tmdb_id)',
+  late final Index mediaFilesEpisodeKeyIdx = Index(
+    'media_files_episode_key_idx',
+    'CREATE INDEX media_files_episode_key_idx ON media_files (episode_key)',
   );
   late final Index mediaFilesWatchStatusIdx = Index(
     'media_files_watch_status_idx',
@@ -3051,860 +2963,43 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'media_files_added_at_idx',
     'CREATE INDEX media_files_added_at_idx ON media_files (added_at)',
   );
-
   @override
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
-
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-    mediaFiles,
-    movies,
     tVShows,
     seasons,
     episodes,
     storageSources,
-    mediaFilesSourceIdIdx,
-    mediaFilesExplicitTmdbIdIdx,
-    mediaFilesMovieTmdbIdIdx,
-    mediaFilesTvShowTmdbIdIdx,
-    mediaFilesEpisodeTmdbIdIdx,
+    movies,
+    mediaFiles,
+    mediaFilesMovieAddedIdx,
+    mediaFilesShowOrderIdx,
+    mediaFilesEpisodeKeyIdx,
     mediaFilesWatchStatusIdx,
     mediaFilesLastWatchedAtIdx,
     mediaFilesIsFavoriteIdx,
     mediaFilesAddedAtIdx,
   ];
-
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName('t_v_shows', limitUpdateKind: UpdateKind.delete),
+      result: [TableUpdate('seasons', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName('seasons', limitUpdateKind: UpdateKind.delete),
+      result: [TableUpdate('episodes', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName('storage_sources', limitUpdateKind: UpdateKind.delete),
+      result: [TableUpdate('media_files', kind: UpdateKind.delete)],
+    ),
+  ]);
   @override
   DriftDatabaseOptions get options => const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$MediaFilesTableCreateCompanionBuilder =
-    MediaFilesCompanion Function({
-      Value<int> id,
-      required String sourceId,
-      required String storageKey,
-      required String path,
-      required String fileName,
-      required String parsedTitle,
-      Value<int?> parsedYear,
-      Value<int?> parsedSeason,
-      Value<int?> parsedEpisode,
-      required MediaType mediaType,
-      Value<String?> explicitTmdbId,
-      Value<String?> movieTmdbId,
-      Value<String?> tvShowTmdbId,
-      Value<String?> episodeTmdbId,
-      required MetadataMatchStatus metadataMatchStatus,
-      required int size,
-      Value<String?> container,
-      Value<int?> width,
-      Value<int?> height,
-      Value<String?> videoCodec,
-      Value<String?> audioCodec,
-      Value<String?> audioChannels,
-      required bool isHdr,
-      Value<String?> hdrFormat,
-      Value<String?> versionLabel,
-      required int duration,
-      required int position,
-      required WatchStatus watchStatus,
-      Value<DateTime?> lastWatchedAt,
-      required bool isFavorite,
-      required DateTime addedAt,
-    });
-typedef $$MediaFilesTableUpdateCompanionBuilder =
-    MediaFilesCompanion Function({
-      Value<int> id,
-      Value<String> sourceId,
-      Value<String> storageKey,
-      Value<String> path,
-      Value<String> fileName,
-      Value<String> parsedTitle,
-      Value<int?> parsedYear,
-      Value<int?> parsedSeason,
-      Value<int?> parsedEpisode,
-      Value<MediaType> mediaType,
-      Value<String?> explicitTmdbId,
-      Value<String?> movieTmdbId,
-      Value<String?> tvShowTmdbId,
-      Value<String?> episodeTmdbId,
-      Value<MetadataMatchStatus> metadataMatchStatus,
-      Value<int> size,
-      Value<String?> container,
-      Value<int?> width,
-      Value<int?> height,
-      Value<String?> videoCodec,
-      Value<String?> audioCodec,
-      Value<String?> audioChannels,
-      Value<bool> isHdr,
-      Value<String?> hdrFormat,
-      Value<String?> versionLabel,
-      Value<int> duration,
-      Value<int> position,
-      Value<WatchStatus> watchStatus,
-      Value<DateTime?> lastWatchedAt,
-      Value<bool> isFavorite,
-      Value<DateTime> addedAt,
-    });
-
-class $$MediaFilesTableFilterComposer extends Composer<_$AppDatabase, $MediaFilesTable> {
-  $$MediaFilesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-
-  ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get sourceId =>
-      $composableBuilder(column: $table.sourceId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get storageKey =>
-      $composableBuilder(column: $table.storageKey, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get path => $composableBuilder(column: $table.path, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get fileName =>
-      $composableBuilder(column: $table.fileName, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get parsedTitle =>
-      $composableBuilder(column: $table.parsedTitle, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get parsedYear =>
-      $composableBuilder(column: $table.parsedYear, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get parsedSeason =>
-      $composableBuilder(column: $table.parsedSeason, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get parsedEpisode =>
-      $composableBuilder(column: $table.parsedEpisode, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<MediaType, MediaType, String> get mediaType =>
-      $composableBuilder(column: $table.mediaType, builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnFilters<String> get explicitTmdbId =>
-      $composableBuilder(column: $table.explicitTmdbId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get movieTmdbId =>
-      $composableBuilder(column: $table.movieTmdbId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get tvShowTmdbId =>
-      $composableBuilder(column: $table.tvShowTmdbId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get episodeTmdbId =>
-      $composableBuilder(column: $table.episodeTmdbId, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<MetadataMatchStatus, MetadataMatchStatus, String> get metadataMatchStatus =>
-      $composableBuilder(
-        column: $table.metadataMatchStatus,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnFilters<int> get size => $composableBuilder(column: $table.size, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get container =>
-      $composableBuilder(column: $table.container, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get width => $composableBuilder(column: $table.width, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get height =>
-      $composableBuilder(column: $table.height, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get videoCodec =>
-      $composableBuilder(column: $table.videoCodec, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get audioCodec =>
-      $composableBuilder(column: $table.audioCodec, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get audioChannels =>
-      $composableBuilder(column: $table.audioChannels, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<bool> get isHdr => $composableBuilder(column: $table.isHdr, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get hdrFormat =>
-      $composableBuilder(column: $table.hdrFormat, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get versionLabel =>
-      $composableBuilder(column: $table.versionLabel, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get duration =>
-      $composableBuilder(column: $table.duration, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get position =>
-      $composableBuilder(column: $table.position, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<WatchStatus, WatchStatus, String> get watchStatus =>
-      $composableBuilder(column: $table.watchStatus, builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnFilters<DateTime> get lastWatchedAt =>
-      $composableBuilder(column: $table.lastWatchedAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<bool> get isFavorite =>
-      $composableBuilder(column: $table.isFavorite, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get addedAt =>
-      $composableBuilder(column: $table.addedAt, builder: (column) => ColumnFilters(column));
-}
-
-class $$MediaFilesTableOrderingComposer extends Composer<_$AppDatabase, $MediaFilesTable> {
-  $$MediaFilesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-
-  ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get sourceId =>
-      $composableBuilder(column: $table.sourceId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get storageKey =>
-      $composableBuilder(column: $table.storageKey, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get path =>
-      $composableBuilder(column: $table.path, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get fileName =>
-      $composableBuilder(column: $table.fileName, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get parsedTitle =>
-      $composableBuilder(column: $table.parsedTitle, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get parsedYear =>
-      $composableBuilder(column: $table.parsedYear, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get parsedSeason =>
-      $composableBuilder(column: $table.parsedSeason, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get parsedEpisode =>
-      $composableBuilder(column: $table.parsedEpisode, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get mediaType =>
-      $composableBuilder(column: $table.mediaType, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get explicitTmdbId =>
-      $composableBuilder(column: $table.explicitTmdbId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get movieTmdbId =>
-      $composableBuilder(column: $table.movieTmdbId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get tvShowTmdbId =>
-      $composableBuilder(column: $table.tvShowTmdbId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get episodeTmdbId =>
-      $composableBuilder(column: $table.episodeTmdbId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get metadataMatchStatus =>
-      $composableBuilder(column: $table.metadataMatchStatus, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get size =>
-      $composableBuilder(column: $table.size, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get container =>
-      $composableBuilder(column: $table.container, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get width =>
-      $composableBuilder(column: $table.width, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get height =>
-      $composableBuilder(column: $table.height, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get videoCodec =>
-      $composableBuilder(column: $table.videoCodec, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get audioCodec =>
-      $composableBuilder(column: $table.audioCodec, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get audioChannels =>
-      $composableBuilder(column: $table.audioChannels, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<bool> get isHdr =>
-      $composableBuilder(column: $table.isHdr, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get hdrFormat =>
-      $composableBuilder(column: $table.hdrFormat, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get versionLabel =>
-      $composableBuilder(column: $table.versionLabel, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get duration =>
-      $composableBuilder(column: $table.duration, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get position =>
-      $composableBuilder(column: $table.position, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get watchStatus =>
-      $composableBuilder(column: $table.watchStatus, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get lastWatchedAt =>
-      $composableBuilder(column: $table.lastWatchedAt, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<bool> get isFavorite =>
-      $composableBuilder(column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get addedAt =>
-      $composableBuilder(column: $table.addedAt, builder: (column) => ColumnOrderings(column));
-}
-
-class $$MediaFilesTableAnnotationComposer extends Composer<_$AppDatabase, $MediaFilesTable> {
-  $$MediaFilesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-
-  GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get sourceId => $composableBuilder(column: $table.sourceId, builder: (column) => column);
-
-  GeneratedColumn<String> get storageKey => $composableBuilder(column: $table.storageKey, builder: (column) => column);
-
-  GeneratedColumn<String> get path => $composableBuilder(column: $table.path, builder: (column) => column);
-
-  GeneratedColumn<String> get fileName => $composableBuilder(column: $table.fileName, builder: (column) => column);
-
-  GeneratedColumn<String> get parsedTitle =>
-      $composableBuilder(column: $table.parsedTitle, builder: (column) => column);
-
-  GeneratedColumn<int> get parsedYear => $composableBuilder(column: $table.parsedYear, builder: (column) => column);
-
-  GeneratedColumn<int> get parsedSeason => $composableBuilder(column: $table.parsedSeason, builder: (column) => column);
-
-  GeneratedColumn<int> get parsedEpisode =>
-      $composableBuilder(column: $table.parsedEpisode, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<MediaType, String> get mediaType =>
-      $composableBuilder(column: $table.mediaType, builder: (column) => column);
-
-  GeneratedColumn<String> get explicitTmdbId =>
-      $composableBuilder(column: $table.explicitTmdbId, builder: (column) => column);
-
-  GeneratedColumn<String> get movieTmdbId =>
-      $composableBuilder(column: $table.movieTmdbId, builder: (column) => column);
-
-  GeneratedColumn<String> get tvShowTmdbId =>
-      $composableBuilder(column: $table.tvShowTmdbId, builder: (column) => column);
-
-  GeneratedColumn<String> get episodeTmdbId =>
-      $composableBuilder(column: $table.episodeTmdbId, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<MetadataMatchStatus, String> get metadataMatchStatus =>
-      $composableBuilder(column: $table.metadataMatchStatus, builder: (column) => column);
-
-  GeneratedColumn<int> get size => $composableBuilder(column: $table.size, builder: (column) => column);
-
-  GeneratedColumn<String> get container => $composableBuilder(column: $table.container, builder: (column) => column);
-
-  GeneratedColumn<int> get width => $composableBuilder(column: $table.width, builder: (column) => column);
-
-  GeneratedColumn<int> get height => $composableBuilder(column: $table.height, builder: (column) => column);
-
-  GeneratedColumn<String> get videoCodec => $composableBuilder(column: $table.videoCodec, builder: (column) => column);
-
-  GeneratedColumn<String> get audioCodec => $composableBuilder(column: $table.audioCodec, builder: (column) => column);
-
-  GeneratedColumn<String> get audioChannels =>
-      $composableBuilder(column: $table.audioChannels, builder: (column) => column);
-
-  GeneratedColumn<bool> get isHdr => $composableBuilder(column: $table.isHdr, builder: (column) => column);
-
-  GeneratedColumn<String> get hdrFormat => $composableBuilder(column: $table.hdrFormat, builder: (column) => column);
-
-  GeneratedColumn<String> get versionLabel =>
-      $composableBuilder(column: $table.versionLabel, builder: (column) => column);
-
-  GeneratedColumn<int> get duration => $composableBuilder(column: $table.duration, builder: (column) => column);
-
-  GeneratedColumn<int> get position => $composableBuilder(column: $table.position, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<WatchStatus, String> get watchStatus =>
-      $composableBuilder(column: $table.watchStatus, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get lastWatchedAt =>
-      $composableBuilder(column: $table.lastWatchedAt, builder: (column) => column);
-
-  GeneratedColumn<bool> get isFavorite => $composableBuilder(column: $table.isFavorite, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get addedAt => $composableBuilder(column: $table.addedAt, builder: (column) => column);
-}
-
-class $$MediaFilesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $MediaFilesTable,
-          MediaFile,
-          $$MediaFilesTableFilterComposer,
-          $$MediaFilesTableOrderingComposer,
-          $$MediaFilesTableAnnotationComposer,
-          $$MediaFilesTableCreateCompanionBuilder,
-          $$MediaFilesTableUpdateCompanionBuilder,
-          (MediaFile, BaseReferences<_$AppDatabase, $MediaFilesTable, MediaFile>),
-          MediaFile,
-          PrefetchHooks Function()
-        > {
-  $$MediaFilesTableTableManager(_$AppDatabase db, $MediaFilesTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () => $$MediaFilesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$MediaFilesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$MediaFilesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> sourceId = const Value.absent(),
-                Value<String> storageKey = const Value.absent(),
-                Value<String> path = const Value.absent(),
-                Value<String> fileName = const Value.absent(),
-                Value<String> parsedTitle = const Value.absent(),
-                Value<int?> parsedYear = const Value.absent(),
-                Value<int?> parsedSeason = const Value.absent(),
-                Value<int?> parsedEpisode = const Value.absent(),
-                Value<MediaType> mediaType = const Value.absent(),
-                Value<String?> explicitTmdbId = const Value.absent(),
-                Value<String?> movieTmdbId = const Value.absent(),
-                Value<String?> tvShowTmdbId = const Value.absent(),
-                Value<String?> episodeTmdbId = const Value.absent(),
-                Value<MetadataMatchStatus> metadataMatchStatus = const Value.absent(),
-                Value<int> size = const Value.absent(),
-                Value<String?> container = const Value.absent(),
-                Value<int?> width = const Value.absent(),
-                Value<int?> height = const Value.absent(),
-                Value<String?> videoCodec = const Value.absent(),
-                Value<String?> audioCodec = const Value.absent(),
-                Value<String?> audioChannels = const Value.absent(),
-                Value<bool> isHdr = const Value.absent(),
-                Value<String?> hdrFormat = const Value.absent(),
-                Value<String?> versionLabel = const Value.absent(),
-                Value<int> duration = const Value.absent(),
-                Value<int> position = const Value.absent(),
-                Value<WatchStatus> watchStatus = const Value.absent(),
-                Value<DateTime?> lastWatchedAt = const Value.absent(),
-                Value<bool> isFavorite = const Value.absent(),
-                Value<DateTime> addedAt = const Value.absent(),
-              }) => MediaFilesCompanion(
-                id: id,
-                sourceId: sourceId,
-                storageKey: storageKey,
-                path: path,
-                fileName: fileName,
-                parsedTitle: parsedTitle,
-                parsedYear: parsedYear,
-                parsedSeason: parsedSeason,
-                parsedEpisode: parsedEpisode,
-                mediaType: mediaType,
-                explicitTmdbId: explicitTmdbId,
-                movieTmdbId: movieTmdbId,
-                tvShowTmdbId: tvShowTmdbId,
-                episodeTmdbId: episodeTmdbId,
-                metadataMatchStatus: metadataMatchStatus,
-                size: size,
-                container: container,
-                width: width,
-                height: height,
-                videoCodec: videoCodec,
-                audioCodec: audioCodec,
-                audioChannels: audioChannels,
-                isHdr: isHdr,
-                hdrFormat: hdrFormat,
-                versionLabel: versionLabel,
-                duration: duration,
-                position: position,
-                watchStatus: watchStatus,
-                lastWatchedAt: lastWatchedAt,
-                isFavorite: isFavorite,
-                addedAt: addedAt,
-              ),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String sourceId,
-                required String storageKey,
-                required String path,
-                required String fileName,
-                required String parsedTitle,
-                Value<int?> parsedYear = const Value.absent(),
-                Value<int?> parsedSeason = const Value.absent(),
-                Value<int?> parsedEpisode = const Value.absent(),
-                required MediaType mediaType,
-                Value<String?> explicitTmdbId = const Value.absent(),
-                Value<String?> movieTmdbId = const Value.absent(),
-                Value<String?> tvShowTmdbId = const Value.absent(),
-                Value<String?> episodeTmdbId = const Value.absent(),
-                required MetadataMatchStatus metadataMatchStatus,
-                required int size,
-                Value<String?> container = const Value.absent(),
-                Value<int?> width = const Value.absent(),
-                Value<int?> height = const Value.absent(),
-                Value<String?> videoCodec = const Value.absent(),
-                Value<String?> audioCodec = const Value.absent(),
-                Value<String?> audioChannels = const Value.absent(),
-                required bool isHdr,
-                Value<String?> hdrFormat = const Value.absent(),
-                Value<String?> versionLabel = const Value.absent(),
-                required int duration,
-                required int position,
-                required WatchStatus watchStatus,
-                Value<DateTime?> lastWatchedAt = const Value.absent(),
-                required bool isFavorite,
-                required DateTime addedAt,
-              }) => MediaFilesCompanion.insert(
-                id: id,
-                sourceId: sourceId,
-                storageKey: storageKey,
-                path: path,
-                fileName: fileName,
-                parsedTitle: parsedTitle,
-                parsedYear: parsedYear,
-                parsedSeason: parsedSeason,
-                parsedEpisode: parsedEpisode,
-                mediaType: mediaType,
-                explicitTmdbId: explicitTmdbId,
-                movieTmdbId: movieTmdbId,
-                tvShowTmdbId: tvShowTmdbId,
-                episodeTmdbId: episodeTmdbId,
-                metadataMatchStatus: metadataMatchStatus,
-                size: size,
-                container: container,
-                width: width,
-                height: height,
-                videoCodec: videoCodec,
-                audioCodec: audioCodec,
-                audioChannels: audioChannels,
-                isHdr: isHdr,
-                hdrFormat: hdrFormat,
-                versionLabel: versionLabel,
-                duration: duration,
-                position: position,
-                watchStatus: watchStatus,
-                lastWatchedAt: lastWatchedAt,
-                isFavorite: isFavorite,
-                addedAt: addedAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$MediaFilesTable, MediaFile>(table),
-                  BaseReferences<_$AppDatabase, $MediaFilesTable, MediaFile>(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$MediaFilesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $MediaFilesTable,
-      MediaFile,
-      $$MediaFilesTableFilterComposer,
-      $$MediaFilesTableOrderingComposer,
-      $$MediaFilesTableAnnotationComposer,
-      $$MediaFilesTableCreateCompanionBuilder,
-      $$MediaFilesTableUpdateCompanionBuilder,
-      (MediaFile, BaseReferences<_$AppDatabase, $MediaFilesTable, MediaFile>),
-      MediaFile,
-      PrefetchHooks Function()
-    >;
-typedef $$MoviesTableCreateCompanionBuilder =
-    MoviesCompanion Function({
-      required String tmdbId,
-      required String title,
-      Value<String?> originalTitle,
-      Value<int?> releaseYear,
-      Value<DateTime?> releaseDate,
-      Value<String?> posterUrl,
-      Value<String?> backdropUrl,
-      Value<String?> logoUrl,
-      Value<String?> overview,
-      Value<String?> certification,
-      required double rating,
-      required List<String> genres,
-      required List<Artist> cast,
-      Value<int> rowid,
-    });
-typedef $$MoviesTableUpdateCompanionBuilder =
-    MoviesCompanion Function({
-      Value<String> tmdbId,
-      Value<String> title,
-      Value<String?> originalTitle,
-      Value<int?> releaseYear,
-      Value<DateTime?> releaseDate,
-      Value<String?> posterUrl,
-      Value<String?> backdropUrl,
-      Value<String?> logoUrl,
-      Value<String?> overview,
-      Value<String?> certification,
-      Value<double> rating,
-      Value<List<String>> genres,
-      Value<List<Artist>> cast,
-      Value<int> rowid,
-    });
-
-class $$MoviesTableFilterComposer extends Composer<_$AppDatabase, $MoviesTable> {
-  $$MoviesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-
-  ColumnFilters<String> get tmdbId =>
-      $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get originalTitle =>
-      $composableBuilder(column: $table.originalTitle, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get releaseYear =>
-      $composableBuilder(column: $table.releaseYear, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get releaseDate =>
-      $composableBuilder(column: $table.releaseDate, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get posterUrl =>
-      $composableBuilder(column: $table.posterUrl, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get backdropUrl =>
-      $composableBuilder(column: $table.backdropUrl, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get logoUrl =>
-      $composableBuilder(column: $table.logoUrl, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get overview =>
-      $composableBuilder(column: $table.overview, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get certification =>
-      $composableBuilder(column: $table.certification, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get rating =>
-      $composableBuilder(column: $table.rating, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<List<String>, List<String>, String> get genres =>
-      $composableBuilder(column: $table.genres, builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnWithTypeConverterFilters<List<Artist>, List<Artist>, String> get cast =>
-      $composableBuilder(column: $table.cast, builder: (column) => ColumnWithTypeConverterFilters(column));
-}
-
-class $$MoviesTableOrderingComposer extends Composer<_$AppDatabase, $MoviesTable> {
-  $$MoviesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-
-  ColumnOrderings<String> get tmdbId =>
-      $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get originalTitle =>
-      $composableBuilder(column: $table.originalTitle, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get releaseYear =>
-      $composableBuilder(column: $table.releaseYear, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get releaseDate =>
-      $composableBuilder(column: $table.releaseDate, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get posterUrl =>
-      $composableBuilder(column: $table.posterUrl, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get backdropUrl =>
-      $composableBuilder(column: $table.backdropUrl, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get logoUrl =>
-      $composableBuilder(column: $table.logoUrl, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get overview =>
-      $composableBuilder(column: $table.overview, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get certification =>
-      $composableBuilder(column: $table.certification, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get rating =>
-      $composableBuilder(column: $table.rating, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get genres =>
-      $composableBuilder(column: $table.genres, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get cast =>
-      $composableBuilder(column: $table.cast, builder: (column) => ColumnOrderings(column));
-}
-
-class $$MoviesTableAnnotationComposer extends Composer<_$AppDatabase, $MoviesTable> {
-  $$MoviesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-
-  GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
-
-  GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<String> get originalTitle =>
-      $composableBuilder(column: $table.originalTitle, builder: (column) => column);
-
-  GeneratedColumn<int> get releaseYear => $composableBuilder(column: $table.releaseYear, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get releaseDate =>
-      $composableBuilder(column: $table.releaseDate, builder: (column) => column);
-
-  GeneratedColumn<String> get posterUrl => $composableBuilder(column: $table.posterUrl, builder: (column) => column);
-
-  GeneratedColumn<String> get backdropUrl =>
-      $composableBuilder(column: $table.backdropUrl, builder: (column) => column);
-
-  GeneratedColumn<String> get logoUrl => $composableBuilder(column: $table.logoUrl, builder: (column) => column);
-
-  GeneratedColumn<String> get overview => $composableBuilder(column: $table.overview, builder: (column) => column);
-
-  GeneratedColumn<String> get certification =>
-      $composableBuilder(column: $table.certification, builder: (column) => column);
-
-  GeneratedColumn<double> get rating => $composableBuilder(column: $table.rating, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<List<String>, String> get genres =>
-      $composableBuilder(column: $table.genres, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<List<Artist>, String> get cast =>
-      $composableBuilder(column: $table.cast, builder: (column) => column);
-}
-
-class $$MoviesTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $MoviesTable,
-          Movie,
-          $$MoviesTableFilterComposer,
-          $$MoviesTableOrderingComposer,
-          $$MoviesTableAnnotationComposer,
-          $$MoviesTableCreateCompanionBuilder,
-          $$MoviesTableUpdateCompanionBuilder,
-          (Movie, BaseReferences<_$AppDatabase, $MoviesTable, Movie>),
-          Movie,
-          PrefetchHooks Function()
-        > {
-  $$MoviesTableTableManager(_$AppDatabase db, $MoviesTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () => $$MoviesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$MoviesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$MoviesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> tmdbId = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<String?> originalTitle = const Value.absent(),
-                Value<int?> releaseYear = const Value.absent(),
-                Value<DateTime?> releaseDate = const Value.absent(),
-                Value<String?> posterUrl = const Value.absent(),
-                Value<String?> backdropUrl = const Value.absent(),
-                Value<String?> logoUrl = const Value.absent(),
-                Value<String?> overview = const Value.absent(),
-                Value<String?> certification = const Value.absent(),
-                Value<double> rating = const Value.absent(),
-                Value<List<String>> genres = const Value.absent(),
-                Value<List<Artist>> cast = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MoviesCompanion(
-                tmdbId: tmdbId,
-                title: title,
-                originalTitle: originalTitle,
-                releaseYear: releaseYear,
-                releaseDate: releaseDate,
-                posterUrl: posterUrl,
-                backdropUrl: backdropUrl,
-                logoUrl: logoUrl,
-                overview: overview,
-                certification: certification,
-                rating: rating,
-                genres: genres,
-                cast: cast,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String tmdbId,
-                required String title,
-                Value<String?> originalTitle = const Value.absent(),
-                Value<int?> releaseYear = const Value.absent(),
-                Value<DateTime?> releaseDate = const Value.absent(),
-                Value<String?> posterUrl = const Value.absent(),
-                Value<String?> backdropUrl = const Value.absent(),
-                Value<String?> logoUrl = const Value.absent(),
-                Value<String?> overview = const Value.absent(),
-                Value<String?> certification = const Value.absent(),
-                required double rating,
-                required List<String> genres,
-                required List<Artist> cast,
-                Value<int> rowid = const Value.absent(),
-              }) => MoviesCompanion.insert(
-                tmdbId: tmdbId,
-                title: title,
-                originalTitle: originalTitle,
-                releaseYear: releaseYear,
-                releaseDate: releaseDate,
-                posterUrl: posterUrl,
-                backdropUrl: backdropUrl,
-                logoUrl: logoUrl,
-                overview: overview,
-                certification: certification,
-                rating: rating,
-                genres: genres,
-                cast: cast,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$MoviesTable, Movie>(table),
-                  BaseReferences<_$AppDatabase, $MoviesTable, Movie>(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$MoviesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $MoviesTable,
-      Movie,
-      $$MoviesTableFilterComposer,
-      $$MoviesTableOrderingComposer,
-      $$MoviesTableAnnotationComposer,
-      $$MoviesTableCreateCompanionBuilder,
-      $$MoviesTableUpdateCompanionBuilder,
-      (Movie, BaseReferences<_$AppDatabase, $MoviesTable, Movie>),
-      Movie,
-      PrefetchHooks Function()
-    >;
 typedef $$TVShowsTableCreateCompanionBuilder =
     TVShowsCompanion Function({
       required String tmdbId,
@@ -3946,6 +3041,36 @@ typedef $$TVShowsTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
+final class $$TVShowsTableReferences extends BaseReferences<_$AppDatabase, $TVShowsTable, TVShow> {
+  $$TVShowsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$SeasonsTable, List<Season>> _seasonsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.seasons, aliasName: 't_v_shows__tmdb_id__seasons__tv_show_tmdb_id');
+
+  $$SeasonsTableProcessedTableManager get seasonsRefs {
+    final manager = $$SeasonsTableTableManager(
+      $_db,
+      $_db.seasons,
+    ).filter((f) => f.tvShowTmdbId.tmdbId.sqlEquals($_itemColumn<String>('tmdb_id')!));
+
+    final cache = $_typedResult.readTableOrNull(_seasonsRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<MediaFiles, List<MediaFile>> _mediaFilesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.mediaFiles, aliasName: 't_v_shows__tmdb_id__media_files__tv_show_tmdb_id');
+
+  $MediaFilesProcessedTableManager get mediaFilesRefs {
+    final manager = $MediaFilesTableManager(
+      $_db,
+      $_db.mediaFiles,
+    ).filter((f) => f.tvShowTmdbId.tmdbId.sqlEquals($_itemColumn<String>('tmdb_id')!));
+
+    final cache = $_typedResult.readTableOrNull(_mediaFilesRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
 class $$TVShowsTableFilterComposer extends Composer<_$AppDatabase, $TVShowsTable> {
   $$TVShowsTableFilterComposer({
     required super.$db,
@@ -3954,7 +3079,6 @@ class $$TVShowsTableFilterComposer extends Composer<_$AppDatabase, $TVShowsTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
   ColumnFilters<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
 
@@ -4002,6 +3126,42 @@ class $$TVShowsTableFilterComposer extends Composer<_$AppDatabase, $TVShowsTable
 
   ColumnFilters<int> get numberOfEpisodes =>
       $composableBuilder(column: $table.numberOfEpisodes, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> seasonsRefs(Expression<bool> Function($$SeasonsTableFilterComposer f) f) {
+    final $$SeasonsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tmdbId,
+      referencedTable: $db.seasons,
+      getReferencedColumn: (t) => t.tvShowTmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$SeasonsTableFilterComposer(
+            $db: $db,
+            $table: $db.seasons,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> mediaFilesRefs(Expression<bool> Function($MediaFilesFilterComposer f) f) {
+    final $MediaFilesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tmdbId,
+      referencedTable: $db.mediaFiles,
+      getReferencedColumn: (t) => t.tvShowTmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $MediaFilesFilterComposer(
+            $db: $db,
+            $table: $db.mediaFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TVShowsTableOrderingComposer extends Composer<_$AppDatabase, $TVShowsTable> {
@@ -4012,7 +3172,6 @@ class $$TVShowsTableOrderingComposer extends Composer<_$AppDatabase, $TVShowsTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
   ColumnOrderings<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
 
@@ -4070,7 +3229,6 @@ class $$TVShowsTableAnnotationComposer extends Composer<_$AppDatabase, $TVShowsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
   GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
 
   GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
@@ -4110,6 +3268,42 @@ class $$TVShowsTableAnnotationComposer extends Composer<_$AppDatabase, $TVShowsT
 
   GeneratedColumn<int> get numberOfEpisodes =>
       $composableBuilder(column: $table.numberOfEpisodes, builder: (column) => column);
+
+  Expression<T> seasonsRefs<T extends Object>(Expression<T> Function($$SeasonsTableAnnotationComposer a) f) {
+    final $$SeasonsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tmdbId,
+      referencedTable: $db.seasons,
+      getReferencedColumn: (t) => t.tvShowTmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$SeasonsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.seasons,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> mediaFilesRefs<T extends Object>(Expression<T> Function($MediaFilesAnnotationComposer a) f) {
+    final $MediaFilesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tmdbId,
+      referencedTable: $db.mediaFiles,
+      getReferencedColumn: (t) => t.tvShowTmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $MediaFilesAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TVShowsTableTableManager
@@ -4123,9 +3317,9 @@ class $$TVShowsTableTableManager
           $$TVShowsTableAnnotationComposer,
           $$TVShowsTableCreateCompanionBuilder,
           $$TVShowsTableUpdateCompanionBuilder,
-          (TVShow, BaseReferences<_$AppDatabase, $TVShowsTable, TVShow>),
+          (TVShow, $$TVShowsTableReferences),
           TVShow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool seasonsRefs, bool mediaFilesRefs})
         > {
   $$TVShowsTableTableManager(_$AppDatabase db, $TVShowsTable table)
     : super(
@@ -4212,14 +3406,37 @@ class $$TVShowsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$TVShowsTable, TVShow>(table),
-                  BaseReferences<_$AppDatabase, $TVShowsTable, TVShow>(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable<$TVShowsTable, TVShow>(table), $$TVShowsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({seasonsRefs = false, mediaFilesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (seasonsRefs) db.seasons, if (mediaFilesRefs) db.mediaFiles],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (seasonsRefs)
+                    await $_getPrefetchedData<TVShow, $TVShowsTable, Season>(
+                      currentTable: table,
+                      referencedTable: $$TVShowsTableReferences._seasonsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$TVShowsTableReferences(db, table, p0).seasonsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.tvShowTmdbId == item.tmdbId),
+                      typedResults: items,
+                    ),
+                  if (mediaFilesRefs)
+                    await $_getPrefetchedData<TVShow, $TVShowsTable, MediaFile>(
+                      currentTable: table,
+                      referencedTable: $$TVShowsTableReferences._mediaFilesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$TVShowsTableReferences(db, table, p0).mediaFilesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.tvShowTmdbId == item.tmdbId),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -4234,13 +3451,13 @@ typedef $$TVShowsTableProcessedTableManager =
       $$TVShowsTableAnnotationComposer,
       $$TVShowsTableCreateCompanionBuilder,
       $$TVShowsTableUpdateCompanionBuilder,
-      (TVShow, BaseReferences<_$AppDatabase, $TVShowsTable, TVShow>),
+      (TVShow, $$TVShowsTableReferences),
       TVShow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool seasonsRefs, bool mediaFilesRefs})
     >;
 typedef $$SeasonsTableCreateCompanionBuilder =
     SeasonsCompanion Function({
-      required String seasonKey,
+      required String tvShowTmdbId,
       required int seasonNumber,
       required String title,
       Value<String?> posterUrl,
@@ -4250,7 +3467,7 @@ typedef $$SeasonsTableCreateCompanionBuilder =
     });
 typedef $$SeasonsTableUpdateCompanionBuilder =
     SeasonsCompanion Function({
-      Value<String> seasonKey,
+      Value<String> tvShowTmdbId,
       Value<int> seasonNumber,
       Value<String> title,
       Value<String?> posterUrl,
@@ -4258,6 +3475,22 @@ typedef $$SeasonsTableUpdateCompanionBuilder =
       Value<int?> numberOfEpisodes,
       Value<int> rowid,
     });
+
+final class $$SeasonsTableReferences extends BaseReferences<_$AppDatabase, $SeasonsTable, Season> {
+  $$SeasonsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TVShowsTable _tvShowTmdbIdTable(_$AppDatabase db) =>
+      db.tVShows.createAlias('seasons__tv_show_tmdb_id__t_v_shows__tmdb_id');
+
+  $$TVShowsTableProcessedTableManager get tvShowTmdbId {
+    final $_column = $_itemColumn<String>('tv_show_tmdb_id')!;
+
+    final manager = $$TVShowsTableTableManager($_db, $_db.tVShows).filter((f) => f.tmdbId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tvShowTmdbIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
 
 class $$SeasonsTableFilterComposer extends Composer<_$AppDatabase, $SeasonsTable> {
   $$SeasonsTableFilterComposer({
@@ -4267,10 +3500,6 @@ class $$SeasonsTableFilterComposer extends Composer<_$AppDatabase, $SeasonsTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
-  ColumnFilters<String> get seasonKey =>
-      $composableBuilder(column: $table.seasonKey, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<int> get seasonNumber =>
       $composableBuilder(column: $table.seasonNumber, builder: (column) => ColumnFilters(column));
 
@@ -4285,6 +3514,24 @@ class $$SeasonsTableFilterComposer extends Composer<_$AppDatabase, $SeasonsTable
 
   ColumnFilters<int> get numberOfEpisodes =>
       $composableBuilder(column: $table.numberOfEpisodes, builder: (column) => ColumnFilters(column));
+
+  $$TVShowsTableFilterComposer get tvShowTmdbId {
+    final $$TVShowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tvShowTmdbId,
+      referencedTable: $db.tVShows,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$TVShowsTableFilterComposer(
+            $db: $db,
+            $table: $db.tVShows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$SeasonsTableOrderingComposer extends Composer<_$AppDatabase, $SeasonsTable> {
@@ -4295,10 +3542,6 @@ class $$SeasonsTableOrderingComposer extends Composer<_$AppDatabase, $SeasonsTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
-  ColumnOrderings<String> get seasonKey =>
-      $composableBuilder(column: $table.seasonKey, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<int> get seasonNumber =>
       $composableBuilder(column: $table.seasonNumber, builder: (column) => ColumnOrderings(column));
 
@@ -4313,6 +3556,24 @@ class $$SeasonsTableOrderingComposer extends Composer<_$AppDatabase, $SeasonsTab
 
   ColumnOrderings<int> get numberOfEpisodes =>
       $composableBuilder(column: $table.numberOfEpisodes, builder: (column) => ColumnOrderings(column));
+
+  $$TVShowsTableOrderingComposer get tvShowTmdbId {
+    final $$TVShowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tvShowTmdbId,
+      referencedTable: $db.tVShows,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$TVShowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.tVShows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$SeasonsTableAnnotationComposer extends Composer<_$AppDatabase, $SeasonsTable> {
@@ -4323,9 +3584,6 @@ class $$SeasonsTableAnnotationComposer extends Composer<_$AppDatabase, $SeasonsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
-  GeneratedColumn<String> get seasonKey => $composableBuilder(column: $table.seasonKey, builder: (column) => column);
-
   GeneratedColumn<int> get seasonNumber => $composableBuilder(column: $table.seasonNumber, builder: (column) => column);
 
   GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
@@ -4336,6 +3594,24 @@ class $$SeasonsTableAnnotationComposer extends Composer<_$AppDatabase, $SeasonsT
 
   GeneratedColumn<int> get numberOfEpisodes =>
       $composableBuilder(column: $table.numberOfEpisodes, builder: (column) => column);
+
+  $$TVShowsTableAnnotationComposer get tvShowTmdbId {
+    final $$TVShowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tvShowTmdbId,
+      referencedTable: $db.tVShows,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$TVShowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tVShows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$SeasonsTableTableManager
@@ -4349,9 +3625,9 @@ class $$SeasonsTableTableManager
           $$SeasonsTableAnnotationComposer,
           $$SeasonsTableCreateCompanionBuilder,
           $$SeasonsTableUpdateCompanionBuilder,
-          (Season, BaseReferences<_$AppDatabase, $SeasonsTable, Season>),
+          (Season, $$SeasonsTableReferences),
           Season,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool tvShowTmdbId})
         > {
   $$SeasonsTableTableManager(_$AppDatabase db, $SeasonsTable table)
     : super(
@@ -4363,7 +3639,7 @@ class $$SeasonsTableTableManager
           createComputedFieldComposer: () => $$SeasonsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> seasonKey = const Value.absent(),
+                Value<String> tvShowTmdbId = const Value.absent(),
                 Value<int> seasonNumber = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String?> posterUrl = const Value.absent(),
@@ -4371,7 +3647,7 @@ class $$SeasonsTableTableManager
                 Value<int?> numberOfEpisodes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SeasonsCompanion(
-                seasonKey: seasonKey,
+                tvShowTmdbId: tvShowTmdbId,
                 seasonNumber: seasonNumber,
                 title: title,
                 posterUrl: posterUrl,
@@ -4381,7 +3657,7 @@ class $$SeasonsTableTableManager
               ),
           createCompanionCallback:
               ({
-                required String seasonKey,
+                required String tvShowTmdbId,
                 required int seasonNumber,
                 required String title,
                 Value<String?> posterUrl = const Value.absent(),
@@ -4389,7 +3665,7 @@ class $$SeasonsTableTableManager
                 Value<int?> numberOfEpisodes = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SeasonsCompanion.insert(
-                seasonKey: seasonKey,
+                tvShowTmdbId: tvShowTmdbId,
                 seasonNumber: seasonNumber,
                 title: title,
                 posterUrl: posterUrl,
@@ -4398,14 +3674,46 @@ class $$SeasonsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$SeasonsTable, Season>(table),
-                  BaseReferences<_$AppDatabase, $SeasonsTable, Season>(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable<$SeasonsTable, Season>(table), $$SeasonsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({tvShowTmdbId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (tvShowTmdbId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.tvShowTmdbId,
+                                referencedTable: $$SeasonsTableReferences._tvShowTmdbIdTable(db),
+                                referencedColumn: $$SeasonsTableReferences._tvShowTmdbIdTable(db).tmdbId,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ),
       );
 }
@@ -4420,13 +3728,16 @@ typedef $$SeasonsTableProcessedTableManager =
       $$SeasonsTableAnnotationComposer,
       $$SeasonsTableCreateCompanionBuilder,
       $$SeasonsTableUpdateCompanionBuilder,
-      (Season, BaseReferences<_$AppDatabase, $SeasonsTable, Season>),
+      (Season, $$SeasonsTableReferences),
       Season,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool tvShowTmdbId})
     >;
-typedef $$EpisodesTableCreateCompanionBuilder =
+typedef $EpisodesCreateCompanionBuilder =
     EpisodesCompanion Function({
-      required String tmdbId,
+      required String episodeKey,
+      required String tvShowTmdbId,
+      required int seasonNumber,
+      Value<String?> tmdbId,
       required int episodeNumber,
       required String title,
       Value<DateTime?> airDate,
@@ -4435,9 +3746,12 @@ typedef $$EpisodesTableCreateCompanionBuilder =
       required List<Artist> guestStars,
       Value<int> rowid,
     });
-typedef $$EpisodesTableUpdateCompanionBuilder =
+typedef $EpisodesUpdateCompanionBuilder =
     EpisodesCompanion Function({
-      Value<String> tmdbId,
+      Value<String> episodeKey,
+      Value<String> tvShowTmdbId,
+      Value<int> seasonNumber,
+      Value<String?> tmdbId,
       Value<int> episodeNumber,
       Value<String> title,
       Value<DateTime?> airDate,
@@ -4447,14 +3761,22 @@ typedef $$EpisodesTableUpdateCompanionBuilder =
       Value<int> rowid,
     });
 
-class $$EpisodesTableFilterComposer extends Composer<_$AppDatabase, $EpisodesTable> {
-  $$EpisodesTableFilterComposer({
+class $EpisodesFilterComposer extends Composer<_$AppDatabase, Episodes> {
+  $EpisodesFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get episodeKey =>
+      $composableBuilder(column: $table.episodeKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tvShowTmdbId =>
+      $composableBuilder(column: $table.tvShowTmdbId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get seasonNumber =>
+      $composableBuilder(column: $table.seasonNumber, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
@@ -4478,14 +3800,22 @@ class $$EpisodesTableFilterComposer extends Composer<_$AppDatabase, $EpisodesTab
       $composableBuilder(column: $table.guestStars, builder: (column) => ColumnWithTypeConverterFilters(column));
 }
 
-class $$EpisodesTableOrderingComposer extends Composer<_$AppDatabase, $EpisodesTable> {
-  $$EpisodesTableOrderingComposer({
+class $EpisodesOrderingComposer extends Composer<_$AppDatabase, Episodes> {
+  $EpisodesOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get episodeKey =>
+      $composableBuilder(column: $table.episodeKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tvShowTmdbId =>
+      $composableBuilder(column: $table.tvShowTmdbId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get seasonNumber =>
+      $composableBuilder(column: $table.seasonNumber, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get tmdbId =>
       $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
@@ -4509,14 +3839,20 @@ class $$EpisodesTableOrderingComposer extends Composer<_$AppDatabase, $EpisodesT
       $composableBuilder(column: $table.guestStars, builder: (column) => ColumnOrderings(column));
 }
 
-class $$EpisodesTableAnnotationComposer extends Composer<_$AppDatabase, $EpisodesTable> {
-  $$EpisodesTableAnnotationComposer({
+class $EpisodesAnnotationComposer extends Composer<_$AppDatabase, Episodes> {
+  $EpisodesAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get episodeKey => $composableBuilder(column: $table.episodeKey, builder: (column) => column);
+
+  GeneratedColumn<String> get tvShowTmdbId =>
+      $composableBuilder(column: $table.tvShowTmdbId, builder: (column) => column);
+
+  GeneratedColumn<int> get seasonNumber => $composableBuilder(column: $table.seasonNumber, builder: (column) => column);
 
   GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
 
@@ -4535,32 +3871,35 @@ class $$EpisodesTableAnnotationComposer extends Composer<_$AppDatabase, $Episode
       $composableBuilder(column: $table.guestStars, builder: (column) => column);
 }
 
-class $$EpisodesTableTableManager
+class $EpisodesTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $EpisodesTable,
+          Episodes,
           Episode,
-          $$EpisodesTableFilterComposer,
-          $$EpisodesTableOrderingComposer,
-          $$EpisodesTableAnnotationComposer,
-          $$EpisodesTableCreateCompanionBuilder,
-          $$EpisodesTableUpdateCompanionBuilder,
-          (Episode, BaseReferences<_$AppDatabase, $EpisodesTable, Episode>),
+          $EpisodesFilterComposer,
+          $EpisodesOrderingComposer,
+          $EpisodesAnnotationComposer,
+          $EpisodesCreateCompanionBuilder,
+          $EpisodesUpdateCompanionBuilder,
+          (Episode, BaseReferences<_$AppDatabase, Episodes, Episode>),
           Episode,
           PrefetchHooks Function()
         > {
-  $$EpisodesTableTableManager(_$AppDatabase db, $EpisodesTable table)
+  $EpisodesTableManager(_$AppDatabase db, Episodes table)
     : super(
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$EpisodesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$EpisodesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$EpisodesTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () => $EpisodesFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $EpisodesOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $EpisodesAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> tmdbId = const Value.absent(),
+                Value<String> episodeKey = const Value.absent(),
+                Value<String> tvShowTmdbId = const Value.absent(),
+                Value<int> seasonNumber = const Value.absent(),
+                Value<String?> tmdbId = const Value.absent(),
                 Value<int> episodeNumber = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<DateTime?> airDate = const Value.absent(),
@@ -4569,6 +3908,9 @@ class $$EpisodesTableTableManager
                 Value<List<Artist>> guestStars = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => EpisodesCompanion(
+                episodeKey: episodeKey,
+                tvShowTmdbId: tvShowTmdbId,
+                seasonNumber: seasonNumber,
                 tmdbId: tmdbId,
                 episodeNumber: episodeNumber,
                 title: title,
@@ -4580,7 +3922,10 @@ class $$EpisodesTableTableManager
               ),
           createCompanionCallback:
               ({
-                required String tmdbId,
+                required String episodeKey,
+                required String tvShowTmdbId,
+                required int seasonNumber,
+                Value<String?> tmdbId = const Value.absent(),
                 required int episodeNumber,
                 required String title,
                 Value<DateTime?> airDate = const Value.absent(),
@@ -4589,6 +3934,9 @@ class $$EpisodesTableTableManager
                 required List<Artist> guestStars,
                 Value<int> rowid = const Value.absent(),
               }) => EpisodesCompanion.insert(
+                episodeKey: episodeKey,
+                tvShowTmdbId: tvShowTmdbId,
+                seasonNumber: seasonNumber,
                 tmdbId: tmdbId,
                 episodeNumber: episodeNumber,
                 title: title,
@@ -4601,8 +3949,8 @@ class $$EpisodesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$EpisodesTable, Episode>(table),
-                  BaseReferences<_$AppDatabase, $EpisodesTable, Episode>(db, table, e),
+                  e.readTable<Episodes, Episode>(table),
+                  BaseReferences<_$AppDatabase, Episodes, Episode>(db, table, e),
                 ),
               )
               .toList(),
@@ -4611,23 +3959,22 @@ class $$EpisodesTableTableManager
       );
 }
 
-typedef $$EpisodesTableProcessedTableManager =
+typedef $EpisodesProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $EpisodesTable,
+      Episodes,
       Episode,
-      $$EpisodesTableFilterComposer,
-      $$EpisodesTableOrderingComposer,
-      $$EpisodesTableAnnotationComposer,
-      $$EpisodesTableCreateCompanionBuilder,
-      $$EpisodesTableUpdateCompanionBuilder,
-      (Episode, BaseReferences<_$AppDatabase, $EpisodesTable, Episode>),
+      $EpisodesFilterComposer,
+      $EpisodesOrderingComposer,
+      $EpisodesAnnotationComposer,
+      $EpisodesCreateCompanionBuilder,
+      $EpisodesUpdateCompanionBuilder,
+      (Episode, BaseReferences<_$AppDatabase, Episodes, Episode>),
       Episode,
       PrefetchHooks Function()
     >;
 typedef $$StorageSourcesTableCreateCompanionBuilder =
     StorageSourcesCompanion Function({
-      Value<int> id,
       required String sourceId,
       required String name,
       required String type,
@@ -4636,10 +3983,10 @@ typedef $$StorageSourcesTableCreateCompanionBuilder =
       required bool enabled,
       required String username,
       required String password,
+      Value<int> rowid,
     });
 typedef $$StorageSourcesTableUpdateCompanionBuilder =
     StorageSourcesCompanion Function({
-      Value<int> id,
       Value<String> sourceId,
       Value<String> name,
       Value<String> type,
@@ -4648,7 +3995,26 @@ typedef $$StorageSourcesTableUpdateCompanionBuilder =
       Value<bool> enabled,
       Value<String> username,
       Value<String> password,
+      Value<int> rowid,
     });
+
+final class $$StorageSourcesTableReferences
+    extends BaseReferences<_$AppDatabase, $StorageSourcesTable, StorageSourceRow> {
+  $$StorageSourcesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<MediaFiles, List<MediaFile>> _mediaFilesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.mediaFiles, aliasName: 'storage_sources__source_id__media_files__source_id');
+
+  $MediaFilesProcessedTableManager get mediaFilesRefs {
+    final manager = $MediaFilesTableManager(
+      $_db,
+      $_db.mediaFiles,
+    ).filter((f) => f.sourceId.sourceId.sqlEquals($_itemColumn<String>('source_id')!));
+
+    final cache = $_typedResult.readTableOrNull(_mediaFilesRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$StorageSourcesTableFilterComposer extends Composer<_$AppDatabase, $StorageSourcesTable> {
   $$StorageSourcesTableFilterComposer({
@@ -4658,9 +4024,6 @@ class $$StorageSourcesTableFilterComposer extends Composer<_$AppDatabase, $Stora
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
-  ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<String> get sourceId =>
       $composableBuilder(column: $table.sourceId, builder: (column) => ColumnFilters(column));
 
@@ -4682,6 +4045,24 @@ class $$StorageSourcesTableFilterComposer extends Composer<_$AppDatabase, $Stora
 
   ColumnFilters<String> get password =>
       $composableBuilder(column: $table.password, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> mediaFilesRefs(Expression<bool> Function($MediaFilesFilterComposer f) f) {
+    final $MediaFilesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.mediaFiles,
+      getReferencedColumn: (t) => t.sourceId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $MediaFilesFilterComposer(
+            $db: $db,
+            $table: $db.mediaFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StorageSourcesTableOrderingComposer extends Composer<_$AppDatabase, $StorageSourcesTable> {
@@ -4692,9 +4073,6 @@ class $$StorageSourcesTableOrderingComposer extends Composer<_$AppDatabase, $Sto
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
-  ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get sourceId =>
       $composableBuilder(column: $table.sourceId, builder: (column) => ColumnOrderings(column));
 
@@ -4728,9 +4106,6 @@ class $$StorageSourcesTableAnnotationComposer extends Composer<_$AppDatabase, $S
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-
-  GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
-
   GeneratedColumn<String> get sourceId => $composableBuilder(column: $table.sourceId, builder: (column) => column);
 
   GeneratedColumn<String> get name => $composableBuilder(column: $table.name, builder: (column) => column);
@@ -4746,6 +4121,24 @@ class $$StorageSourcesTableAnnotationComposer extends Composer<_$AppDatabase, $S
   GeneratedColumn<String> get username => $composableBuilder(column: $table.username, builder: (column) => column);
 
   GeneratedColumn<String> get password => $composableBuilder(column: $table.password, builder: (column) => column);
+
+  Expression<T> mediaFilesRefs<T extends Object>(Expression<T> Function($MediaFilesAnnotationComposer a) f) {
+    final $MediaFilesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.mediaFiles,
+      getReferencedColumn: (t) => t.sourceId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $MediaFilesAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StorageSourcesTableTableManager
@@ -4759,9 +4152,9 @@ class $$StorageSourcesTableTableManager
           $$StorageSourcesTableAnnotationComposer,
           $$StorageSourcesTableCreateCompanionBuilder,
           $$StorageSourcesTableUpdateCompanionBuilder,
-          (StorageSourceRow, BaseReferences<_$AppDatabase, $StorageSourcesTable, StorageSourceRow>),
+          (StorageSourceRow, $$StorageSourcesTableReferences),
           StorageSourceRow,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool mediaFilesRefs})
         > {
   $$StorageSourcesTableTableManager(_$AppDatabase db, $StorageSourcesTable table)
     : super(
@@ -4773,7 +4166,6 @@ class $$StorageSourcesTableTableManager
           createComputedFieldComposer: () => $$StorageSourcesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 Value<String> sourceId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> type = const Value.absent(),
@@ -4782,8 +4174,8 @@ class $$StorageSourcesTableTableManager
                 Value<bool> enabled = const Value.absent(),
                 Value<String> username = const Value.absent(),
                 Value<String> password = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => StorageSourcesCompanion(
-                id: id,
                 sourceId: sourceId,
                 name: name,
                 type: type,
@@ -4792,10 +4184,10 @@ class $$StorageSourcesTableTableManager
                 enabled: enabled,
                 username: username,
                 password: password,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 required String sourceId,
                 required String name,
                 required String type,
@@ -4804,8 +4196,8 @@ class $$StorageSourcesTableTableManager
                 required bool enabled,
                 required String username,
                 required String password,
+                Value<int> rowid = const Value.absent(),
               }) => StorageSourcesCompanion.insert(
-                id: id,
                 sourceId: sourceId,
                 name: name,
                 type: type,
@@ -4814,16 +4206,36 @@ class $$StorageSourcesTableTableManager
                 enabled: enabled,
                 username: username,
                 password: password,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
                   e.readTable<$StorageSourcesTable, StorageSourceRow>(table),
-                  BaseReferences<_$AppDatabase, $StorageSourcesTable, StorageSourceRow>(db, table, e),
+                  $$StorageSourcesTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({mediaFilesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (mediaFilesRefs) db.mediaFiles],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (mediaFilesRefs)
+                    await $_getPrefetchedData<StorageSourceRow, $StorageSourcesTable, MediaFile>(
+                      currentTable: table,
+                      referencedTable: $$StorageSourcesTableReferences._mediaFilesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$StorageSourcesTableReferences(db, table, p0).mediaFilesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.sourceId == item.sourceId),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -4838,25 +4250,1120 @@ typedef $$StorageSourcesTableProcessedTableManager =
       $$StorageSourcesTableAnnotationComposer,
       $$StorageSourcesTableCreateCompanionBuilder,
       $$StorageSourcesTableUpdateCompanionBuilder,
-      (StorageSourceRow, BaseReferences<_$AppDatabase, $StorageSourcesTable, StorageSourceRow>),
+      (StorageSourceRow, $$StorageSourcesTableReferences),
       StorageSourceRow,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool mediaFilesRefs})
+    >;
+typedef $$MoviesTableCreateCompanionBuilder =
+    MoviesCompanion Function({
+      required String tmdbId,
+      required String title,
+      Value<String?> originalTitle,
+      Value<int?> releaseYear,
+      Value<DateTime?> releaseDate,
+      Value<String?> posterUrl,
+      Value<String?> backdropUrl,
+      Value<String?> logoUrl,
+      Value<String?> overview,
+      Value<String?> certification,
+      required double rating,
+      required List<String> genres,
+      required List<Artist> cast,
+      Value<int> rowid,
+    });
+typedef $$MoviesTableUpdateCompanionBuilder =
+    MoviesCompanion Function({
+      Value<String> tmdbId,
+      Value<String> title,
+      Value<String?> originalTitle,
+      Value<int?> releaseYear,
+      Value<DateTime?> releaseDate,
+      Value<String?> posterUrl,
+      Value<String?> backdropUrl,
+      Value<String?> logoUrl,
+      Value<String?> overview,
+      Value<String?> certification,
+      Value<double> rating,
+      Value<List<String>> genres,
+      Value<List<Artist>> cast,
+      Value<int> rowid,
+    });
+
+final class $$MoviesTableReferences extends BaseReferences<_$AppDatabase, $MoviesTable, Movie> {
+  $$MoviesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<MediaFiles, List<MediaFile>> _mediaFilesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.mediaFiles, aliasName: 'movies__tmdb_id__media_files__movie_tmdb_id');
+
+  $MediaFilesProcessedTableManager get mediaFilesRefs {
+    final manager = $MediaFilesTableManager(
+      $_db,
+      $_db.mediaFiles,
+    ).filter((f) => f.movieTmdbId.tmdbId.sqlEquals($_itemColumn<String>('tmdb_id')!));
+
+    final cache = $_typedResult.readTableOrNull(_mediaFilesRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$MoviesTableFilterComposer extends Composer<_$AppDatabase, $MoviesTable> {
+  $$MoviesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get tmdbId =>
+      $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get originalTitle =>
+      $composableBuilder(column: $table.originalTitle, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get releaseYear =>
+      $composableBuilder(column: $table.releaseYear, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get releaseDate =>
+      $composableBuilder(column: $table.releaseDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get posterUrl =>
+      $composableBuilder(column: $table.posterUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get backdropUrl =>
+      $composableBuilder(column: $table.backdropUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get logoUrl =>
+      $composableBuilder(column: $table.logoUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get overview =>
+      $composableBuilder(column: $table.overview, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get certification =>
+      $composableBuilder(column: $table.certification, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String> get genres =>
+      $composableBuilder(column: $table.genres, builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<List<Artist>, List<Artist>, String> get cast =>
+      $composableBuilder(column: $table.cast, builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  Expression<bool> mediaFilesRefs(Expression<bool> Function($MediaFilesFilterComposer f) f) {
+    final $MediaFilesFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tmdbId,
+      referencedTable: $db.mediaFiles,
+      getReferencedColumn: (t) => t.movieTmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $MediaFilesFilterComposer(
+            $db: $db,
+            $table: $db.mediaFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$MoviesTableOrderingComposer extends Composer<_$AppDatabase, $MoviesTable> {
+  $$MoviesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get tmdbId =>
+      $composableBuilder(column: $table.tmdbId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get originalTitle =>
+      $composableBuilder(column: $table.originalTitle, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get releaseYear =>
+      $composableBuilder(column: $table.releaseYear, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get releaseDate =>
+      $composableBuilder(column: $table.releaseDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get posterUrl =>
+      $composableBuilder(column: $table.posterUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get backdropUrl =>
+      $composableBuilder(column: $table.backdropUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get logoUrl =>
+      $composableBuilder(column: $table.logoUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get overview =>
+      $composableBuilder(column: $table.overview, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get certification =>
+      $composableBuilder(column: $table.certification, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get rating =>
+      $composableBuilder(column: $table.rating, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get genres =>
+      $composableBuilder(column: $table.genres, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get cast =>
+      $composableBuilder(column: $table.cast, builder: (column) => ColumnOrderings(column));
+}
+
+class $$MoviesTableAnnotationComposer extends Composer<_$AppDatabase, $MoviesTable> {
+  $$MoviesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get tmdbId => $composableBuilder(column: $table.tmdbId, builder: (column) => column);
+
+  GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get originalTitle =>
+      $composableBuilder(column: $table.originalTitle, builder: (column) => column);
+
+  GeneratedColumn<int> get releaseYear => $composableBuilder(column: $table.releaseYear, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get releaseDate =>
+      $composableBuilder(column: $table.releaseDate, builder: (column) => column);
+
+  GeneratedColumn<String> get posterUrl => $composableBuilder(column: $table.posterUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get backdropUrl =>
+      $composableBuilder(column: $table.backdropUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get logoUrl => $composableBuilder(column: $table.logoUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get overview => $composableBuilder(column: $table.overview, builder: (column) => column);
+
+  GeneratedColumn<String> get certification =>
+      $composableBuilder(column: $table.certification, builder: (column) => column);
+
+  GeneratedColumn<double> get rating => $composableBuilder(column: $table.rating, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<String>, String> get genres =>
+      $composableBuilder(column: $table.genres, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<Artist>, String> get cast =>
+      $composableBuilder(column: $table.cast, builder: (column) => column);
+
+  Expression<T> mediaFilesRefs<T extends Object>(Expression<T> Function($MediaFilesAnnotationComposer a) f) {
+    final $MediaFilesAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tmdbId,
+      referencedTable: $db.mediaFiles,
+      getReferencedColumn: (t) => t.movieTmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $MediaFilesAnnotationComposer(
+            $db: $db,
+            $table: $db.mediaFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$MoviesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MoviesTable,
+          Movie,
+          $$MoviesTableFilterComposer,
+          $$MoviesTableOrderingComposer,
+          $$MoviesTableAnnotationComposer,
+          $$MoviesTableCreateCompanionBuilder,
+          $$MoviesTableUpdateCompanionBuilder,
+          (Movie, $$MoviesTableReferences),
+          Movie,
+          PrefetchHooks Function({bool mediaFilesRefs})
+        > {
+  $$MoviesTableTableManager(_$AppDatabase db, $MoviesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$MoviesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$MoviesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$MoviesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> tmdbId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> originalTitle = const Value.absent(),
+                Value<int?> releaseYear = const Value.absent(),
+                Value<DateTime?> releaseDate = const Value.absent(),
+                Value<String?> posterUrl = const Value.absent(),
+                Value<String?> backdropUrl = const Value.absent(),
+                Value<String?> logoUrl = const Value.absent(),
+                Value<String?> overview = const Value.absent(),
+                Value<String?> certification = const Value.absent(),
+                Value<double> rating = const Value.absent(),
+                Value<List<String>> genres = const Value.absent(),
+                Value<List<Artist>> cast = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MoviesCompanion(
+                tmdbId: tmdbId,
+                title: title,
+                originalTitle: originalTitle,
+                releaseYear: releaseYear,
+                releaseDate: releaseDate,
+                posterUrl: posterUrl,
+                backdropUrl: backdropUrl,
+                logoUrl: logoUrl,
+                overview: overview,
+                certification: certification,
+                rating: rating,
+                genres: genres,
+                cast: cast,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String tmdbId,
+                required String title,
+                Value<String?> originalTitle = const Value.absent(),
+                Value<int?> releaseYear = const Value.absent(),
+                Value<DateTime?> releaseDate = const Value.absent(),
+                Value<String?> posterUrl = const Value.absent(),
+                Value<String?> backdropUrl = const Value.absent(),
+                Value<String?> logoUrl = const Value.absent(),
+                Value<String?> overview = const Value.absent(),
+                Value<String?> certification = const Value.absent(),
+                required double rating,
+                required List<String> genres,
+                required List<Artist> cast,
+                Value<int> rowid = const Value.absent(),
+              }) => MoviesCompanion.insert(
+                tmdbId: tmdbId,
+                title: title,
+                originalTitle: originalTitle,
+                releaseYear: releaseYear,
+                releaseDate: releaseDate,
+                posterUrl: posterUrl,
+                backdropUrl: backdropUrl,
+                logoUrl: logoUrl,
+                overview: overview,
+                certification: certification,
+                rating: rating,
+                genres: genres,
+                cast: cast,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) =>
+              p0.map((e) => (e.readTable<$MoviesTable, Movie>(table), $$MoviesTableReferences(db, table, e))).toList(),
+          prefetchHooksCallback: ({mediaFilesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (mediaFilesRefs) db.mediaFiles],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (mediaFilesRefs)
+                    await $_getPrefetchedData<Movie, $MoviesTable, MediaFile>(
+                      currentTable: table,
+                      referencedTable: $$MoviesTableReferences._mediaFilesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$MoviesTableReferences(db, table, p0).mediaFilesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.movieTmdbId == item.tmdbId),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MoviesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MoviesTable,
+      Movie,
+      $$MoviesTableFilterComposer,
+      $$MoviesTableOrderingComposer,
+      $$MoviesTableAnnotationComposer,
+      $$MoviesTableCreateCompanionBuilder,
+      $$MoviesTableUpdateCompanionBuilder,
+      (Movie, $$MoviesTableReferences),
+      Movie,
+      PrefetchHooks Function({bool mediaFilesRefs})
+    >;
+typedef $MediaFilesCreateCompanionBuilder =
+    MediaFilesCompanion Function({
+      Value<int> id,
+      required String sourceId,
+      required String path,
+      required String fileName,
+      required String parsedTitle,
+      Value<int?> parsedYear,
+      Value<int?> parsedSeason,
+      Value<int?> parsedEpisode,
+      required MediaType mediaType,
+      Value<String?> explicitTmdbId,
+      Value<String?> movieTmdbId,
+      Value<String?> tvShowTmdbId,
+      Value<String?> episodeKey,
+      required MetadataMatchStatus metadataMatchStatus,
+      required int size,
+      Value<String?> container,
+      Value<int?> width,
+      Value<int?> height,
+      Value<String?> videoCodec,
+      Value<String?> audioCodec,
+      Value<String?> audioChannels,
+      required bool isHdr,
+      Value<String?> hdrFormat,
+      Value<String?> versionLabel,
+      required int duration,
+      required int position,
+      required WatchStatus watchStatus,
+      Value<DateTime?> lastWatchedAt,
+      required bool isFavorite,
+      required DateTime addedAt,
+    });
+typedef $MediaFilesUpdateCompanionBuilder =
+    MediaFilesCompanion Function({
+      Value<int> id,
+      Value<String> sourceId,
+      Value<String> path,
+      Value<String> fileName,
+      Value<String> parsedTitle,
+      Value<int?> parsedYear,
+      Value<int?> parsedSeason,
+      Value<int?> parsedEpisode,
+      Value<MediaType> mediaType,
+      Value<String?> explicitTmdbId,
+      Value<String?> movieTmdbId,
+      Value<String?> tvShowTmdbId,
+      Value<String?> episodeKey,
+      Value<MetadataMatchStatus> metadataMatchStatus,
+      Value<int> size,
+      Value<String?> container,
+      Value<int?> width,
+      Value<int?> height,
+      Value<String?> videoCodec,
+      Value<String?> audioCodec,
+      Value<String?> audioChannels,
+      Value<bool> isHdr,
+      Value<String?> hdrFormat,
+      Value<String?> versionLabel,
+      Value<int> duration,
+      Value<int> position,
+      Value<WatchStatus> watchStatus,
+      Value<DateTime?> lastWatchedAt,
+      Value<bool> isFavorite,
+      Value<DateTime> addedAt,
+    });
+
+final class $MediaFilesReferences extends BaseReferences<_$AppDatabase, MediaFiles, MediaFile> {
+  $MediaFilesReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $StorageSourcesTable _sourceIdTable(_$AppDatabase db) =>
+      db.storageSources.createAlias('media_files__source_id__storage_sources__source_id');
+
+  $$StorageSourcesTableProcessedTableManager get sourceId {
+    final $_column = $_itemColumn<String>('source_id')!;
+
+    final manager = $$StorageSourcesTableTableManager(
+      $_db,
+      $_db.storageSources,
+    ).filter((f) => f.sourceId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sourceIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $MoviesTable _movieTmdbIdTable(_$AppDatabase db) =>
+      db.movies.createAlias('media_files__movie_tmdb_id__movies__tmdb_id');
+
+  $$MoviesTableProcessedTableManager? get movieTmdbId {
+    final $_column = $_itemColumn<String>('movie_tmdb_id');
+    if ($_column == null) return null;
+    final manager = $$MoviesTableTableManager($_db, $_db.movies).filter((f) => f.tmdbId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_movieTmdbIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $TVShowsTable _tvShowTmdbIdTable(_$AppDatabase db) =>
+      db.tVShows.createAlias('media_files__tv_show_tmdb_id__t_v_shows__tmdb_id');
+
+  $$TVShowsTableProcessedTableManager? get tvShowTmdbId {
+    final $_column = $_itemColumn<String>('tv_show_tmdb_id');
+    if ($_column == null) return null;
+    final manager = $$TVShowsTableTableManager($_db, $_db.tVShows).filter((f) => f.tmdbId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_tvShowTmdbIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $MediaFilesFilterComposer extends Composer<_$AppDatabase, MediaFiles> {
+  $MediaFilesFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get path => $composableBuilder(column: $table.path, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get parsedTitle =>
+      $composableBuilder(column: $table.parsedTitle, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get parsedYear =>
+      $composableBuilder(column: $table.parsedYear, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get parsedSeason =>
+      $composableBuilder(column: $table.parsedSeason, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get parsedEpisode =>
+      $composableBuilder(column: $table.parsedEpisode, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<MediaType, MediaType, String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get explicitTmdbId =>
+      $composableBuilder(column: $table.explicitTmdbId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get episodeKey =>
+      $composableBuilder(column: $table.episodeKey, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<MetadataMatchStatus, MetadataMatchStatus, String> get metadataMatchStatus =>
+      $composableBuilder(
+        column: $table.metadataMatchStatus,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get size => $composableBuilder(column: $table.size, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get container =>
+      $composableBuilder(column: $table.container, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get width => $composableBuilder(column: $table.width, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get height =>
+      $composableBuilder(column: $table.height, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get videoCodec =>
+      $composableBuilder(column: $table.videoCodec, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get audioCodec =>
+      $composableBuilder(column: $table.audioCodec, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get audioChannels =>
+      $composableBuilder(column: $table.audioChannels, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isHdr => $composableBuilder(column: $table.isHdr, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get hdrFormat =>
+      $composableBuilder(column: $table.hdrFormat, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get versionLabel =>
+      $composableBuilder(column: $table.versionLabel, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<WatchStatus, WatchStatus, String> get watchStatus =>
+      $composableBuilder(column: $table.watchStatus, builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<DateTime> get lastWatchedAt =>
+      $composableBuilder(column: $table.lastWatchedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isFavorite =>
+      $composableBuilder(column: $table.isFavorite, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => ColumnFilters(column));
+
+  $$StorageSourcesTableFilterComposer get sourceId {
+    final $$StorageSourcesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.storageSources,
+      getReferencedColumn: (t) => t.sourceId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$StorageSourcesTableFilterComposer(
+            $db: $db,
+            $table: $db.storageSources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MoviesTableFilterComposer get movieTmdbId {
+    final $$MoviesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.movieTmdbId,
+      referencedTable: $db.movies,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$MoviesTableFilterComposer(
+            $db: $db,
+            $table: $db.movies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TVShowsTableFilterComposer get tvShowTmdbId {
+    final $$TVShowsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tvShowTmdbId,
+      referencedTable: $db.tVShows,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$TVShowsTableFilterComposer(
+            $db: $db,
+            $table: $db.tVShows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $MediaFilesOrderingComposer extends Composer<_$AppDatabase, MediaFiles> {
+  $MediaFilesOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get parsedTitle =>
+      $composableBuilder(column: $table.parsedTitle, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get parsedYear =>
+      $composableBuilder(column: $table.parsedYear, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get parsedSeason =>
+      $composableBuilder(column: $table.parsedSeason, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get parsedEpisode =>
+      $composableBuilder(column: $table.parsedEpisode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get explicitTmdbId =>
+      $composableBuilder(column: $table.explicitTmdbId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get episodeKey =>
+      $composableBuilder(column: $table.episodeKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get metadataMatchStatus =>
+      $composableBuilder(column: $table.metadataMatchStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get size =>
+      $composableBuilder(column: $table.size, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get container =>
+      $composableBuilder(column: $table.container, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get width =>
+      $composableBuilder(column: $table.width, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get height =>
+      $composableBuilder(column: $table.height, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get videoCodec =>
+      $composableBuilder(column: $table.videoCodec, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get audioCodec =>
+      $composableBuilder(column: $table.audioCodec, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get audioChannels =>
+      $composableBuilder(column: $table.audioChannels, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isHdr =>
+      $composableBuilder(column: $table.isHdr, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get hdrFormat =>
+      $composableBuilder(column: $table.hdrFormat, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get versionLabel =>
+      $composableBuilder(column: $table.versionLabel, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get watchStatus =>
+      $composableBuilder(column: $table.watchStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastWatchedAt =>
+      $composableBuilder(column: $table.lastWatchedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isFavorite =>
+      $composableBuilder(column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => ColumnOrderings(column));
+
+  $$StorageSourcesTableOrderingComposer get sourceId {
+    final $$StorageSourcesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.storageSources,
+      getReferencedColumn: (t) => t.sourceId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$StorageSourcesTableOrderingComposer(
+            $db: $db,
+            $table: $db.storageSources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MoviesTableOrderingComposer get movieTmdbId {
+    final $$MoviesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.movieTmdbId,
+      referencedTable: $db.movies,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$MoviesTableOrderingComposer(
+            $db: $db,
+            $table: $db.movies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TVShowsTableOrderingComposer get tvShowTmdbId {
+    final $$TVShowsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tvShowTmdbId,
+      referencedTable: $db.tVShows,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$TVShowsTableOrderingComposer(
+            $db: $db,
+            $table: $db.tVShows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $MediaFilesAnnotationComposer extends Composer<_$AppDatabase, MediaFiles> {
+  $MediaFilesAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get path => $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName => $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get parsedTitle =>
+      $composableBuilder(column: $table.parsedTitle, builder: (column) => column);
+
+  GeneratedColumn<int> get parsedYear => $composableBuilder(column: $table.parsedYear, builder: (column) => column);
+
+  GeneratedColumn<int> get parsedSeason => $composableBuilder(column: $table.parsedSeason, builder: (column) => column);
+
+  GeneratedColumn<int> get parsedEpisode =>
+      $composableBuilder(column: $table.parsedEpisode, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<MediaType, String> get mediaType =>
+      $composableBuilder(column: $table.mediaType, builder: (column) => column);
+
+  GeneratedColumn<String> get explicitTmdbId =>
+      $composableBuilder(column: $table.explicitTmdbId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeKey => $composableBuilder(column: $table.episodeKey, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<MetadataMatchStatus, String> get metadataMatchStatus =>
+      $composableBuilder(column: $table.metadataMatchStatus, builder: (column) => column);
+
+  GeneratedColumn<int> get size => $composableBuilder(column: $table.size, builder: (column) => column);
+
+  GeneratedColumn<String> get container => $composableBuilder(column: $table.container, builder: (column) => column);
+
+  GeneratedColumn<int> get width => $composableBuilder(column: $table.width, builder: (column) => column);
+
+  GeneratedColumn<int> get height => $composableBuilder(column: $table.height, builder: (column) => column);
+
+  GeneratedColumn<String> get videoCodec => $composableBuilder(column: $table.videoCodec, builder: (column) => column);
+
+  GeneratedColumn<String> get audioCodec => $composableBuilder(column: $table.audioCodec, builder: (column) => column);
+
+  GeneratedColumn<String> get audioChannels =>
+      $composableBuilder(column: $table.audioChannels, builder: (column) => column);
+
+  GeneratedColumn<bool> get isHdr => $composableBuilder(column: $table.isHdr, builder: (column) => column);
+
+  GeneratedColumn<String> get hdrFormat => $composableBuilder(column: $table.hdrFormat, builder: (column) => column);
+
+  GeneratedColumn<String> get versionLabel =>
+      $composableBuilder(column: $table.versionLabel, builder: (column) => column);
+
+  GeneratedColumn<int> get duration => $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<int> get position => $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<WatchStatus, String> get watchStatus =>
+      $composableBuilder(column: $table.watchStatus, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastWatchedAt =>
+      $composableBuilder(column: $table.lastWatchedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFavorite => $composableBuilder(column: $table.isFavorite, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get addedAt => $composableBuilder(column: $table.addedAt, builder: (column) => column);
+
+  $$StorageSourcesTableAnnotationComposer get sourceId {
+    final $$StorageSourcesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceId,
+      referencedTable: $db.storageSources,
+      getReferencedColumn: (t) => t.sourceId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$StorageSourcesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.storageSources,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$MoviesTableAnnotationComposer get movieTmdbId {
+    final $$MoviesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.movieTmdbId,
+      referencedTable: $db.movies,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$MoviesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.movies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TVShowsTableAnnotationComposer get tvShowTmdbId {
+    final $$TVShowsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.tvShowTmdbId,
+      referencedTable: $db.tVShows,
+      getReferencedColumn: (t) => t.tmdbId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$TVShowsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tVShows,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $MediaFilesTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          MediaFiles,
+          MediaFile,
+          $MediaFilesFilterComposer,
+          $MediaFilesOrderingComposer,
+          $MediaFilesAnnotationComposer,
+          $MediaFilesCreateCompanionBuilder,
+          $MediaFilesUpdateCompanionBuilder,
+          (MediaFile, $MediaFilesReferences),
+          MediaFile,
+          PrefetchHooks Function({bool sourceId, bool movieTmdbId, bool tvShowTmdbId})
+        > {
+  $MediaFilesTableManager(_$AppDatabase db, MediaFiles table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $MediaFilesFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $MediaFilesOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $MediaFilesAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<String> fileName = const Value.absent(),
+                Value<String> parsedTitle = const Value.absent(),
+                Value<int?> parsedYear = const Value.absent(),
+                Value<int?> parsedSeason = const Value.absent(),
+                Value<int?> parsedEpisode = const Value.absent(),
+                Value<MediaType> mediaType = const Value.absent(),
+                Value<String?> explicitTmdbId = const Value.absent(),
+                Value<String?> movieTmdbId = const Value.absent(),
+                Value<String?> tvShowTmdbId = const Value.absent(),
+                Value<String?> episodeKey = const Value.absent(),
+                Value<MetadataMatchStatus> metadataMatchStatus = const Value.absent(),
+                Value<int> size = const Value.absent(),
+                Value<String?> container = const Value.absent(),
+                Value<int?> width = const Value.absent(),
+                Value<int?> height = const Value.absent(),
+                Value<String?> videoCodec = const Value.absent(),
+                Value<String?> audioCodec = const Value.absent(),
+                Value<String?> audioChannels = const Value.absent(),
+                Value<bool> isHdr = const Value.absent(),
+                Value<String?> hdrFormat = const Value.absent(),
+                Value<String?> versionLabel = const Value.absent(),
+                Value<int> duration = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<WatchStatus> watchStatus = const Value.absent(),
+                Value<DateTime?> lastWatchedAt = const Value.absent(),
+                Value<bool> isFavorite = const Value.absent(),
+                Value<DateTime> addedAt = const Value.absent(),
+              }) => MediaFilesCompanion(
+                id: id,
+                sourceId: sourceId,
+                path: path,
+                fileName: fileName,
+                parsedTitle: parsedTitle,
+                parsedYear: parsedYear,
+                parsedSeason: parsedSeason,
+                parsedEpisode: parsedEpisode,
+                mediaType: mediaType,
+                explicitTmdbId: explicitTmdbId,
+                movieTmdbId: movieTmdbId,
+                tvShowTmdbId: tvShowTmdbId,
+                episodeKey: episodeKey,
+                metadataMatchStatus: metadataMatchStatus,
+                size: size,
+                container: container,
+                width: width,
+                height: height,
+                videoCodec: videoCodec,
+                audioCodec: audioCodec,
+                audioChannels: audioChannels,
+                isHdr: isHdr,
+                hdrFormat: hdrFormat,
+                versionLabel: versionLabel,
+                duration: duration,
+                position: position,
+                watchStatus: watchStatus,
+                lastWatchedAt: lastWatchedAt,
+                isFavorite: isFavorite,
+                addedAt: addedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String sourceId,
+                required String path,
+                required String fileName,
+                required String parsedTitle,
+                Value<int?> parsedYear = const Value.absent(),
+                Value<int?> parsedSeason = const Value.absent(),
+                Value<int?> parsedEpisode = const Value.absent(),
+                required MediaType mediaType,
+                Value<String?> explicitTmdbId = const Value.absent(),
+                Value<String?> movieTmdbId = const Value.absent(),
+                Value<String?> tvShowTmdbId = const Value.absent(),
+                Value<String?> episodeKey = const Value.absent(),
+                required MetadataMatchStatus metadataMatchStatus,
+                required int size,
+                Value<String?> container = const Value.absent(),
+                Value<int?> width = const Value.absent(),
+                Value<int?> height = const Value.absent(),
+                Value<String?> videoCodec = const Value.absent(),
+                Value<String?> audioCodec = const Value.absent(),
+                Value<String?> audioChannels = const Value.absent(),
+                required bool isHdr,
+                Value<String?> hdrFormat = const Value.absent(),
+                Value<String?> versionLabel = const Value.absent(),
+                required int duration,
+                required int position,
+                required WatchStatus watchStatus,
+                Value<DateTime?> lastWatchedAt = const Value.absent(),
+                required bool isFavorite,
+                required DateTime addedAt,
+              }) => MediaFilesCompanion.insert(
+                id: id,
+                sourceId: sourceId,
+                path: path,
+                fileName: fileName,
+                parsedTitle: parsedTitle,
+                parsedYear: parsedYear,
+                parsedSeason: parsedSeason,
+                parsedEpisode: parsedEpisode,
+                mediaType: mediaType,
+                explicitTmdbId: explicitTmdbId,
+                movieTmdbId: movieTmdbId,
+                tvShowTmdbId: tvShowTmdbId,
+                episodeKey: episodeKey,
+                metadataMatchStatus: metadataMatchStatus,
+                size: size,
+                container: container,
+                width: width,
+                height: height,
+                videoCodec: videoCodec,
+                audioCodec: audioCodec,
+                audioChannels: audioChannels,
+                isHdr: isHdr,
+                hdrFormat: hdrFormat,
+                versionLabel: versionLabel,
+                duration: duration,
+                position: position,
+                watchStatus: watchStatus,
+                lastWatchedAt: lastWatchedAt,
+                isFavorite: isFavorite,
+                addedAt: addedAt,
+              ),
+          withReferenceMapper: (p0) =>
+              p0.map((e) => (e.readTable<MediaFiles, MediaFile>(table), $MediaFilesReferences(db, table, e))).toList(),
+          prefetchHooksCallback: ({sourceId = false, movieTmdbId = false, tvShowTmdbId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (sourceId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.sourceId,
+                                referencedTable: $MediaFilesReferences._sourceIdTable(db),
+                                referencedColumn: $MediaFilesReferences._sourceIdTable(db).sourceId,
+                              )
+                              as T;
+                    }
+                    if (movieTmdbId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.movieTmdbId,
+                                referencedTable: $MediaFilesReferences._movieTmdbIdTable(db),
+                                referencedColumn: $MediaFilesReferences._movieTmdbIdTable(db).tmdbId,
+                              )
+                              as T;
+                    }
+                    if (tvShowTmdbId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.tvShowTmdbId,
+                                referencedTable: $MediaFilesReferences._tvShowTmdbIdTable(db),
+                                referencedColumn: $MediaFilesReferences._tvShowTmdbIdTable(db).tmdbId,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $MediaFilesProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      MediaFiles,
+      MediaFile,
+      $MediaFilesFilterComposer,
+      $MediaFilesOrderingComposer,
+      $MediaFilesAnnotationComposer,
+      $MediaFilesCreateCompanionBuilder,
+      $MediaFilesUpdateCompanionBuilder,
+      (MediaFile, $MediaFilesReferences),
+      MediaFile,
+      PrefetchHooks Function({bool sourceId, bool movieTmdbId, bool tvShowTmdbId})
     >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
-
   $AppDatabaseManager(this._db);
-
-  $$MediaFilesTableTableManager get mediaFiles => $$MediaFilesTableTableManager(_db, _db.mediaFiles);
-
-  $$MoviesTableTableManager get movies => $$MoviesTableTableManager(_db, _db.movies);
-
   $$TVShowsTableTableManager get tVShows => $$TVShowsTableTableManager(_db, _db.tVShows);
-
   $$SeasonsTableTableManager get seasons => $$SeasonsTableTableManager(_db, _db.seasons);
-
-  $$EpisodesTableTableManager get episodes => $$EpisodesTableTableManager(_db, _db.episodes);
-
+  $EpisodesTableManager get episodes => $EpisodesTableManager(_db, _db.episodes);
   $$StorageSourcesTableTableManager get storageSources => $$StorageSourcesTableTableManager(_db, _db.storageSources);
+  $$MoviesTableTableManager get movies => $$MoviesTableTableManager(_db, _db.movies);
+  $MediaFilesTableManager get mediaFiles => $MediaFilesTableManager(_db, _db.mediaFiles);
 }

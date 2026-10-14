@@ -14,7 +14,7 @@ class MetadataImporter {
       file.copyWith(
         movieTmdbId: movie.tmdbId,
         tvShowTmdbId: null,
-        episodeTmdbId: null,
+        episodeKey: null,
         metadataMatchStatus: MetadataMatchStatus.confirmed,
       ),
     ]);
@@ -29,15 +29,18 @@ class MetadataImporter {
 
   Future<Set<String>> importSeasonEpisodes(TmdbSeasonResult result, String showId, List<MediaFile> files) =>
       _database.database.transaction(() async {
+        if (result.season.tvShowTmdbId != showId) {
+          throw ArgumentError('Season does not belong to the requested show');
+        }
         await _database.saveSeasonEpisodes(result.season, result.episodes);
         final episodes = {for (final episode in result.episodes) episode.episodeNumber: episode};
         final matches = [
           for (final file in files)
-            if (episodes.containsKey(file.parsedEpisode))
+            if (file.parsedSeason == result.season.seasonNumber && episodes.containsKey(file.parsedEpisode))
               file.copyWith(
                 movieTmdbId: null,
                 tvShowTmdbId: showId,
-                episodeTmdbId: episodes[file.parsedEpisode]!.tmdbId,
+                episodeKey: episodes[file.parsedEpisode]!.episodeKey,
                 metadataMatchStatus: MetadataMatchStatus.confirmed,
               ),
         ];
@@ -50,7 +53,7 @@ class MetadataImporter {
       file.copyWith(
         movieTmdbId: null,
         tvShowTmdbId: null,
-        episodeTmdbId: null,
+        episodeKey: null,
         metadataMatchStatus: MetadataMatchStatus.unmatched,
       ),
   ]);

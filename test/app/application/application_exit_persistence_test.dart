@@ -1,3 +1,4 @@
+import '../../support/database_fixture.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -25,7 +26,7 @@ void main() {
       parsedTitle: 'Test',
       addedAt: DateTime(2026),
     );
-    await database.saveScannedFiles([file]);
+    await saveMediaFixture(database, [file]);
     final periodicStarted = Completer<void>();
     final finishPeriodic = Completer<void>();
     final events = <String>[];

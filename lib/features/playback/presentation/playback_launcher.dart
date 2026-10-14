@@ -45,7 +45,7 @@ class PlaybackLauncher {
   /// 播放电影：查找文件并播放（支持多版本选择）
   static void playMovie(BuildContext context, Movie movie) async {
     final provider = Provider.of<MediaLibraryProvider>(context, listen: false);
-    final versions = await provider.getVersions(movie.tmdbId);
+    final versions = await provider.getVersions(movie);
 
     if (!context.mounted) return;
     if (versions.isEmpty) {
@@ -63,7 +63,7 @@ class PlaybackLauncher {
   /// 播放剧集：续播未看完的一集，或在看完后进入下一集。
   static void playTVShow(BuildContext context, TVShow show) async {
     final provider = Provider.of<MediaLibraryProvider>(context, listen: false);
-    final versions = await provider.getVersions(show.tmdbId);
+    final versions = await provider.getVersions(show);
     if (!context.mounted) return;
     final target = EpisodePlaybackTargetResolver.resolveForShowPlayback(versions);
 
@@ -79,7 +79,7 @@ class PlaybackLauncher {
   static void playEpisode(BuildContext context, Episode episode, {required String showTitle}) async {
     final provider = Provider.of<MediaLibraryProvider>(context, listen: false);
 
-    final targetFile = await provider.getEpisodeFile(episode.tmdbId);
+    final targetFile = await provider.getEpisodeFile(episode.episodeKey);
     if (!context.mounted) return;
 
     if (targetFile == null) {

@@ -2,7 +2,7 @@ import 'package:mochi_player/core/domain/media/episode.dart';
 
 /// 季 Domain Model
 class Season {
-  final String seasonKey;
+  final String tvShowTmdbId;
   final int seasonNumber;
   final String title;
   final String? posterUrl;
@@ -11,7 +11,7 @@ class Season {
   final List<Episode> episodes;
 
   const Season({
-    required this.seasonKey,
+    required this.tvShowTmdbId,
     required this.seasonNumber,
     required this.title,
     this.posterUrl,
@@ -21,7 +21,7 @@ class Season {
   });
 
   Season withEpisodes(List<Episode> episodes) => Season(
-    seasonKey: seasonKey,
+    tvShowTmdbId: tvShowTmdbId,
     seasonNumber: seasonNumber,
     title: title,
     posterUrl: posterUrl,

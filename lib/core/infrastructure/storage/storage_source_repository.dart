@@ -48,7 +48,6 @@ class DatabaseStorageSourceRepository implements StorageSourceRepository {
         enabled: source.enabled,
         username: credentials?.username.trim() ?? '',
         password: credentials?.password ?? '',
-        id: 0,
       ),
     );
   }

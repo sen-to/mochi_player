@@ -1,3 +1,4 @@
+import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -55,9 +56,9 @@ class _EpisodeListState extends State<EpisodeList> {
   Map<String, MediaFile> _buildMediaFileIndex(List<MediaFile> mediaFiles) {
     final result = <String, MediaFile>{};
     for (final file in mediaFiles) {
-      final tmdbId = file.episodeTmdbId;
-      if (tmdbId != null && tmdbId.isNotEmpty) {
-        result.putIfAbsent(tmdbId, () => file);
+      final key = file.episodeKey;
+      if (key != null) {
+        result.putIfAbsent(key, () => file);
       }
     }
     return result;
@@ -78,7 +79,7 @@ class _EpisodeListState extends State<EpisodeList> {
   Widget build(BuildContext context) {
     return LibraryQuery<List<MediaFile>>(
       queryKey: widget.tvShow.tmdbId,
-      query: (r) => r.watchVersions(widget.tvShow.tmdbId),
+      query: (r) => r.watchVersions(widget.tvShow),
       initialData: const [],
       sliver: true,
       builder: (context, files) => _buildEpisodes(context, files),
@@ -86,7 +87,7 @@ class _EpisodeListState extends State<EpisodeList> {
   }
 
   Widget _buildEpisodes(BuildContext context, List<MediaFile> files) {
-    final mediaFileByTmdbId = _buildMediaFileIndex(files);
+    final mediaFileByEpisodeKey = _buildMediaFileIndex(files);
 
     if (_sortedSeasons.isEmpty) {
       return SliverToBoxAdapter(
@@ -117,7 +118,7 @@ class _EpisodeListState extends State<EpisodeList> {
               }
 
               final episode = _sortedEpisodes[index ~/ 2];
-              return _buildEpisodeCard(context, episode, mediaFileByTmdbId[episode.tmdbId]);
+              return _buildEpisodeCard(context, episode, mediaFileByEpisodeKey[episode.episodeKey]);
             },
             childCount: _sortedEpisodes.isEmpty ? 0 : _sortedEpisodes.length * 2 - 1,
             addAutomaticKeepAlives: false,
@@ -132,7 +133,8 @@ class _EpisodeListState extends State<EpisodeList> {
     final theme = Theme.of(context);
     final available = episodeFile != null;
     final progress = episodeFile?.progress.clamp(0.0, 1.0) ?? 0.0;
-    final completed = episodeFile?.watchStatus == WatchStatus.completed || progress >= 0.95;
+    final completed =
+        episodeFile?.watchStatus == WatchStatus.completed || progress >= WatchProgressPolicy.completionThreshold;
     final showStatus = !available || completed;
 
     return AppClickableArea(
@@ -209,7 +211,7 @@ class _EpisodeListState extends State<EpisodeList> {
                   )
                 : _stillPlaceholder(),
             if (file == null) Container(color: Colors.black.withAlpha(95)),
-            if (progress > 0 && progress < 0.95)
+            if (progress > 0 && progress < WatchProgressPolicy.completionThreshold)
               Positioned(
                 left: 0,
                 right: 0,

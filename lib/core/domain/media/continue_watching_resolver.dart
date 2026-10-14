@@ -62,15 +62,11 @@ class ContinueWatchingResolver {
     return (b.lastWatchedAt ?? DateTime(0)).compareTo(a.lastWatchedAt ?? DateTime(0));
   }
 
-  static String _movieKey(MediaFile file) => file.tmdbId ?? '${file.sourceId}:${file.path}';
+  static String _movieKey(MediaFile file) => file.movieTmdbId ?? file.storageKey;
 
   static String _showKey(MediaFile file) {
-    final tmdbId = file.tmdbId;
-    if (tmdbId != null && tmdbId.isNotEmpty) {
-      final match = RegExp(r'^(\d+)(?:_s\d+e\d+)?$').firstMatch(tmdbId);
-      final showId = match?.group(1);
-      if (showId != null) return 'tmdb:$showId';
-    }
+    final showId = file.tvShowTmdbId;
+    if (showId != null) return 'tmdb:$showId';
 
     final title = file.parsedTitle.trim().toLowerCase();
     return title.isEmpty ? 'file:${file.sourceId}:${file.path}' : 'title:$title';

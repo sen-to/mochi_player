@@ -101,35 +101,38 @@ class LibraryRepository {
         if (show == null) return null;
         final seasons =
             await (_db.select(_db.seasons)
-                  ..where((t) => t.seasonKey.like('${show.tmdbId}\\_s%', escapeChar: '\\'))
+                  ..where((t) => t.tvShowTmdbId.equals(show.tmdbId))
                   ..orderBy([(t) => OrderingTerm.asc(t.seasonNumber)]))
                 .get();
+        final episodes =
+            await (_db.select(_db.episodes)
+                  ..where((t) => t.tvShowTmdbId.equals(show.tmdbId))
+                  ..orderBy([(t) => OrderingTerm.asc(t.seasonNumber), (t) => OrderingTerm.asc(t.episodeNumber)]))
+                .get();
+        final bySeason = <int, List<Episode>>{};
+        for (final episode in episodes) {
+          (bySeason[episode.seasonNumber] ??= []).add(episode);
+        }
         return show.withSeasons([
-          for (final season in seasons)
-            season.withEpisodes(
-              await (_db.select(_db.episodes)
-                    ..where((t) => t.tmdbId.like('${season.seasonKey.replaceAll('_', r'\_')}e%', escapeChar: '\\'))
-                    ..orderBy([(t) => OrderingTerm.asc(t.episodeNumber)]))
-                  .get(),
-            ),
+          for (final season in seasons) season.withEpisodes(bySeason[season.seasonNumber] ?? const []),
         ]);
       });
 
-  Selectable<MediaFile> _versions(String id) => _db.select(_db.mediaFiles)
-    ..where((t) => t.movieTmdbId.equals(id) | t.tvShowTmdbId.equals(id))
+  Selectable<MediaFile> _versions(LibraryItem item) => _db.select(_db.mediaFiles)
+    ..where((t) => item is Movie ? t.movieTmdbId.equals(item.tmdbId) : t.tvShowTmdbId.equals(item.tmdbId))
     ..orderBy([
       (t) => OrderingTerm.asc(t.parsedSeason),
       (t) => OrderingTerm.asc(t.parsedEpisode),
       (t) => OrderingTerm.asc(t.path),
     ]);
 
-  Future<List<MediaFile>> getVersions(String id) => _versions(id).get();
+  Future<List<MediaFile>> getVersions(LibraryItem item) => _versions(item).get();
 
-  Stream<List<MediaFile>> watchVersions(String id) => _versions(id).watch();
+  Stream<List<MediaFile>> watchVersions(LibraryItem item) => _versions(item).watch();
 
   Future<MediaFile?> getEpisodeFile(String id) =>
       (_db.select(_db.mediaFiles)
-            ..where((t) => t.episodeTmdbId.equals(id))
+            ..where((t) => t.episodeKey.equals(id))
             ..orderBy([(t) => OrderingTerm.asc(t.id)])
             ..limit(1))
           .getSingleOrNull();
@@ -159,9 +162,9 @@ class LibraryRepository {
   static const _group = '''CASE WHEN media_type='episode' THEN
     CASE WHEN tv_show_tmdb_id IS NOT NULL THEN 'tv:'||tv_show_tmdb_id
       WHEN trim(parsed_title)<>'' THEN 'tv-title:'||lower(trim(parsed_title))
-      ELSE 'file:'||storage_key END
+      ELSE 'file:'||id END
     WHEN media_type='movie' AND movie_tmdb_id IS NOT NULL THEN 'movie:'||movie_tmdb_id
-    ELSE 'file:'||storage_key END''';
+    ELSE 'file:'||id END''';
 
   Stream<List<MediaCardViewData>> watchFavorites({String query = '', int limit = 100}) {
     // Deduplicate favorited versions before ranking and LIMIT.
@@ -201,7 +204,7 @@ class LibraryRepository {
           SELECT c.id FROM grouped c WHERE c.group_key=l.group_key AND c.watch_status<>'completed'
           AND (COALESCE(c.parsed_season,999999),COALESCE(c.parsed_episode,999999),lower(c.path)) >
               (COALESCE(l.parsed_season,999999),COALESCE(l.parsed_episode,999999),lower(l.path))
-          AND NOT (c.episode_tmdb_id IS NOT NULL AND l.episode_tmdb_id IS NOT NULL AND c.episode_tmdb_id=l.episode_tmdb_id)
+          AND NOT (c.episode_key IS NOT NULL AND l.episode_key IS NOT NULL AND c.episode_key=l.episode_key)
           AND NOT (c.parsed_season IS NOT NULL AND c.parsed_episode IS NOT NULL AND l.parsed_season IS NOT NULL AND l.parsed_episode IS NOT NULL
             AND c.parsed_season=l.parsed_season AND c.parsed_episode=l.parsed_episode)
           ORDER BY COALESCE(c.parsed_season,999999),COALESCE(c.parsed_episode,999999),lower(c.path),c.id LIMIT 1
@@ -261,7 +264,7 @@ class LibraryRepository {
     final sql = '''SELECT * FROM media_files f WHERE
       (media_type='movie' AND (NOT EXISTS(SELECT 1 FROM movies m WHERE m.tmdb_id=f.movie_tmdb_id)
         OR (explicit_tmdb_id<>'' AND explicit_tmdb_id NOT GLOB '*[^0-9]*' AND explicit_tmdb_id<>COALESCE(movie_tmdb_id,''))))
-      OR (media_type='episode' AND (NOT EXISTS(SELECT 1 FROM episodes e WHERE e.tmdb_id=f.episode_tmdb_id)
+      OR (media_type='episode' AND (NOT EXISTS(SELECT 1 FROM episodes e WHERE e.episode_key=f.episode_key)
         OR (explicit_tmdb_id<>'' AND explicit_tmdb_id NOT GLOB '*[^0-9]*' AND explicit_tmdb_id<>COALESCE(tv_show_tmdb_id,''))))''';
     return [for (final row in await _db.customSelect(sql).get()) _db.mediaFiles.map(row.data)];
   }

@@ -1,3 +1,4 @@
+import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -187,8 +188,8 @@ class _PrimaryActionArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LibraryQuery<List<MediaFile>>(
-      queryKey: viewModel.tmdbId,
-      query: (r) => r.watchVersions(viewModel.tmdbId),
+      queryKey: (viewModel.item.runtimeType, viewModel.tmdbId),
+      query: (r) => r.watchVersions(viewModel.item),
       initialData: const [],
       builder: (context, files) => _ActionRow(viewModel: viewModel, action: _resolvePrimaryAction(context, files)),
     );
@@ -237,7 +238,11 @@ class _PrimaryActionArea extends StatelessWidget {
   }
 
   MediaFile? _latestResumeFile(List<MediaFile> files) {
-    final candidates = files.where((file) => file.position > 0 && file.progress > 0 && file.progress < 0.95).toList();
+    final candidates = files
+        .where(
+          (file) => file.position > 0 && file.progress > 0 && file.progress < WatchProgressPolicy.completionThreshold,
+        )
+        .toList();
     if (candidates.isEmpty) return null;
     candidates.sort((a, b) => (b.lastWatchedAt ?? DateTime(0)).compareTo(a.lastWatchedAt ?? DateTime(0)));
     return candidates.first;
@@ -310,7 +315,7 @@ class _ActionRow extends StatelessWidget {
           label: action.label,
           size: AppButtonSize.regular,
         ),
-        FavoriteButton(tmdbId: viewModel.tmdbId, overrideColor: Colors.white, showLabel: true),
+        FavoriteButton(item: viewModel.item, overrideColor: Colors.white, showLabel: true),
         if (action.detail != null)
           Padding(
             padding: const EdgeInsets.only(left: 2),

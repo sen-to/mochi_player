@@ -29,7 +29,7 @@ flowchart TD
 - 连接由 `StorageProviderRegistry` 按类型分派到 `LocalStorageProvider` / `WebDavStorageProvider` / `SmbStorageProvider`；`connect` 前从仓库读取凭据，用完 `close()`。
 - `StorageMediaScanner.scan()` 递归列目录，过程中任何一次目录读取失败都会置位「读错误」，从而**跳过失效文件清理**——宁可留下失效记录，也不误删整个来源（网络抖动场景）。
 - 视频判定依赖扩展名白名单（[media_file_kind.dart](../../lib/core/domain/media/media_file_kind.dart)）：`mp4 mkv avi mov wmv flv webm ts m2ts mpg mpeg m4v`。
-- **幂等键**：`storageKey = sourceId:path`（唯一索引）。新路径插入，已有路径仅更新大小与解析属性，保留匹配、进度、收藏与添加时间。
+- **幂等键**：数据库使用 `(sourceId, path)` 组合唯一约束；派生 `storageKey` 仅用于任务集合。新路径插入，已有路径仅更新大小与解析属性，保留匹配、进度、收藏与添加时间。
 - 清理：扫描成功时，删除属于该来源但本次未出现的记录。
 - 扫描过程中按 128 个文件分批写入；扫描结束后，若配置了 TMDB，SQL 筛选缺少元数据或显式数字 ID 覆盖原匹配的文件，再进入刮削。
 
@@ -50,7 +50,7 @@ flowchart TD
 
 标题清洗包含：HTML 实体解码、去掉站点前缀与「导演剪辑版 / 加长版 / 修复版 / 周年纪念版」等后缀、剔除分辨率标记与年份、通用名黑名单。解析结果经 `MediaFileMetadataMapper` 生成不可变文件快照。
 
-多版本文件**不合并**：同一 `tmdbId` 下的多个文件由查询层聚合（`getVersions`），详情页按分辨率与体积排序供用户选择。
+多版本文件**不合并**：同一电影或剧下的多个文件由带标题类型的查询接口聚合（`getVersions(LibraryItem)`），详情页按分辨率与体积排序供用户选择；电影与剧的相同数字 ID 相互隔离。
 
 ## 阶段 3：TMDB 刮削
 

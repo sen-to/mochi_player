@@ -17,7 +17,7 @@ class MediaFile {
   final MetadataMatchStatus metadataMatchStatus;
   final String? movieTmdbId;
   final String? tvShowTmdbId;
-  final String? episodeTmdbId;
+  final String? episodeKey;
   final int size;
   final String? container;
   final int? width;
@@ -49,7 +49,7 @@ class MediaFile {
     this.metadataMatchStatus = MetadataMatchStatus.pending,
     this.movieTmdbId,
     this.tvShowTmdbId,
-    this.episodeTmdbId,
+    this.episodeKey,
     this.size = 0,
     this.container,
     this.width,
@@ -70,10 +70,6 @@ class MediaFile {
 
   /// Stable persistence identity within the configured source.
   String get storageKey => '$sourceId:$path';
-
-  /// Metadata ID of the directly playable item: movie for movies, episode for
-  /// TV episodes. Parent show IDs intentionally live in [tvShowTmdbId].
-  String? get tmdbId => movieTmdbId ?? episodeTmdbId;
 
   /// 播放进度百分比
   double get progress => duration == 0 ? 0 : position / duration;
@@ -104,7 +100,7 @@ class MediaFile {
     MetadataMatchStatus? metadataMatchStatus,
     Object? movieTmdbId = _unchanged,
     Object? tvShowTmdbId = _unchanged,
-    Object? episodeTmdbId = _unchanged,
+    Object? episodeKey = _unchanged,
     int? size,
     Object? container = _unchanged,
     Object? width = _unchanged,
@@ -135,7 +131,7 @@ class MediaFile {
     metadataMatchStatus: metadataMatchStatus ?? this.metadataMatchStatus,
     movieTmdbId: identical(movieTmdbId, _unchanged) ? this.movieTmdbId : movieTmdbId as String?,
     tvShowTmdbId: identical(tvShowTmdbId, _unchanged) ? this.tvShowTmdbId : tvShowTmdbId as String?,
-    episodeTmdbId: identical(episodeTmdbId, _unchanged) ? this.episodeTmdbId : episodeTmdbId as String?,
+    episodeKey: identical(episodeKey, _unchanged) ? this.episodeKey : episodeKey as String?,
     size: size ?? this.size,
     container: identical(container, _unchanged) ? this.container : container as String?,
     width: identical(width, _unchanged) ? this.width : width as int?,

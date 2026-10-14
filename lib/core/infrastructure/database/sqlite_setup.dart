@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:mochi_player/core/domain/media/library_search_text.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-/// Applied to every SQLite connection, including isolated player engines.
+/// Applied to production and independently opened test connections.
 void configureSqlite(Database db) {
   db.execute('PRAGMA busy_timeout = 5000');
   // Changing journal mode can return SQLITE_BUSY immediately, even with a busy
-  // timeout, when another engine opens the new file at the same time.
+  // timeout, when another connection opens the new file at the same time.
   final elapsed = Stopwatch()..start();
   while (true) {
     try {

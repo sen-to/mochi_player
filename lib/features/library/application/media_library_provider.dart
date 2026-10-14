@@ -96,7 +96,7 @@ class MediaLibraryProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<MediaFile>> getVersions(String id) => repository.getVersions(id);
+  Future<List<MediaFile>> getVersions(LibraryItem item) => repository.getVersions(item);
 
   Future<List<MediaFile>> getPlaybackQueue(MediaFile file) => repository.getPlaybackQueue(file);
 
@@ -111,7 +111,7 @@ class MediaLibraryProvider extends ChangeNotifier {
     if (latest != null) await _db.updateProgress(latest, position, duration: duration);
   }
 
-  Future<bool> setFavorite(String id, {required bool isFavorite}) => _db.setTitleFavorite(id, isFavorite);
+  Future<bool> setFavorite(LibraryItem item, {required bool isFavorite}) => _db.setTitleFavorite(item, isFavorite);
 
   Future<void> clearLibrary() async {
     await _db.clearLibrary();

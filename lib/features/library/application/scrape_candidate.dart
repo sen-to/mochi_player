@@ -16,7 +16,7 @@ class ScrapeCandidate {
     required this.explicitTmdbId,
     required this.movieTmdbId,
     required this.tvShowTmdbId,
-    required this.episodeTmdbId,
+    required this.episodeKey,
   });
 
   factory ScrapeCandidate.fromMediaFile(MediaFile file) {
@@ -34,7 +34,7 @@ class ScrapeCandidate {
       explicitTmdbId: file.explicitTmdbId,
       movieTmdbId: file.movieTmdbId,
       tvShowTmdbId: file.tvShowTmdbId,
-      episodeTmdbId: file.episodeTmdbId,
+      episodeKey: file.episodeKey,
     );
   }
 
@@ -49,7 +49,7 @@ class ScrapeCandidate {
   final String? explicitTmdbId;
   final String? movieTmdbId;
   final String? tvShowTmdbId;
-  final String? episodeTmdbId;
+  final String? episodeKey;
 
   bool get isMovie => kind == ScrapeCandidateKind.movie;
 

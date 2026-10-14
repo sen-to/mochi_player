@@ -1,7 +1,7 @@
 # 0003 持久化：Isar 3 迁往 drift + SQLite
 
 - **Status**: Accepted
-- **Date**: 2026-10-11（初稿 2026-10-05）
+- **Date**: 2026-10-14（初稿 2026-10-05，持久化替换 2026-10-11）
 - **Related**: [0001 多窗口策略](0001-multi-window-strategy.md)
 
 ## Context（背景与约束）
@@ -16,19 +16,21 @@
 
 必须遵守的规则：
 
-1. 使用 drift `@UseRowClass` 直接读写不可变领域模型，删除旧 Entity、Stored 枚举和手写双重映射，不保留旧存储接口。
-2. 媒体文件使用 `storageKey = sourceId:path` 的 UNIQUE 约束；元数据直接使用 TMDB ID / 季键作为主键，媒体源使用 `sourceId` 唯一键。文件和来源按业务键 upsert，保留已有行的自增 ID。
+1. 使用 drift `@UseRowClass` / SQL `WITH` 直接读取不可变领域模型，通过生成的 Insertable / Companion 写入；删除旧 Entity、Stored 枚举和手写双重映射，不保留旧存储接口。文件与单集表在 `media_tables.drift` 声明组合关系，让生成器处理级联订阅，其余表使用 Dart 声明。
+2. 媒体文件使用 `(sourceId, path)` 的组合 UNIQUE 约束；电影 / 剧使用 TMDB ID，季使用 `(tvShowTmdbId, seasonNumber)`，集使用明确命名的 `episodeKey` 主键并另存真实 TMDB ID，媒体源直接使用 `sourceId` 主键。文件 upsert 保留已有自增 ID；派生 `storageKey` 不存数据库。
 3. 生产数据库通过 `NativeDatabase.createInBackground` 在后台 isolate 执行。每个连接启用 WAL 与 `busy_timeout = 5000`，首次切换 WAL 遇到锁竞争时限时重试，首次建表在写锁内复查版本并原子提交，保留多连接安全性；2026-10-13 官方多视图迁移后生产视图共享同一后台连接，连接仅在应用退出时关闭。
 4. 类型标签和演员列表通过 `TypeConverter` 存为 JSON 文本；枚举存名称，日期存 ISO 文本以保留微秒精度。
-5. 新库文件为应用文档目录下的 `mochi_player.sqlite`，schema 版本从 1 开始。后续 SQLite schema 变更必须提升版本并补迁移与测试。
+5. 新库文件为应用文档目录下的 `mochi_player.sqlite`，当前 schema 为 2。项目未发布，本次从开发版本 1 原子重建六表，不搬运数据；未知版本转换拒绝执行。发布后必须建立保留数据的迁移契约，不能沿用开发库重建策略。
 6. 本次不实现 Isar 导入，不删除旧库。开发者需重新配置媒体源并扫描。
 7. 扫描属性、元数据匹配、播放进度和收藏分别按字段更新，避免旧快照互相覆盖。媒体源与所属文件的删除、批量媒体写入、清空操作保持事务性。
+8. 季集归属使用显式字段、外键和组合唯一约束，不依赖字符串前缀查询。媒体源删除级联删除文件；剧 / 季删除级联删除子元数据；仍被文件引用的元数据禁止删除。文件的单集键与所属剧通过组合外键保持一致。
+9. 版本查询和标题收藏必须带标题类型，避免电影和电视剧相同 TMDB ID 串查。数据库写进度、续播与界面共用 `WatchProgressPolicy`。
 
 ## 实施状态
 
 已完成：
 
-- 六张 typed drift 表、业务唯一键与媒体文件索引；
+- 六张 typed drift 表、显式季集归属、外键 / CHECK、组合唯一键与查询索引；
 - 领域模型直接映射、JSON 转换器与按业务字段拆分的写入接口；
 - 扫描与季集导入使用真正的 drift batch，不逐行等待或返回完整行；
 - SQL 列表、搜索排序、收藏聚合、续播目标和按标题范围的详情 / 队列；
@@ -37,7 +39,7 @@
 - 移除 Isar 依赖、注解、未使用的链接与生成物；
 - 更新平台插件注册文件，SQLite 通过 sqlite3 的 native assets 打包；
 - 真实 SQLite 内存测试与文件双后台连接测试；
-- 初始 schema 快照与生成代码随仓库提交。
+- schema 1 / 2 快照与生成代码随仓库提交；版本 1 开发库重建有并发测试，不保留旧数据兼容读写路径。
 
 后续独立实施：
 

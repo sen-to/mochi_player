@@ -1,0 +1,72 @@
+import 'app_database.dart';
+import '../../domain/media/models.dart';
+import 'json_converters.dart';
+
+-- SQL declarations let drift infer composite FK cascades for query streams.
+CREATE TABLE episodes (
+  episode_key TEXT NOT NULL PRIMARY KEY,
+  tv_show_tmdb_id TEXT NOT NULL,
+  season_number INTEGER NOT NULL,
+  tmdb_id TEXT,
+  episode_number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  air_date DATETIME,
+  overview TEXT,
+  still_url TEXT,
+  guest_stars TEXT NOT NULL MAPPED BY `const ArtistListConverter()`,
+  UNIQUE (tv_show_tmdb_id, season_number, episode_number),
+  UNIQUE (episode_key, tv_show_tmdb_id),
+  FOREIGN KEY (tv_show_tmdb_id, season_number)
+    REFERENCES seasons (tv_show_tmdb_id, season_number) ON DELETE CASCADE,
+  CHECK (season_number >= 0 AND episode_number >= 0),
+  CHECK (episode_key = tv_show_tmdb_id || '_s' || season_number || 'e' || episode_number)
+) WITH Episode;
+
+CREATE TABLE media_files (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  source_id TEXT NOT NULL REFERENCES storage_sources (source_id) ON DELETE CASCADE,
+  path TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  parsed_title TEXT NOT NULL,
+  parsed_year INTEGER,
+  parsed_season INTEGER,
+  parsed_episode INTEGER,
+  media_type ENUMNAME(MediaType) NOT NULL,
+  explicit_tmdb_id TEXT,
+  movie_tmdb_id TEXT REFERENCES movies (tmdb_id),
+  tv_show_tmdb_id TEXT REFERENCES t_v_shows (tmdb_id),
+  episode_key TEXT,
+  metadata_match_status ENUMNAME(MetadataMatchStatus) NOT NULL,
+  size INTEGER NOT NULL,
+  container TEXT,
+  width INTEGER,
+  height INTEGER,
+  video_codec TEXT,
+  audio_codec TEXT,
+  audio_channels TEXT,
+  is_hdr BOOLEAN NOT NULL,
+  hdr_format TEXT,
+  version_label TEXT,
+  duration INTEGER NOT NULL,
+  position INTEGER NOT NULL,
+  watch_status ENUMNAME(WatchStatus) NOT NULL,
+  last_watched_at DATETIME,
+  is_favorite BOOLEAN NOT NULL,
+  added_at DATETIME NOT NULL,
+  UNIQUE (source_id, path),
+  FOREIGN KEY (episode_key, tv_show_tmdb_id) REFERENCES episodes (episode_key, tv_show_tmdb_id),
+  CHECK (movie_tmdb_id IS NULL OR (media_type = 'movie' AND tv_show_tmdb_id IS NULL AND episode_key IS NULL)),
+  CHECK (tv_show_tmdb_id IS NULL OR media_type = 'episode'),
+  CHECK (episode_key IS NULL OR tv_show_tmdb_id IS NOT NULL),
+  CHECK (size >= 0 AND duration >= 0 AND position >= 0),
+  CHECK (parsed_season IS NULL OR parsed_season >= 0),
+  CHECK (parsed_episode IS NULL OR parsed_episode >= 0)
+) WITH MediaFile;
+
+CREATE INDEX media_files_movie_added_idx ON media_files (movie_tmdb_id, added_at);
+CREATE INDEX media_files_show_order_idx ON media_files (tv_show_tmdb_id, parsed_season, parsed_episode, path);
+CREATE INDEX media_files_episode_key_idx ON media_files (episode_key);
+CREATE INDEX media_files_watch_status_idx ON media_files (watch_status);
+CREATE INDEX media_files_last_watched_at_idx ON media_files (last_watched_at);
+CREATE INDEX media_files_is_favorite_idx ON media_files (is_favorite);
+CREATE INDEX media_files_added_at_idx ON media_files (added_at);

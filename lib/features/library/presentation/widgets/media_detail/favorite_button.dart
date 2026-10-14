@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
+import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/presentation/widgets/library_query.dart';
@@ -7,17 +8,17 @@ import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class FavoriteButton extends StatelessWidget {
-  final String tmdbId;
+  final LibraryItem item;
   final Color? overrideColor;
   final bool showLabel;
 
-  const FavoriteButton({super.key, required this.tmdbId, this.overrideColor, this.showLabel = false});
+  const FavoriteButton({super.key, required this.item, this.overrideColor, this.showLabel = false});
 
   @override
   Widget build(BuildContext context) {
     return LibraryQuery<List<MediaFile>>(
-      queryKey: tmdbId,
-      query: (r) => r.watchVersions(tmdbId),
+      queryKey: (item.runtimeType, item.tmdbId),
+      query: (r) => r.watchVersions(item),
       initialData: const [],
       builder: (context, files) => _buildButton(context, files.any((file) => file.isFavorite)),
     );
@@ -28,7 +29,7 @@ class FavoriteButton extends StatelessWidget {
     final favoriteColor = AppColors.favorite(context);
     final icon = isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded;
     void toggleFavorite() {
-      context.read<MediaLibraryProvider>().setFavorite(tmdbId, isFavorite: !isFavorite);
+      context.read<MediaLibraryProvider>().setFavorite(item, isFavorite: !isFavorite);
     }
 
     if (showLabel) {

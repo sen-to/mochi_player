@@ -100,8 +100,8 @@ class _MovieMediaInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LibraryQuery<List<MediaFile>>(
-      queryKey: viewModel.tmdbId,
-      query: (r) => r.watchVersions(viewModel.tmdbId),
+      queryKey: (viewModel.item.runtimeType, viewModel.tmdbId),
+      query: (r) => r.watchVersions(viewModel.item),
       initialData: const [],
       builder: (context, versions) => _buildVersions(context, List.of(versions)..sort(_compareVersions)),
     );

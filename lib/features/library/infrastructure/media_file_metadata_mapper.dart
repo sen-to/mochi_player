@@ -46,7 +46,7 @@ abstract final class MediaFileMetadataMapper {
       versionLabel: _nonEmpty(metadata.versionLabel),
       movieTmdbId: changedType ? null : file.movieTmdbId,
       tvShowTmdbId: changedType ? null : file.tvShowTmdbId,
-      episodeTmdbId: changedType ? null : file.episodeTmdbId,
+      episodeKey: changedType ? null : file.episodeKey,
       metadataMatchStatus: changedType ? MetadataMatchStatus.pending : file.metadataMatchStatus,
     );
   }

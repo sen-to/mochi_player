@@ -82,7 +82,7 @@ MediaFile _file({
     mediaType: type,
     movieTmdbId: type == MediaType.movie ? tmdbId : null,
     tvShowTmdbId: type == MediaType.episode ? RegExp(r'^(\d+)_s').firstMatch(tmdbId ?? '')?.group(1) : null,
-    episodeTmdbId: type == MediaType.episode ? tmdbId : null,
+    episodeKey: type == MediaType.episode ? tmdbId : null,
     duration: 3600000,
     position: status == WatchStatus.completed ? 3600000 : 600000,
     watchStatus: status,

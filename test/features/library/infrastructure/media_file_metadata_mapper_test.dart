@@ -39,7 +39,7 @@ void main() {
     expect(row.mediaType, MediaType.episode);
     expect(row.explicitTmdbId, '123_s2e3');
     expect(row.movieTmdbId, isNull);
-    expect(row.episodeTmdbId, isNull);
+    expect(row.episodeKey, isNull);
     expect(row.container, 'mkv');
     expect(row.height, 2160);
     expect(row.videoCodec, 'hevc');
@@ -113,6 +113,6 @@ void main() {
 
     expect(row.mediaType, MediaType.episode);
     expect(row.movieTmdbId, isNull);
-    expect(row.episodeTmdbId, isNull);
+    expect(row.episodeKey, isNull);
   });
 }

@@ -85,7 +85,7 @@ class EpisodePlaybackTargetResolver {
   }
 
   static bool _sameEpisode(MediaFile a, MediaFile b) {
-    if (a.tmdbId != null && a.tmdbId == b.tmdbId) return true;
+    if (a.episodeKey != null && a.episodeKey == b.episodeKey) return true;
     return a.parsedSeason != null &&
         a.parsedEpisode != null &&
         a.parsedSeason == b.parsedSeason &&

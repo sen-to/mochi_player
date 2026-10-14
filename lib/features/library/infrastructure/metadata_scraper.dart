@@ -283,7 +283,7 @@ class MetadataScraper {
       '解析: 类型=$type，标题="${candidate.title}"，年份=${candidate.year ?? '无'}，'
           '季=${candidate.seasonNumber ?? '无'}，集=${candidate.episodeNumber ?? '无'}',
       '已有 ID: 显式=${candidate.explicitTmdbId ?? '无'}，电影=${candidate.movieTmdbId ?? '无'}，'
-          '剧集=${candidate.tvShowTmdbId ?? '无'}，单集=${candidate.episodeTmdbId ?? '无'}',
+          '剧集=${candidate.tvShowTmdbId ?? '无'}，单集=${candidate.episodeKey ?? '无'}',
       '搜索计划: ${_describeSearchPlan(candidate)}',
     ].join('\n');
   }

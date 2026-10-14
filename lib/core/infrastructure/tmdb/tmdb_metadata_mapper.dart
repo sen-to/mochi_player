@@ -47,7 +47,7 @@ class TmdbMetadataMapper {
   TmdbSeasonResult season(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
     final episodeData = (data['episodes'] as List? ?? []).whereType<Map<String, dynamic>>().toList();
     final metadata = Season(
-      seasonKey: '${showTmdbId}_s$seasonNumber',
+      tvShowTmdbId: showTmdbId,
       seasonNumber: seasonNumber,
       title: data['name'] ?? '第 $seasonNumber 季',
       posterUrl: TmdbImageUrl.poster(data['poster_path']),
@@ -78,7 +78,9 @@ class TmdbMetadataMapper {
   Episode _episode(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
     final episodeNumber = data['episode_number'] as int;
     return Episode(
-      tmdbId: '${showTmdbId}_s${seasonNumber}e$episodeNumber',
+      tvShowTmdbId: showTmdbId,
+      seasonNumber: seasonNumber,
+      tmdbId: data['id']?.toString(),
       episodeNumber: episodeNumber,
       title: data['name'] ?? 'Episode $episodeNumber',
       airDate: _date(data['air_date']),

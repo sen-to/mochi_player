@@ -60,7 +60,7 @@ MediaFile _episode(int episode, {int season = 1, WatchStatus status = WatchStatu
     parsedEpisode: episode,
     mediaType: MediaType.episode,
     tvShowTmdbId: '10',
-    episodeTmdbId: '10_s${season}e$episode',
+    episodeKey: '10_s${season}e$episode',
     duration: 60 * 60 * 1000,
     position: status == WatchStatus.completed ? 60 * 60 * 1000 : 10 * 60 * 1000,
     watchStatus: status,

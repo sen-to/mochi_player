@@ -44,7 +44,7 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 | 验证 | 已记录结果 | 证据范围 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 209 项通过 | 数据库、查询、设置、播放 / 窗口协调、UI；数量以当次日志为准 |
+| macOS 全量 Dart 回归 | 数据库结构优化后 218 项通过 | 数据库、查询、设置、播放 / 窗口协调、UI；含外键 / CHECK、级联删除与订阅刷新、开发库并发重建、标题 ID 隔离与组合索引查询计划；不等于大库负载测试 |
 | 文案检查与生成 | 277 条检查通过，gen-l10n 成功 | 不等于所有页面布局与原生菜单语言已验收 |
 | macOS Debug / Release | 迁移期间构建通过，依赖升级后 Debug 构建通过 | 不等于签名 / 公证或所有旧产物反映最新源码 |
 | macOS 原生播放冒烟 | 修正全屏动画等待后，完成播放、退出、SQLite 重开 | RGB AVI 与隔离数据；主窗口关闭由程序内回调触发 |
@@ -59,7 +59,7 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 | 领域 | 主要位置 | 关注点 |
 | --- | --- | --- |
-| 数据层 | `test/core/infrastructure/database/` | 唯一键、JSON、日期、事务、局部更新、删除、双后台连接、关闭重开 |
+| 数据层 | `test/core/infrastructure/database/` | 组合唯一键、外键 / CHECK、JSON、日期、事务、局部更新、级联 / 禁止删除、开发库并发重建、双后台连接、关闭重开 |
 | 库查询 | `test/features/library/application/library_repository_test.dart` | 标题可用性、搜索 / 收藏 / 续播排序、有限结果、SQL 与领域规则一致性、共享订阅 |
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
 | 应用退出 | `test/app/application/` | 重复请求、保存 / 释放顺序、失败与超时、最终快照持久化 |

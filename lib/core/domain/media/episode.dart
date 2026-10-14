@@ -2,7 +2,11 @@ import 'package:mochi_player/core/domain/media/artist.dart';
 
 /// 单集 Domain Model
 class Episode {
-  final String tmdbId;
+  final String tvShowTmdbId;
+  final int seasonNumber;
+
+  /// Actual provider ID, distinct from the stable show/season/episode key.
+  final String? tmdbId;
   final int episodeNumber;
   final String title;
   final DateTime? airDate;
@@ -11,7 +15,9 @@ class Episode {
   final List<Artist> guestStars;
 
   const Episode({
-    required this.tmdbId,
+    required this.tvShowTmdbId,
+    required this.seasonNumber,
+    this.tmdbId,
     required this.episodeNumber,
     required this.title,
     this.airDate,
@@ -19,4 +25,6 @@ class Episode {
     this.stillUrl,
     this.guestStars = const [],
   });
+
+  String get episodeKey => '${tvShowTmdbId}_s${seasonNumber}e$episodeNumber';
 }

@@ -5,6 +5,8 @@ class MediaDetailViewModel {
 
   MediaDetailViewModel(this._item);
 
+  LibraryItem get item => _item;
+
   bool get isMovie => _item is Movie;
 
   bool get isTVShow => _item is TVShow;

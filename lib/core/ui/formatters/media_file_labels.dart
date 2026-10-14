@@ -1,3 +1,4 @@
+import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/l10n/l10n.dart';
@@ -34,7 +35,10 @@ abstract final class MediaFileLabels {
       parts.add(container.toUpperCase());
     }
     if (file.size > 0) parts.add(MediaFormat.fileSize(file.size, locale: l10n.localeName));
-    if (includeResumePosition && file.position > 0 && file.duration > 0 && file.progress < 0.95) {
+    if (includeResumePosition &&
+        file.position > 0 &&
+        file.duration > 0 &&
+        file.progress < WatchProgressPolicy.completionThreshold) {
       parts.add(l10n.resumeFrom(MediaFormat.clockDuration(Duration(milliseconds: file.position))));
     }
     return parts.isEmpty ? file.fileName : parts.join(' • ');
