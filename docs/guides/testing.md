@@ -96,7 +96,7 @@ fvm flutter run -d windows -t integration_test/windowing_smoke.dart
 
 2026-10-13 macOS Debug 运行已验证：两个独立 FlutterView、共享语言渲染、按 viewId 的原生置顶与 480×300 尺寸、主窗口尺寸保持不变、官方全屏进出、请求替换复用视图、单独关闭保留主窗口与数据库、共享查询订阅接收进度、两次关闭重开，以及最终进度在 SQLite 关闭重开后存在。观察到 160×90 视频纹理分配与解码日志。底层仍偶发 `Reported frame time is older than the last one; clamping`，没有将其视为长期稳定性通过。
 
-该入口对主窗口关闭事件处理器的测试是程序内回调，不替代真实红色关闭按钮、Cmd+Q / Dock 退出、拖动、最小化、焦点与中文输入的手工检查。Windows 全套运行时、系统 PiP、真实片源 / 字幕 / HDR、长时间播放、多显示器、可访问性和发布签名仍待验收。
+该入口对主窗口关闭事件处理器的测试是程序内回调，不替代真实红色关闭按钮、Cmd+Q / Dock 退出、拖动、最小化、焦点与中文输入的手工检查。Windows 全套运行时、真实片源 / 字幕 / HDR、长时间播放、多显示器、可访问性和发布签名仍待验收。
 
 2026-10-13 自动化回归 198 项通过，277 条 l10n 文案检查通过；正式入口 macOS Debug 与 Release 构建成功。构建仍提示 media_kit 的 SPM 支持和上游 Swift 头文件警告；本项目保持 CocoaPods，未宣称这些上游问题已解决。
 
@@ -111,6 +111,8 @@ fvm flutter run -d windows -t integration_test/windowing_smoke.dart
 2026-10-14：最终回归 204 项通过，277 条文案检查通过。资源释放 / 窗口恢复阶段改为最多 12 秒，覆盖正在进入全屏后再退出的动画确认；应用退出整体的 18 秒播放器阶段与 8 秒应用清理上限保留。资源无响应会记录失败并继续解绑视图，不无限等待。
 
 2026-10-14 代码审查收尾：删除全局 `PlayerWindow` 转发层，协调器通过 Provider 注入；mini 切换捕获失败，进入失败尝试撤回部分修改，恢复成功后才清除原尺寸记录，失败后可重试。macOS 原生按钮操作成功后才提交 mini 按钮状态。新增五项故障回归，全量 209 项测试通过，静态检查无错误或警告，保留 108 条 SDK 旧 UI 导入弃用提示。Windows 桥检查尺寸 / 置顶等 Win32 调用结果并返回失败；本轮未执行 Windows 编译或运行验收。
+
+2026-10-14 依赖升级：`dio 5.11.1`、`flutter_cache_manager 3.4.5`、`logger 2.8.0`、`shared_preferences 2.5.6`、`sqlite3 3.7.1`、`dart_smb2 0.1.3`；同步最低版本约束、Dart / CocoaPods 锁文件，`path` 改为 `^1.9.1`。SQLite 所需的 `hooks` 与 `record_use` 随依赖解析更新。全量 209 项测试（含真实 SQLite 与 SMB 适配测试）、277 条文案检查、本地化生成与 macOS Debug 构建通过；静态检查无错误或警告，108 条 SDK 弃用提示及 SPM 提示保留。真实 SMB 连接 / 超时与 Windows 原生运行未验收；SMB 客户端升级不代表 ADR 0005 中捆绑播放器的 `smb://` 打开 / seek 问题已解决。涉及独立 UI 包迁移的三个主版本升级另行处理。
 
 共享连接的回归直接通过 `DatabasePlaybackMediaStore` 写入，检查媒体库 `watchVersions` 订阅收到新进度且保留收藏字段；不再依赖外部连接的手动失效函数。真实播放入口还验证共享 drift 订阅，以及通过正式播放控制栏进入全屏后从主窗口关闭事件处理器触发完整退出。
 

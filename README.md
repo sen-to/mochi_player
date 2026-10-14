@@ -206,7 +206,7 @@ windows/ macos/ 各平台 runner
 
 播放通过 `PlaybackEngine` 门面接入，当前唯一实现为 media_kit + libmpv。播放控制、状态订阅、音轨 / 字幕、缓存与硬解设置、视频视图均通过门面；mpv 属性读写集中在后端实现。实施状态和未来直接接 libmpv 的条件见 [播放引擎 ADR](docs/decisions/0002-playback-engine.md)。
 
-窗口采用官方 `WindowManager` / `WindowRegistry`：两个视图共享同一引擎、语言、主题、设置与后台数据库连接，播放器仍是独立窗口。关闭主窗口会保存进度、关闭播放器并退出程序；普通 mini 保留，系统 PiP 尚待实现。
+窗口采用官方 `WindowManager` / `WindowRegistry`：两个视图共享同一引擎、语言、主题、设置与后台数据库连接，播放器仍是独立窗口。关闭主窗口会保存进度、关闭播放器并退出程序；小窗采用 mini 播放器，系统画中画暂不纳入计划。
 
 ## 🔒 数据与隐私
 

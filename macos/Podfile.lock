@@ -1,5 +1,5 @@
 PODS:
-  - dart_smb2 (0.1.2):
+  - dart_smb2 (0.1.3):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - media_kit_libs_macos_video (1.0.4):
@@ -46,7 +46,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
 
 SPEC CHECKSUMS:
-  dart_smb2: c596120ffb6d7767cb1322d478ba726a3155d97e
+  dart_smb2: 3221382bff878f97911b63d0bd08c0480e177575
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758

@@ -70,7 +70,7 @@ sequenceDiagram
 | mini 播放器 | 同一窗口缩至 480×300（最小 420×260），以原窗口右下角为锚点，默认置顶；macOS 下隐藏原生窗口按钮 |
 | 全屏 | 区分应用内全屏状态与系统全屏，退出时同步 |
 
-窗口操作通过视图 Provider 中的 `WindowService`，不使用全局「当前窗口」。`DesktopWindowHost` 管理官方 registry，每个服务拥有独立 `viewId`；尺寸约束、激活和全屏使用官方控制器，拖动 / 位置 / 普通置顶和按视图绑定的文件对话框通过原生扩展。macOS 全屏的 Future 等待 AppKit 动画完成，超时会恢复实际 UI 状态并允许重试。mini 仍是普通 Flutter 窗口，系统 PiP 尚未实施。
+窗口操作通过视图 Provider 中的 `WindowService`，不使用全局「当前窗口」。`DesktopWindowHost` 管理官方 registry，每个服务拥有独立 `viewId`；尺寸约束、激活和全屏使用官方控制器，拖动 / 位置 / 普通置顶和按视图绑定的文件对话框通过原生扩展。macOS 全屏的 Future 等待 AppKit 动画完成，超时会恢复实际 UI 状态并允许重试。小窗统一采用 mini 播放器，复用当前播放会话、字幕和控制界面；系统画中画暂不纳入实现与验收范围。
 
 关闭主窗口进入 `ApplicationExitCoordinator`：拒绝新请求，等待已接受的会话操作、最终进度和资源释放，注销视图并等待一帧，再销毁窗口；随后收尾任务、设置与共享数据库，结束进程。播放器单独关闭不关闭共享数据库。
 

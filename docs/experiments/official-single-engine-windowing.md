@@ -53,18 +53,18 @@ Release 结果通过构建输出、直接启动后的窗口画面与运行进程
 
 ## 2. 系统 PiP 与普通 mini 窗口
 
-用户希望 macOS 小窗采用系统画中画 PiP。本轮测试的是普通 Flutter 播放器窗口缩小到 400×300，**没有接入或测试系统 PiP**。
+原型阶段曾讨论 macOS 系统画中画 PiP。本轮测试的是普通 Flutter 播放器窗口缩小到 400×300，**没有接入或测试系统 PiP**。2026-10-14 用户决定继续采用 mini，系统 PiP 暂不纳入计划；以下接口说明保留为历史调研，不作为后续待办。
 
 | 方案 | 窗口责任 | 与 Flutter windowing 的关系 | 当前状态 |
 | --- | --- | --- | --- |
 | 普通 Flutter mini 窗口 | 应用调整窗口尺寸、控制层和置顶；可调用系统窗口接口 | 可使用 Flutter 官方单引擎窗口 API | 缩小 / 恢复 / 全屏基础验证通过，官方后端置顶扩展未测试 |
-| macOS 系统 PiP | AVKit 管理画中画窗口，应用提供视频内容和播放控制 | 独立于 Flutter 官方窗口 API；stable 应用也可原生桥接接入 | 用户期望的候选方向，尚未实现 / 验证 |
+| macOS 系统 PiP | AVKit 管理画中画窗口，应用提供视频内容和播放控制 | 独立于 Flutter 官方窗口 API；stable 应用也可原生桥接接入 | 历史候选方向，未实现 / 验证；现已暂缓 |
 
 Apple 提供 `AVPlayerView.allowsPictureInPicturePlayback` 和 `AVPictureInPictureController`。公开内容源接口可以接入 player layer 或 sample buffer display layer；本机 SDK 标注后者内容源接入适用于 macOS 12 及以后。系统 PiP 不接收任意 Flutter Widget，也不能把 libmpv 句柄直接当作 AVPlayer。
 
-项目当前使用 media_kit/libmpv 和 Flutter 视频纹理。后续需要独立验证从当前视频输出接入 AVKit 的路径、帧格式 / 时间戳、字幕呈现、控制事件、回到普通播放器、释放与进度保存。优先保持同一播放会话，不因 PiP 示例使用 AVPlayer 就未经决策更换项目播放引擎，也不为画中画另开一个独立播放器。
+项目当前使用 media_kit/libmpv 和 Flutter 视频纹理。若未来重新选择系统 PiP，需要独立验证从当前视频输出接入 AVKit 的路径、帧格式 / 时间戳、字幕呈现、控制事件、回到普通播放器、释放与进度保存。优先保持同一播放会话，不因 PiP 示例使用 AVPlayer 就未经决策更换项目播放引擎，也不为画中画另开一个独立播放器。
 
-如保留普通 mini 窗口，macOS 的窗口 level / Windows 的 `SetWindowPos(HWND_TOPMOST)` 可作为原生扩展方案，仍需绑定正确窗口并测试。缺少 Flutter 通用置顶方法不是单引擎方案的根本否决条件。macOS 系统 PiP 方案不自动证明 Windows 有相同接口或产品行为；Windows 小窗方案需分别确认。
+当前选择普通 mini 窗口，macOS 的窗口 level / Windows 的 `SetWindowPos(HWND_TOPMOST)` 可作为原生扩展方案，仍需绑定正确窗口并测试。缺少 Flutter 通用置顶方法不是单引擎方案的根本否决条件。macOS 系统 PiP 方案不自动证明 Windows 有相同接口或产品行为；Windows 小窗方案需分别确认。
 
 ## 3. 已取得的实验结果
 
@@ -97,8 +97,7 @@ Apple 提供 `AVPlayerView.allowsPictureInPicturePlayback` 和 `AVPictureInPictu
 | 优先级 / 验证项 | 必须取得的证据 | 当前判断 |
 | --- | --- | --- |
 | P0：Windows 单引擎窗口 | 固定 SDK 的 Debug / Release，创建 / 聚焦 / 输入 / 全屏 / 关闭重开、播放期间主窗口响应、整体退出 | 项目目标平台，迁移前必须验证；当前 macOS 环境无法代替 |
-| P0：macOS 系统 PiP | 当前 libmpv 视频接入公开 AVKit 接口，画面连续刷新、暂停 / seek / 恢复、字幕、返回正常播放器、关闭主窗口后 PiP 结束 | 用户小窗目标，须单独制作内容源实验；现有普通小窗原型未覆盖 |
-| P0：真实播放链路 | 项目目标媒体的音视频、音轨 / 字幕、切集、seek、全屏与 PiP / mini 切换、资源释放；网络路径按对应 ADR 的已支持范围 | RGB AVI 只能证明纹理路径，不能替代播放引擎能力基线；SMB 原有失败按 ADR 0005 单独处理 |
+| P0：真实播放链路 | 项目目标媒体的音视频、音轨 / 字幕、切集、seek、全屏与 mini 切换、资源释放；网络路径按对应 ADR 的已支持范围 | RGB AVI 只能证明纹理路径，不能替代播放引擎能力基线；SMB 原有失败按 ADR 0005 单独处理 |
 | P0：数据与退出 | 在单引擎原型或隔离迁移检出接入真实 drift / SQLite；进度 / 收藏刷新；关闭重开后最后快照仍在；重复退出、打开 / 切集中退出、保存失败与无响应有界结束 | 原型的内存共享和 SharedPreferences 保存不能替代数据库业务验收 |
 | P0：项目插件与 SDK 升级 | path_provider、file_selector、偏好和项目原生通道能绑定正确服务 / 窗口；生成代码、l10n 双窗口切换、全量回归与两平台 Release | 当前 media_kit / 偏好成功不代表其他插件已兼容；不要直接保留旧 window_manager 的隐式主窗口假设 |
 | P1：持续运行与窗口边界 | 长时间播放、重复打开 / 替换 / 关闭，资源趋势、后台 / 遮挡 / 多显示器与 DPI、全屏跨 Spaces；复查 frame-time 诊断 | 原型仅三次重开和短片，未证明无长期泄漏或多显示器问题 |

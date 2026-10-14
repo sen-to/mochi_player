@@ -39,7 +39,7 @@
 | [guides/build-macos.md](guides/build-macos.md) | SPM 关闭、沙箱权限（含 Release 缺少 `network.server` 的坑）、窗口外观 |
 | [guides/build-windows.md](guides/build-windows.md) | 官方单引擎宿主、固定提交 CI、待验收项 |
 | [guides/testing.md](guides/testing.md) | 测试分层与运行方式、代码约定、待补项 |
-| [experiments/official-single-engine-windowing.md](experiments/official-single-engine-windowing.md) | 官方单引擎多窗口重构依据：通道开关、FVM 固定提交、Release 与系统 PiP，历史验证结论、来源及剩余验收清单 |
+| [experiments/official-single-engine-windowing.md](experiments/official-single-engine-windowing.md) | 官方单引擎多窗口重构依据：通道开关、FVM 固定提交、Release 与小窗方案区分，历史验证结论、来源及剩余验收清单 |
 
 ### 图片
 
