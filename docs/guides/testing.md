@@ -57,6 +57,18 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 回归覆盖索引
 
+### Windows 本地启动补充（2026-10-17）
+
+后续用户报告：AXTree 错误持续输出，拖动调整窗口尺寸时应用退出。Windows 应用日志记录 `flutter_windows.dll + 0x3cf46`、`0xc0000005`（并伴随 `0xc000041d`）；使用该固定 SDK 的 PDB 解析到 `flutter::AccessibilityBridge::CreateRemoveReparentedNodesUpdate + 186`。这属于无障碍节点父子关系更新路径，与之前 `media_kit_video_plugin.dll` 注册崩溃不同；Flutter 上游有相同函数的 [崩溃报告 #175041](https://github.com/flutter/flutter/issues/175041) 和 [空父节点检查修复 #190903](https://github.com/flutter/flutter/pull/190903)。
+
+此前 AppSlider 局部 Overlay 规避在隔离测试中消除了 AXTree 错误，但用户确认正式应用仍有问题；已按用户要求撤回该改动及隔离缩放入口。窗口缩放崩溃尚未解决。
+
+随后按用户要求通过正式启动入口的 `MochiWidgetsBinding` 暂时关闭 Windows 无障碍语义树，不修改 SDK；单项 binding 测试验证 Windows 在持有语义请求时仍返回关闭、macOS 保持框架行为。Windows Debug 构建及启动成功，启动日志未再出现 AXTree 错误。此为临时禁用，窗口手工缩放仍待用户确认；不视为原生引擎根因已修复。
+
+通过 FVM 安装并选择 `.fvmrc` 指定提交 `5ba8961b517919e97cd58e404b75dcdcf313017a`，执行 `fvm flutter pub get`、文案检查（277 条通过）、`fvm flutter gen-l10n` 和 `fvm flutter run -d windows`。发现并修复 `media_kit_video 2.0.1` 注册时解引用不存在的隐式视图导致的启动崩溃，补丁说明见 [Windows 构建指南](build-windows.md#media_kit_video-的无隐式视图兼容补丁)。修复后 Debug 构建通过，Flutter VM Service 建立，`Mochi Player` 主窗口进程报告正常响应。
+
+提交前审查补齐消息窗口销毁后的窗口类注销，并移除旧窗口回调分支。`fvm flutter analyze --no-fatal-infos` 通过（112 条 info，无错误 / 警告），全量 228 项测试通过，Windows Release 构建通过。真实冒烟入口也使用 `MochiWidgetsBinding`；`fvm flutter run -d windows --release -t integration_test/windowing_smoke.dart` 输出 `WINDOWING SMOKE COMPLETE`，双视图、共享语言、纹理通知、置顶与 mini 尺寸、全屏、换片复用、关闭重开、最终进度落库 / SQLite 重开均通过，日志没有 AXTree 错误。该结果仍不替代手工拖动窗口边缘、真实媒体样片、DPI、输入和长期播放验收。
+
 | 领域 | 主要位置 | 关注点 |
 | --- | --- | --- |
 | 数据层 | `test/core/infrastructure/database/` | 组合唯一键、外键 / CHECK、JSON、日期、事务、局部更新、级联 / 禁止删除、开发库并发重建、双后台连接、关闭重开 |

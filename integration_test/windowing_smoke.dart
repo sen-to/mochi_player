@@ -25,6 +25,7 @@ import 'package:mochi_player/features/playback/application/player_window_coordin
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
+import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
@@ -49,7 +50,7 @@ Future<void> settle([int milliseconds = 300]) async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  MochiWidgetsBinding();
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     exit(1);

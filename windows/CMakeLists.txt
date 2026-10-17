@@ -57,6 +57,16 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# media_kit_video 2.0.1 assumes an implicit view during registration. Replace
+# only its dispatcher implementation; keep the package's rendering sources.
+get_target_property(MEDIA_KIT_VIDEO_SOURCES media_kit_video_plugin SOURCES)
+list(FILTER MEDIA_KIT_VIDEO_SOURCES EXCLUDE REGEX "(^|/)media_kit_video_plugin\\.cc$")
+set_property(TARGET media_kit_video_plugin PROPERTY SOURCES ${MEDIA_KIT_VIDEO_SOURCES})
+target_sources(media_kit_video_plugin PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/patches/media_kit_video/media_kit_video_plugin.cc")
+target_include_directories(media_kit_video_plugin PRIVATE
+  "${FLUTTER_MANAGED_DIR}/ephemeral/.plugin_symlinks/media_kit_video/windows")
+
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can

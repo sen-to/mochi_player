@@ -14,6 +14,7 @@ import 'package:mochi_player/features/playback/application/player_window_coordin
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
 import 'package:mochi_player/app/bootstrap/application_dependencies.dart';
+import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
@@ -24,7 +25,7 @@ import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  MochiWidgetsBinding();
   MediaKitPlaybackEngine.initialize();
   final host = DesktopWindowHost();
 

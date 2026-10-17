@@ -15,6 +15,18 @@ fvm flutter build windows --release
 
 ## 官方窗口宿主
 
+### 临时关闭 Windows 无障碍语义树
+
+Windows 窗口缩放期间出现 `AccessibilityBridge::CreateRemoveReparentedNodesUpdate` 原生空指针崩溃。按用户要求，正式入口使用 `MochiWidgetsBinding`，在 Windows 上将 `semanticsEnabled` 固定为 false，阻止所有视图生成语义更新；即使系统请求无障碍信息也不重新开启。macOS 保留框架默认行为。该措施会使 Windows 读屏和依赖语义树的辅助工具不可用，是临时规避，不代表引擎缺陷已修复；待固定 SDK 包含修复并完成验收后移除。此前 AppSlider 的局部 Overlay 规避已撤回。
+
+### media_kit_video 的无隐式视图兼容补丁
+
+`media_kit_video 2.0.1` 的 Windows 注册代码会解引用 `registrar->GetView()`；官方窗口模式没有隐式视图，导致应用在注册插件时以 `0xc0000005` 退出，故障模块为 `media_kit_video_plugin.dll`。
+
+`windows/CMakeLists.txt` 用 `windows/patches/media_kit_video/media_kit_video_plugin.cc` 替换该插件的单个源文件，其余纹理与渲染实现仍来自锁定的依赖。补丁保留上游 MIT 许可证，使用插件拥有的 Win32 message-only 窗口处理平台线程任务，不依赖主视图或播放器视图；释放输出管理器后再销毁消息窗口。插件旧的无 viewId 全屏方法返回 NotImplemented，应用继续使用视图级 `WindowService`。不修改全局 Pub 缓存或 SDK。
+
+升级 `media_kit_video` 时需核对上游实现是否已支持无隐式视图，再决定移除此源文件替换；同时执行 Windows 启动与 `integration_test/windowing_smoke.dart`，检查视频纹理通知及播放器关闭 / 重开。
+
 [main.cpp](../../windows/runner/main.cpp) 创建单个 `FlutterEngine`，注册一次插件；窗口由 Dart 官方 API 创建。旧 `FlutterWindow`、多引擎插件回调与 `RunOnSeparateThread` 补丁已删除，不应复制旧宿主回来。
 
 原生扩展根据 `FlutterDesktopPluginRegistrarGetViewById` 定位 HWND，负责官方 API 尚未提供的位置、拖动、普通 mini 置顶，以及按视图定位父窗口的 IFileOpenDialog。目录选择和字幕扩展名过滤取消时返回空值。需要检查多显示器 / DPI 下的尺寸与定位。
