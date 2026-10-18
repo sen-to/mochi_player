@@ -13,6 +13,10 @@ fvm flutter run -d windows
 fvm flutter build windows --release
 ```
 
+## 应用图标
+
+Windows 可执行文件通过 `windows/runner/Runner.rc` 嵌入 `resources/app_icon.ico`，官方窗口宿主也读取此图标资源。该 ICO 复用 macOS 已提交的 Mochi 品牌 PNG，包含 16、32、64、128、256 像素版本。更新品牌图片后，在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tool/generate_windows_icon.ps1`，提交生成的 ICO，再重新构建 Windows 应用。已有快捷方式或任务栏固定项可能保留旧图标缓存，需重新创建或取消固定后重新固定。
+
 ## 官方窗口宿主
 
 ### 临时关闭 Windows 无障碍语义树
