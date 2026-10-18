@@ -17,6 +17,9 @@
 
 ## 当前明确边界
 
+- Windows 窗口创建后重新提交最小尺寸约束：主窗口 900×600、播放器 720×405、mini 420×260（逻辑内容尺寸），规避固定 SDK 初始约束丢失；验证范围见 [测试指南](guides/testing.md)。
+- macOS 标题栏配置后显式重设内容最小尺寸，与 mini 动态约束共用 `contentMinSize`；当前环境无法进行 macOS 构建及原生运行，效果待 Mac 验证。
+
 - Windows 无障碍语义树因原生 AXTree 崩溃临时关闭，读屏不可用；AppSlider 局部 Overlay 规避已撤回。详见 [Windows 指南](guides/build-windows.md)。
 
 - 关闭主窗口必须停止播放器、保存进度并退出整个程序；播放器单独关闭保留主窗口和共享数据库。

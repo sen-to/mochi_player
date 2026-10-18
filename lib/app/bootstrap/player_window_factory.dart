@@ -23,8 +23,9 @@ Future<PlayerWindowSession> createPlayerWindow({
   final session = PlayerWindowController(bootstrap);
   final closeCoordinator = PlayerWindowCloseCoordinator();
   final lifecycle = _PlayerWindowLifecycle(session: session, resolver: resolver, closeCoordinator: closeCoordinator);
+  const windowSetup = WindowSetup(size: Size(1280, 720), minimumSize: Size(720, 405));
   final windows = host.create(
-    setup: const WindowSetup(size: Size(1280, 720), minimumSize: Size(720, 405)),
+    setup: windowSetup,
     builder: (_) => PlayerWindowApp(
       session: session,
       closeCoordinator: closeCoordinator,
@@ -40,7 +41,7 @@ Future<PlayerWindowSession> createPlayerWindow({
     await windows.setPreventClose(true);
     windows.addListener(lifecycle);
     await WidgetsBinding.instance.endOfFrame;
-    await lifecycle.windowControls.configureTitlebar();
+    await lifecycle.windowControls.configureTitlebar(minimumSize: windowSetup.minimumSize);
     return lifecycle;
   } catch (_) {
     // A creation that fails after registration still owns a live native view.

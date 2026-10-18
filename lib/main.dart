@@ -55,8 +55,9 @@ void main() async {
   late final WindowControlsController windowControlsController;
   final router = createAppRouter();
   final exiting = ValueNotifier(false);
+  const windowSetup = WindowSetup(size: Size(1200, 800), minimumSize: Size(900, 600));
   final windows = host.create(
-    setup: const WindowSetup(size: Size(1200, 800), minimumSize: Size(900, 600)),
+    setup: windowSetup,
     builder: (_) => ChangeNotifierProvider.value(
       value: windowControlsController,
       child: ValueListenableBuilder<bool>(
@@ -116,7 +117,9 @@ void main() async {
     ),
   );
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!exitCoordinator.isExiting) unawaited(windowControlsController.configureTitlebar());
+    if (!exitCoordinator.isExiting) {
+      unawaited(windowControlsController.configureTitlebar(minimumSize: windowSetup.minimumSize));
+    }
   });
 }
 

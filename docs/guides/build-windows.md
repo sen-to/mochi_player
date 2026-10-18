@@ -19,6 +19,12 @@ Windows 可执行文件通过 `windows/runner/Runner.rc` 嵌入 `resources/app_i
 
 ## 官方窗口宿主
 
+### 初始最小尺寸
+
+固定 SDK `5ba8961b51` 的 `HostWindow::InitializeFlutterView` 没有将创建参数的 `box_constraints` 保存到宿主字段，导致 `WM_GETMINMAXINFO` 使用默认无限制约束。`DesktopWindowService` 在 Windows 官方控制器创建后再次调用 `setConstraints`，通过 SDK 的 `HostWindow::SetConstraints` 保存原生约束，不修改 SDK。主窗口最小内容尺寸为 900×600，播放器为 720×405；mini 模式为 420×260，退出时恢复常规约束。尺寸单位为逻辑像素。
+
+升级 SDK 后核对该初始化缺陷是否已修复，再决定是否移除重复设置；使用 `integration_test/window_constraints_smoke.dart` 查询真实原生缩放限制，验证窗口间隔离、mini 约束切换与关闭重开。
+
 ### 临时关闭 Windows 无障碍语义树
 
 Windows 窗口缩放期间出现 `AccessibilityBridge::CreateRemoveReparentedNodesUpdate` 原生空指针崩溃。按用户要求，正式入口使用 `MochiWidgetsBinding`，在 Windows 上将 `semanticsEnabled` 固定为 false，阻止所有视图生成语义更新；即使系统请求无障碍信息也不重新开启。macOS 保留框架默认行为。该措施会使 Windows 读屏和依赖语义树的辅助工具不可用，是临时规避，不代表引擎缺陷已修复；待固定 SDK 包含修复并完成验收后移除。此前 AppSlider 的局部 Overlay 规避已撤回。

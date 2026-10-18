@@ -26,10 +26,10 @@ void main() {
   test('configures the macOS titlebar through the platform bridge', () async {
     final controller = WindowControlsController(viewId: 7);
 
-    await controller.configureTitlebar();
+    await controller.configureTitlebar(minimumSize: const Size(900, 600));
 
     expect(calls.single.method, 'configureTitlebar');
-    expect(calls.single.arguments, {'viewId': 7});
+    expect(calls.single.arguments, {'viewId': 7, 'minimumWidth': 900.0, 'minimumHeight': 600.0});
   });
 
   test('failed native visibility change does not commit mini state and permits retry', () async {

@@ -65,12 +65,27 @@ final class NativeWindowControls {
                                      message: "AppKit did not finish the fullscreen transition.", details: nil))
         }
       case "configureTitlebar":
+        guard let width = args["minimumWidth"] as? Double,
+              let height = args["minimumHeight"] as? Double,
+              width.isFinite, height.isFinite, width >= 0, height >= 0 else {
+          result(FlutterError(code: "invalid_arguments", message: "Expected a logical minimum size.", details: nil))
+          return
+        }
+        let minimumContentSize = NSSize(width: width, height: height)
+        let maximumContentSize = window.contentMaxSize
         // Use the system titlebar in all views. Full-size content keeps the
         // existing Flutter header, with the traffic lights above it.
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.styleMask.insert(.fullSizeContentView)
+        // Reapply after changing the style mask. contentMinSize takes precedence
+        // over minSize and is also updated by the SDK when mini mode changes.
+        window.contentMinSize = minimumContentSize
+        window.contentMaxSize = maximumContentSize
         result(nil)
+      case "getMinimumSize":
+        let content = window.contentMinSize
+        result([content.width, content.height])
       case "setNativeWindowButtonsVisible":
         let visible = args["visible"] as? Bool ?? true
         for type in [NSWindow.ButtonType.closeButton, .miniaturizeButton, .zoomButton] {

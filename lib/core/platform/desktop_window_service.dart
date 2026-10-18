@@ -55,6 +55,13 @@ class _DesktopWindowService extends WindowService with official.WindowController
       constraints: BoxConstraints(minWidth: setup.minimumSize.width, minHeight: setup.minimumSize.height),
       delegate: this,
     );
+    // The pinned Windows host omits its initial native tracking constraints.
+    // Reapply after creation so resizing also respects the configured minimum.
+    if (Platform.isWindows) {
+      _controller.setConstraints(
+        BoxConstraints(minWidth: setup.minimumSize.width, minHeight: setup.minimumSize.height),
+      );
+    }
     _fullscreen = _controller.isFullscreen;
     _controller.addListener(_stateChanged);
   }

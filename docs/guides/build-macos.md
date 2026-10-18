@@ -31,6 +31,10 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 
 ## 窗口外观
 
+标题栏配置显式接收所属窗口的最小逻辑内容尺寸，主窗口为 900×600，播放器为 720×405。原生桥在插入 `.fullSizeContentView` 后重新设置 `contentMinSize`；mini 通过视图窗口接口更新同一内容约束为 420×260 并恢复。只维护一套内容约束，不另外设置 `minSize`：[AppKit 文档](https://developer.apple.com/documentation/appkit/nswindow/contentminsize) 明确 `contentMinSize` 在用户缩放时生效且优先于 `minSize`。该补充针对用户报告的 macOS 无限缩小问题；当前 Windows 环境无法确认 AppKit 的实际重置时机，不能将其视为已实测根因。
+
+在 Mac 上执行 `fvm flutter run -d macos --release -t integration_test/window_constraints_smoke.dart`，检查标题栏配置后的内容最小尺寸、mini 约束切换、两个视图隔离和关闭重开，并手工拖动窗口边缘。此次 macOS 原生编译与运行尚待验证。
+
 [AppDelegate.swift](../../macos/Runner/AppDelegate.swift) 创建单个引擎；MainMenu 不再持有隐式 Flutter 窗口。Dart 创建两个独立视图。[NativeWindowControls.swift](../../macos/Runner/NativeWindowControls.swift) 通过 `viewId` 定位 NSWindow，设置透明标题栏、按钮显隐、位置、拖动与普通小窗置顶。文件 / 目录选择使用对应窗口的 NSOpenPanel sheet，全屏请求通过系统完成通知确认后才结束。mini 隐藏系统按钮，退出后恢复。窗口模式交互仍须结合真实视频验收。
 
 项目在 `pubspec.yaml` 启用 `enable-windowing: true`，FVM 固定 main 提交；不要用全局开关代替项目配置。

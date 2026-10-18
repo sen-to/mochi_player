@@ -206,6 +206,10 @@ flowchart TB
 
 ## 核心契约
 
+Windows 创建窗口后由 `DesktopWindowService` 再次提交最小尺寸约束，规避固定 SDK 未初始化宿主缩放约束的问题；主窗口为 900×600，播放器为 720×405，mini 为 420×260（逻辑内容尺寸）。原因与升级复查见 [Windows 构建指南](../guides/build-windows.md#初始最小尺寸)。
+
+macOS 标题栏配置从窗口组装入口接收相同的最小内容尺寸；原生桥在修改样式后重新设置内容约束。mini 动态约束仍由官方控制器更新同一 `contentMinSize`，不维护独立的 frame 最小尺寸。该平台的补充修复尚待 Mac 原生验证，见 [macOS 指南](../guides/build-macos.md#窗口外观)。
+
 | 契约 | 当前实现与边界 |
 | --- | --- |
 | [StorageAdapter / StorageConnection](../../lib/core/domain/storage/storage_adapter.dart) | 注册表按协议建立连接与列目录；浏览能力与播放协议能力分别验证 |

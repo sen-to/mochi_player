@@ -57,6 +57,18 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 回归覆盖索引
 
+### 桌面最小窗口尺寸（2026-10-18）
+
+macOS 补充：用户同时报告 Mac 可无限缩小。标题栏原生桥已改为显式接收所属窗口的最小逻辑尺寸，在修改 `.fullSizeContentView` 后重设 `contentMinSize`，与 mini 共用同一内容约束。尺寸冒烟入口现支持 `-d macos`，会在真实标题栏配置后读取 AppKit 内容限制，并检查 mini 约束切换和关闭重开。当前环境为 Windows，尚未编译或运行该 Swift 修改；Mac 上的根因与修复效果均不能视为已验证。标题栏通道及窗口模式 11 项回归通过，受影响的 5 个 Dart 文件静态检查通过（仅 2 条既有 Material 导入弃用 info），扩展后的 Windows 原生尺寸冒烟也再次输出 `WINDOW CONSTRAINTS SMOKE COMPLETE`。提交前全量 228 项测试通过，补充超时退出后的尺寸冒烟入口静态检查无问题；原生尺寸 / 播放冒烟与 Release 构建结果见下文。
+
+针对固定 SDK 创建窗口时未保存宿主尺寸约束的问题，Windows 适配层在创建后重新设置约束。`fvm flutter run -d windows --release -t integration_test/window_constraints_smoke.dart` 已输出 `WINDOW CONSTRAINTS SMOKE COMPLETE`：通过 Win32 `WM_GETMINMAXINFO` 查询拖动边缘时采用的真实原生限制，验证主窗口 900×600、播放器 720×405、切换到 mini 约束 420×260 后恢复，以及窗口间隔离与关闭重开。测试入口只操作隔离窗口，不读取媒体库；该检查不等于真实鼠标拖动或多显示器 / DPI 人工验收。
+
+`fvm flutter analyze --no-fatal-infos` 通过（112 条既有 info，无错误 / 警告）；窗口控制与播放器窗口模式共 11 项测试通过。已有 `windowing_smoke.dart` 的 Windows Release 真实播放回归也输出 `WINDOWING SMOKE COMPLETE`，覆盖双视图、mini 尺寸、全屏、换片、关闭重开与最终进度落库。正式入口的 `fvm flutter build windows --release --no-pub` 构建通过。手工验收需分别缩小主窗口、播放器和 mini，并检查退出 mini 后最小尺寸恢复。
+
+```bash
+fvm flutter run -d windows --release -t integration_test/window_constraints_smoke.dart
+```
+
 ### Windows 本地启动补充（2026-10-17）
 
 后续用户报告：AXTree 错误持续输出，拖动调整窗口尺寸时应用退出。Windows 应用日志记录 `flutter_windows.dll + 0x3cf46`、`0xc0000005`（并伴随 `0xc000041d`）；使用该固定 SDK 的 PDB 解析到 `flutter::AccessibilityBridge::CreateRemoveReparentedNodesUpdate + 186`。这属于无障碍节点父子关系更新路径，与之前 `media_kit_video_plugin.dll` 注册崩溃不同；Flutter 上游有相同函数的 [崩溃报告 #175041](https://github.com/flutter/flutter/issues/175041) 和 [空父节点检查修复 #190903](https://github.com/flutter/flutter/pull/190903)。
