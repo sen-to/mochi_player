@@ -423,7 +423,7 @@ class _SettingsPageState extends State<SettingsPage> {
         connectionTestSucceeded = null;
       });
       try {
-        final entryCount = await _sourceController.testConnection(
+        await _sourceController.testConnection(
           StorageSource(
             id: source?.id ?? 'connection-test',
             name: nameController.text.trim().isEmpty ? path.basename(directoryPath) : nameController.text.trim(),
@@ -434,7 +434,7 @@ class _SettingsPageState extends State<SettingsPage> {
         );
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = context.l10n.directoryAccessible(entryCount);
+          connectionTestResult = context.l10n.connectionSucceeded;
         });
       } catch (error, stackTrace) {
         debugPrint('测试本地目录失败: $error\n$stackTrace');
@@ -465,6 +465,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 AppFormItem(
                   label: context.l10n.localFolder,
+                  subtitleBelowControl: true,
                   subtitle: directoryPath.isEmpty ? context.l10n.selectFolderDescription : directoryPath,
                   labelWidth: 104,
                   control: Align(
@@ -479,34 +480,27 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 if (source != null)
-                  AppFormItem(
+                  SettingsSwitchItem(
                     label: context.l10n.enableSource,
                     subtitle: context.l10n.disableSourceDescription,
-                    labelWidth: 104,
-                    control: Align(
-                      alignment: Alignment.centerRight,
-                      child: AppSwitch(value: isEnabled, onChanged: (value) => setModalState(() => isEnabled = value)),
-                    ),
+                    value: isEnabled,
+                    onChanged: (value) => setModalState(() => isEnabled = value),
                   ),
                 AppFormItem(
                   label: context.l10n.connectionTest,
-                  subtitle: connectionTestResult ?? context.l10n.folderTestDescription,
-                  subtitleColor: connectionTestSucceeded == null
-                      ? null
-                      : connectionTestSucceeded!
+                  subtitle: connectionTestResult,
+                  subtitleColor: connectionTestSucceeded == true
                       ? AppColors.success(context)
                       : AppColors.danger(context),
-                  labelWidth: 104,
-                  control: Align(
-                    alignment: Alignment.centerRight,
-                    child: AppButton(
-                      onPressed: isTestingConnection ? null : testConnection,
-                      label: isTestingConnection ? context.l10n.testing : context.l10n.testFolder,
-                      icon: Icons.wifi_tethering_outlined,
-                      variant: AppButtonVariant.secondary,
-                      size: AppButtonSize.compact,
-                      busy: isTestingConnection,
-                    ),
+                  labelWidth: null,
+                  expandControl: false,
+                  control: AppButton(
+                    onPressed: isTestingConnection ? null : testConnection,
+                    label: isTestingConnection ? context.l10n.testing : context.l10n.testFolder,
+                    icon: Icons.wifi_tethering_outlined,
+                    variant: AppButtonVariant.secondary,
+                    size: AppButtonSize.compact,
+                    busy: isTestingConnection,
                   ),
                 ),
                 if (formError != null)
@@ -642,13 +636,13 @@ class _SettingsPageState extends State<SettingsPage> {
         connectionTestSucceeded = null;
       });
       try {
-        final entryCount = await _sourceController.testConnection(
+        await _sourceController.testConnection(
           draft,
           StorageCredentials(username: usernameController.text.trim(), password: passwordController.text),
         );
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = context.l10n.connectionAccessible(entryCount);
+          connectionTestResult = context.l10n.connectionSucceeded;
         });
       } catch (error, stackTrace) {
         debugPrint('测试 SMB 连接失败: $error\n$stackTrace');
@@ -693,14 +687,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   placeholder: context.l10n.sharePathExample,
                 ),
                 if (source != null)
-                  AppFormItem(
+                  SettingsSwitchItem(
                     label: context.l10n.enableSource,
                     subtitle: context.l10n.disableSourceDescription,
-                    labelWidth: 104,
-                    control: Align(
-                      alignment: Alignment.centerRight,
-                      child: AppSwitch(value: isEnabled, onChanged: (value) => setModalState(() => isEnabled = value)),
-                    ),
+                    value: isEnabled,
+                    onChanged: (value) => setModalState(() => isEnabled = value),
                   ),
                 _buildStorageSourceFormItem(label: context.l10n.username, controller: usernameController),
                 _buildStorageSourceFormItem(
@@ -717,23 +708,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 AppFormItem(
                   label: context.l10n.connectionTest,
-                  subtitle: connectionTestResult ?? context.l10n.smbTestDescription,
-                  subtitleColor: connectionTestSucceeded == null
-                      ? null
-                      : connectionTestSucceeded!
+                  subtitle: connectionTestResult,
+                  subtitleColor: connectionTestSucceeded == true
                       ? AppColors.success(context)
                       : AppColors.danger(context),
-                  labelWidth: 104,
-                  control: Align(
-                    alignment: Alignment.centerRight,
-                    child: AppButton(
-                      onPressed: isTestingConnection ? null : testConnection,
-                      label: isTestingConnection ? context.l10n.testing : context.l10n.testConnection,
-                      icon: Icons.wifi_tethering_outlined,
-                      variant: AppButtonVariant.secondary,
-                      size: AppButtonSize.compact,
-                      busy: isTestingConnection,
-                    ),
+                  labelWidth: null,
+                  expandControl: false,
+                  control: AppButton(
+                    onPressed: isTestingConnection ? null : testConnection,
+                    label: isTestingConnection ? context.l10n.testing : context.l10n.testConnection,
+                    icon: Icons.wifi_tethering_outlined,
+                    variant: AppButtonVariant.secondary,
+                    size: AppButtonSize.compact,
+                    busy: isTestingConnection,
                   ),
                 ),
                 if (formError != null)
@@ -810,9 +797,11 @@ class _SettingsPageState extends State<SettingsPage> {
     final nameController = TextEditingController(text: source?.name ?? '');
     final existingEndpoint = Uri.tryParse(source?.endpoint ?? '');
     final hostController = TextEditingController(text: existingEndpoint?.host ?? '');
-    final pathController = TextEditingController(text: _combineWebDavPaths(existingEndpoint?.path, source?.rootPath));
+    final pathController = TextEditingController(
+      text: source == null ? '' : _combineWebDavPaths(existingEndpoint?.path, source.rootPath),
+    );
     final portController = TextEditingController(
-      text: existingEndpoint?.hasPort == true ? '${existingEndpoint!.port}' : '',
+      text: existingEndpoint != null && existingEndpoint.host.isNotEmpty ? '${existingEndpoint.port}' : '',
     );
     final existingCredentials = source == null ? null : await _sourceController.readCredentials(source.id);
     final usernameController = TextEditingController(text: existingCredentials?.username ?? '');
@@ -849,8 +838,12 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       }
       final portText = portController.text.trim();
-      final port = portText.isEmpty ? null : int.tryParse(portText);
-      if (portText.isNotEmpty && (port == null || port < 1 || port > 65535)) {
+      if (portText.isEmpty) {
+        showFormError(context.l10n.webdavPortRequired);
+        return;
+      }
+      final port = int.tryParse(portText);
+      if (port == null || port < 1 || port > 65535) {
         showFormError(context.l10n.portRangeError);
         return;
       }
@@ -868,7 +861,7 @@ class _SettingsPageState extends State<SettingsPage> {
           port: port,
           path: _normalizeWebDavPath(pathController.text),
         ).toString();
-        final entryCount = await _sourceController.testConnection(
+        await _sourceController.testConnection(
           StorageSource(
             id: source?.id ?? 'connection-test',
             name: nameController.text.trim().isEmpty ? host : nameController.text.trim(),
@@ -879,7 +872,7 @@ class _SettingsPageState extends State<SettingsPage> {
         );
         updateModal?.call(() {
           connectionTestSucceeded = true;
-          connectionTestResult = context.l10n.connectionAccessible(entryCount);
+          connectionTestResult = context.l10n.connectionSucceeded;
         });
       } catch (error, stackTrace) {
         debugPrint('测试 WebDAV 连接失败: $error\n$stackTrace');
@@ -916,12 +909,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 _buildStorageSourceFormItem(
                   label: context.l10n.webdavPath,
                   controller: pathController,
-                  placeholder: '/dav/quark',
+                  placeholder: '/dav',
                 ),
                 _buildStorageSourceFormItem(
                   label: context.l10n.port,
                   controller: portController,
-                  placeholder: useHttps ? context.l10n.httpsPortExample : context.l10n.httpPortExample,
+                  placeholder: context.l10n.webdavPortHint,
                   keyboardType: TextInputType.number,
                 ),
                 AppFormItem(
@@ -934,19 +927,21 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 if (source != null)
-                  AppFormItem(
+                  SettingsSwitchItem(
                     label: context.l10n.enableSource,
                     subtitle: context.l10n.disableSourceDescription,
-                    labelWidth: 104,
-                    control: Align(
-                      alignment: Alignment.centerRight,
-                      child: AppSwitch(value: isEnabled, onChanged: (value) => setModalState(() => isEnabled = value)),
-                    ),
+                    value: isEnabled,
+                    onChanged: (value) => setModalState(() => isEnabled = value),
                   ),
-                _buildStorageSourceFormItem(label: context.l10n.username, controller: usernameController),
+                _buildStorageSourceFormItem(
+                  label: context.l10n.username,
+                  controller: usernameController,
+                  placeholder: context.l10n.webdavUsernameHint,
+                ),
                 _buildStorageSourceFormItem(
                   label: context.l10n.password,
                   controller: passwordController,
+                  placeholder: context.l10n.webdavPasswordHint,
                   obscureText: !showPassword,
                   suffix: AppButton.icon(
                     onPressed: () => setModalState(() => showPassword = !showPassword),
@@ -958,23 +953,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 AppFormItem(
                   label: context.l10n.connectionTest,
-                  subtitle: connectionTestResult ?? context.l10n.webdavTestDescription,
-                  subtitleColor: connectionTestSucceeded == null
-                      ? null
-                      : connectionTestSucceeded!
+                  subtitle: connectionTestResult,
+                  subtitleColor: connectionTestSucceeded == true
                       ? AppColors.success(context)
                       : AppColors.danger(context),
-                  labelWidth: 104,
-                  control: Align(
-                    alignment: Alignment.centerRight,
-                    child: AppButton(
-                      onPressed: isTestingConnection ? null : testConnection,
-                      label: isTestingConnection ? context.l10n.testing : context.l10n.testConnection,
-                      icon: Icons.wifi_tethering_outlined,
-                      variant: AppButtonVariant.secondary,
-                      size: AppButtonSize.compact,
-                      busy: isTestingConnection,
-                    ),
+                  labelWidth: null,
+                  expandControl: false,
+                  control: AppButton(
+                    onPressed: isTestingConnection ? null : testConnection,
+                    label: isTestingConnection ? context.l10n.testing : context.l10n.testConnection,
+                    icon: Icons.wifi_tethering_outlined,
+                    variant: AppButtonVariant.secondary,
+                    size: AppButtonSize.compact,
+                    busy: isTestingConnection,
                   ),
                 ),
                 if (formError != null)
@@ -996,8 +987,12 @@ class _SettingsPageState extends State<SettingsPage> {
             return false;
           }
           final portText = portController.text.trim();
-          final port = portText.isEmpty ? null : int.tryParse(portText);
-          if (portText.isNotEmpty && (port == null || port < 1 || port > 65535)) {
+          if (portText.isEmpty) {
+            showFormError(context.l10n.webdavPortRequired);
+            return false;
+          }
+          final port = int.tryParse(portText);
+          if (port == null || port < 1 || port > 65535) {
             showFormError(context.l10n.portRangeError);
             return false;
           }

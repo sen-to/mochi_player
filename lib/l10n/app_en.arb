@@ -217,16 +217,6 @@
   "@selectLocalFolder": {
     "description": "Application UI: Select a local folder"
   },
-  "directoryAccessible": "Folder is accessible ({count, plural, one{1 item} other{{count} items}})",
-  "@directoryAccessible": {
-    "description": "Application UI: Folder is accessible ({count} items)",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "format": "decimalPattern"
-      }
-    }
-  },
   "directoryAccessFailed": "Could not access the folder. Check its location and permissions.",
   "@directoryAccessFailed": {
     "description": "Application UI: Could not access the folder. Check its location and permissions."
@@ -247,9 +237,9 @@
   "@name": {
     "description": "Application UI: Name"
   },
-  "libraryNameExample": "Example: Home library",
+  "libraryNameExample": "e.g. Home media library",
   "@libraryNameExample": {
-    "description": "Application UI: Example: Home library"
+    "description": "Application UI: e.g. Home media library"
   },
   "selectFolderDescription": "Select a folder for browsing and scanning",
   "@selectFolderDescription": {
@@ -274,10 +264,6 @@
   "connectionTest": "Connection test",
   "@connectionTest": {
     "description": "Application UI: Connection test"
-  },
-  "folderTestDescription": "Check whether the selected folder can be read",
-  "@folderTestDescription": {
-    "description": "Application UI: Check whether the selected folder can be read"
   },
   "testing": "Testing",
   "@testing": {
@@ -315,15 +301,9 @@
   "@smbShareRequired": {
     "description": "Application UI: Enter a share name without slashes"
   },
-  "connectionAccessible": "Connected. Folder is accessible ({count, plural, one{1 item} other{{count} items}}).",
-  "@connectionAccessible": {
-    "description": "Application UI: Connected. Folder is accessible ({count} items).",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "format": "decimalPattern"
-      }
-    }
+  "connectionSucceeded": "Connected",
+  "@connectionSucceeded": {
+    "description": "Media source connection test succeeded"
   },
   "connectionFailedDetail": "Connection failed: {reason}",
   "@connectionFailedDetail": {
@@ -342,25 +322,25 @@
   "@editSmbSource": {
     "description": "Application UI: Edit SMB media source"
   },
-  "nasNameExample": "Example: Home NAS",
+  "nasNameExample": "e.g. Home NAS",
   "@nasNameExample": {
-    "description": "Application UI: Example: Home NAS"
+    "description": "Application UI: e.g. Home NAS"
   },
   "host": "Host",
   "@host": {
     "description": "Application UI: Host"
   },
-  "smbHostExample": "Example: 192.168.1.20",
+  "smbHostExample": "IP address or hostname",
   "@smbHostExample": {
-    "description": "Application UI: Example: 192.168.1.20"
+    "description": "Application UI: IP address or hostname"
   },
   "shareName": "Share name",
   "@shareName": {
     "description": "Application UI: Share name"
   },
-  "shareNameExample": "Example: Media",
+  "shareNameExample": "e.g. Media",
   "@shareNameExample": {
-    "description": "Application UI: Example: Media"
+    "description": "Application UI: e.g. Media"
   },
   "sharePath": "Path within share",
   "@sharePath": {
@@ -386,10 +366,6 @@
   "@showPassword": {
     "description": "Application UI: Show password"
   },
-  "smbTestDescription": "Test SMB using the current connection details",
-  "@smbTestDescription": {
-    "description": "Application UI: Test SMB using the current connection details"
-  },
   "testConnection": "Test connection",
   "@testConnection": {
     "description": "Application UI: Test connection"
@@ -414,9 +390,9 @@
   "@addWebdavSource": {
     "description": "Application UI: Add WebDAV media source"
   },
-  "webdavHostExample": "Example: 127.0.0.1",
+  "webdavHostExample": "IP address or domain",
   "@webdavHostExample": {
-    "description": "Application UI: Example: 127.0.0.1"
+    "description": "Application UI: IP address or domain"
   },
   "webdavPath": "WebDAV path",
   "@webdavPath": {
@@ -426,17 +402,21 @@
   "@port": {
     "description": "Application UI: Port"
   },
-  "httpsPortExample": "443 (optional)",
-  "@httpsPortExample": {
-    "description": "Application UI: 443 (optional)"
+  "webdavPortRequired": "Enter the port",
+  "@webdavPortRequired": {
+    "description": "Validation error when the required WebDAV port is empty"
   },
-  "httpPortExample": "80 (optional)",
-  "@httpPortExample": {
-    "description": "Application UI: 80 (optional)"
+  "webdavPortHint": "e.g. 5244",
+  "@webdavPortHint": {
+    "description": "WebDAV form placeholder: e.g. 5244"
   },
-  "webdavTestDescription": "Test WebDAV using the current connection details",
-  "@webdavTestDescription": {
-    "description": "Application UI: Test WebDAV using the current connection details"
+  "webdavUsernameHint": "WebDAV username",
+  "@webdavUsernameHint": {
+    "description": "WebDAV form placeholder: WebDAV username"
+  },
+  "webdavPasswordHint": "WebDAV password",
+  "@webdavPasswordHint": {
+    "description": "WebDAV form placeholder: WebDAV password"
   },
   "webdavHostInvalid": "Enter a valid WebDAV host",
   "@webdavHostInvalid": {

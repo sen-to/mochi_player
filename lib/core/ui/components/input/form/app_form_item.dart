@@ -13,6 +13,7 @@ class AppFormItem extends StatelessWidget {
     this.icon,
     this.subtitle,
     this.subtitleColor,
+    this.subtitleBelowControl = false,
     this.enabled = true,
     this.expandControl = true,
     this.labelWidth = AppControlMetrics.labelWidth,
@@ -23,6 +24,9 @@ class AppFormItem extends StatelessWidget {
   final String label;
   final String? subtitle;
   final Color? subtitleColor;
+
+  /// Shows supporting text across the full row, allowing it to wrap.
+  final bool subtitleBelowControl;
   final Widget control;
   final bool enabled;
   final bool expandControl;
@@ -37,30 +41,52 @@ class AppFormItem extends StatelessWidget {
         height ?? (subtitle == null ? AppControlMetrics.rowHeight : AppControlMetrics.descriptiveRowHeight);
     final labelContent = _FormItemLabel(
       label: label,
-      subtitle: subtitle,
+      subtitle: subtitleBelowControl ? null : subtitle,
       textColor: enabled ? textColor : secondaryColor,
       secondaryColor: subtitleColor ?? (enabled ? secondaryColor : secondaryColor.withAlpha(190)),
     );
 
-    return SizedBox(
-      height: resolvedHeight,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        child: Row(
+    final controlRow = Row(
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: AppControlMetrics.iconSize, color: enabled ? secondaryColor : secondaryColor.withAlpha(170)),
+          const SizedBox(width: AppControlMetrics.iconLabelGap),
+        ],
+        if (labelWidth == null) Expanded(child: labelContent) else SizedBox(width: labelWidth, child: labelContent),
+        const SizedBox(width: AppControlMetrics.labelControlGap),
+        if (expandControl) Expanded(child: control) else control,
+      ],
+    );
+
+    if (subtitleBelowControl) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: AppControlMetrics.iconSize,
-                color: enabled ? secondaryColor : secondaryColor.withAlpha(170),
+            ConstrainedBox(
+              constraints: BoxConstraints(minHeight: height ?? AppControlMetrics.rowHeight),
+              child: controlRow,
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                subtitle!,
+                style: AppTypography.formSupporting.copyWith(
+                  color: subtitleColor ?? (enabled ? secondaryColor : secondaryColor.withAlpha(190)),
+                ),
               ),
-              const SizedBox(width: AppControlMetrics.iconLabelGap),
             ],
-            if (labelWidth == null) Expanded(child: labelContent) else SizedBox(width: labelWidth, child: labelContent),
-            const SizedBox(width: AppControlMetrics.labelControlGap),
-            if (expandControl) Expanded(child: control) else control,
           ],
         ),
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: resolvedHeight),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: subtitle == null ? 0 : AppSpacing.sm),
+        child: controlRow,
       ),
     );
   }
@@ -82,6 +108,7 @@ class _FormItemLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,12 +120,7 @@ class _FormItemLabel extends StatelessWidget {
         ),
         if (subtitle != null) ...[
           const SizedBox(height: AppSpacing.xxs),
-          Text(
-            subtitle!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTypography.formSupporting.copyWith(color: secondaryColor),
-          ),
+          Text(subtitle!, style: AppTypography.formSupporting.copyWith(color: secondaryColor)),
         ],
       ],
     );
