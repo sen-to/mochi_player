@@ -14,14 +14,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('connection and scan messages format zero, singular, plural and large counts', () async {
+  test('connection messages stay concise and scan messages format counts', () async {
     final en = await AppLocalizations.delegate.load(const Locale('en'));
     final zh = await AppLocalizations.delegate.load(const Locale('zh'));
-    expect(en.directoryAccessible(0), 'Folder is accessible (0 items)');
-    expect(en.directoryAccessible(1), 'Folder is accessible (1 item)');
-    expect(en.connectionAccessible(2), 'Connected. Folder is accessible (2 items).');
-    expect(en.connectionAccessible(1234), 'Connected. Folder is accessible (1,234 items).');
-    expect(zh.directoryAccessible(1234), '目录可访问（1,234 项）');
+    expect(en.connectionSucceeded, 'Connected');
+    expect(zh.connectionSucceeded, '连接成功');
+    expect(en.webdavPortRequired, 'Enter the port');
+    expect(zh.webdavPortRequired, '请输入端口');
+    expect(en.fileCount(0), '0 files');
+    expect(en.fileCount(1), '1 file');
+    expect(en.fileCount(1234), '1,234 files');
     expect(en.sourceDeleted(1), 'Media source deleted; 1 media file removed from the library');
     expect(en.scanSummary(1, 0, 1234), 'Scan complete: 1 video found, 0 added, 1,234 removed');
     expect(en.scanPartialFailure('Scan', 1, 'TMDB'), 'Scan; 1 media source failed to scan; TMDB');
