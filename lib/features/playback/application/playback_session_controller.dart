@@ -28,6 +28,7 @@ class PlaybackSessionController {
   final PlaybackQueue _queue;
   final PlaybackProgressWriter _progressWriter;
   PlaybackTarget _currentTarget;
+  final List<PlaybackTarget> _retiredTargets = [];
   int _lastSavedPositionMs = -1;
   bool _isSwitching = false;
   bool _closing = false;
@@ -35,6 +36,19 @@ class PlaybackSessionController {
   void beginShutdown() => _closing = true;
 
   Future<void> drainProgress() => _progressWriter.drain();
+
+  /// Called when the backend's next open attempt settles, including failures.
+  Future<void> releaseRetiredTargets() async {
+    final targets = List<PlaybackTarget>.of(_retiredTargets);
+    _retiredTargets.clear();
+    await Future.wait(targets.map((target) => target.release()));
+  }
+
+  /// Called after backend disposal. Late resolutions release themselves.
+  Future<void> releaseTargets() async {
+    beginShutdown();
+    await Future.wait([_currentTarget.release(), releaseRetiredTargets()]);
+  }
 
   MediaFile get currentItem => _queue.current;
 
@@ -78,13 +92,22 @@ class PlaybackSessionController {
       } catch (_) {
         // Playback can continue even when persistence is temporarily down.
       }
-      final target = await _resolver.resolve(targetItem);
-      if (_closing) return null;
+      PlaybackTarget? target;
+      try {
+        target = await _resolver.resolve(targetItem);
+      } catch (_) {
+        return _closing ? null : PlaybackQueueMoveResult.failed(targetItem);
+      }
+      if (_closing) {
+        await target?.release();
+        return null;
+      }
       if (target == null) {
         return PlaybackQueueMoveResult.failed(targetItem);
       }
 
       _queue.selectOffset(offset);
+      _retiredTargets.add(_currentTarget);
       _currentTarget = target;
       _lastSavedPositionMs = -1;
       return PlaybackQueueMoveResult.ready(targetItem);

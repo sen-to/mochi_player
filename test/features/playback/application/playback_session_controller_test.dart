@@ -36,6 +36,71 @@ class _FakePlaybackTargetResolver implements PlaybackTargetResolver {
 }
 
 void main() {
+  test('keeps old resources until the backend switches, then releases all on exit', () async {
+    final first = _file(1, '/one.mkv');
+    final second = _file(2, '/two.mkv');
+    final oldResource = _Resource();
+    final newResource = _Resource();
+    final session = PlaybackSessionController(
+      mediaRepository: _FakePlaybackMediaRepository(),
+      initialItem: first,
+      queueItems: [first, second],
+      initialTarget: PlaybackTarget(url: 'http://127.0.0.1/old', resource: oldResource),
+      resolver: _FakePlaybackTargetResolver(
+        (_) async => PlaybackTarget(url: 'http://127.0.0.1/new', resource: newResource),
+      ),
+    );
+    expect((await session.moveBy(1, positionMs: 0, durationMs: 0))?.isReady, isTrue);
+    expect(oldResource.closed, isFalse);
+    await session.releaseRetiredTargets();
+    expect(oldResource.closed, isTrue);
+    expect(newResource.closed, isFalse);
+    await session.releaseTargets();
+    expect(newResource.closed, isTrue);
+  });
+
+  test('late target resolution releases its resource after session shutdown', () async {
+    final first = _file(1, '/one.mkv');
+    final second = _file(2, '/two.mkv');
+    final pending = Completer<PlaybackTarget?>();
+    final resolving = Completer<void>();
+    final resource = _Resource();
+    final session = PlaybackSessionController(
+      mediaRepository: _FakePlaybackMediaRepository(),
+      initialItem: first,
+      queueItems: [first, second],
+      initialTarget: const PlaybackTarget(url: 'file:///one.mkv'),
+      resolver: _FakePlaybackTargetResolver((_) {
+        resolving.complete();
+        return pending.future;
+      }),
+    );
+    final move = session.moveBy(1, positionMs: 0, durationMs: 0);
+    await resolving.future;
+    await session.releaseTargets();
+    pending.complete(PlaybackTarget(url: 'http://127.0.0.1/late', resource: resource));
+    expect(await move, isNull);
+    expect(resource.closed, isTrue);
+    expect(session.currentItem, first);
+  });
+
+  test('a failed SMB resolution preserves the active target', () async {
+    final first = _file(1, '/one.mkv');
+    final second = _file(2, '/two.mkv');
+    final resource = _Resource();
+    final session = PlaybackSessionController(
+      mediaRepository: _FakePlaybackMediaRepository(),
+      initialItem: first,
+      queueItems: [first, second],
+      initialTarget: PlaybackTarget(url: 'http://127.0.0.1/old', resource: resource),
+      resolver: _FakePlaybackTargetResolver((_) async => throw StateError('NAS unavailable')),
+    );
+    expect((await session.moveBy(1, positionMs: 0, durationMs: 0))?.isReady, isFalse);
+    expect(session.currentItem, first);
+    expect(resource.closed, isFalse);
+    await session.releaseTargets();
+  });
+
   test('exit during queue resolution cannot commit or start another media item', () async {
     final store = _FakePlaybackMediaRepository();
     final first = _file(1, '/one.mkv');
@@ -125,4 +190,10 @@ void main() {
     expect(move?.isReady, isTrue);
     expect(session.currentItem, second);
   });
+}
+
+class _Resource implements PlaybackTargetResource {
+  bool closed = false;
+  @override
+  Future<void> close() async => closed = true;
 }

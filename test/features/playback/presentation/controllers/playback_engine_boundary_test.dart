@@ -79,6 +79,28 @@ void main() {
     expect(engine.events.indexOf('options'), lessThan(engine.events.indexOf('open')));
   });
 
+  test('a failed queue open releases its previous target before window shutdown', () async {
+    final resource = _TargetResource();
+    final failedEngine = _FailingOpenEngine();
+    final failedController = PlayerPlaybackController(
+      engine: failedEngine,
+      mediaRepository: store,
+      settings: const AppSettings(),
+      initialItem: store.item,
+      queueItems: [store.item],
+      initialTarget: PlaybackTarget(url: 'http://127.0.0.1/video?token=old', resource: resource),
+      resolver: _Resolver(),
+    );
+    try {
+      await failedController.playQueueOffset(0);
+      expect(failedController.playerError, isNotNull);
+      expect(resource.closeCalls, 1);
+    } finally {
+      await failedController.shutdown();
+      failedController.dispose();
+    }
+  });
+
   test('domain track events retain metadata, selection and external subtitle identity', () async {
     const audio = PlaybackAudioTrack('1', 'Japanese', 'ja', codec: 'aac', channels: '5.1', isDefault: true);
     const subtitle = PlaybackSubtitleTrack('2', 'Japanese', 'ja');
@@ -150,4 +172,15 @@ void main() {
 class _Resolver implements PlaybackTargetResolver {
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) async => const PlaybackTarget(url: 'https://example.com/movie.mkv');
+}
+
+class _FailingOpenEngine extends FakePlaybackEngine {
+  @override
+  Future<void> open(PlaybackTarget target, {Duration? start}) async => throw StateError('Unsupported media');
+}
+
+class _TargetResource implements PlaybackTargetResource {
+  int closeCalls = 0;
+  @override
+  Future<void> close() async => closeCalls++;
 }

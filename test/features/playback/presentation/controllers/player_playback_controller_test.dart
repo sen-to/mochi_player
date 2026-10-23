@@ -17,10 +17,10 @@ void main() {
       );
     });
 
-    test('delays the buffering spinner for direct SMB streams', () {
+    test('shows the buffering spinner immediately for SMB loopback HTTP streams', () {
       expect(
-        PlayerPlaybackController.bufferingIndicatorDelayFor('smb://nas.local/Media/example.mkv'),
-        PlayerPlaybackController.localBufferingIndicatorDelay,
+        PlayerPlaybackController.bufferingIndicatorDelayFor('http://127.0.0.1:53127/video?token=example'),
+        Duration.zero,
       );
     });
   });

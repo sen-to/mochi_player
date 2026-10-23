@@ -25,9 +25,9 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 | `network.client` | ✅ | ✅ | 访问 WebDAV / SMB / TMDB |
 | `files.user-selected.read-only` | ✅ | ✅ | 用户选择本地目录 |
 | `allow-jit` | ✅ | — | Flutter 调试所需 |
-| `network.server` | ✅ | ❌ | **仅 Debug 具备** |
+| `network.server` | ✅ | ✅ | SMB 本地 HTTP 回源监听回环端口 |
 
-需要注意：**Release 版本没有 `network.server`**。若按 [0005](../decisions/0005-smb-playback-path.md) 引入本地 HTTP 回源服务（监听回环端口），必须先为 Release 补上该权限，否则沙箱会拒绝监听。
+[0005](../decisions/0005-smb-playback-path.md) 的 SMB 本地 HTTP 回源已为 Release 补上 `network.server`，服务仍仅监听 `127.0.0.1` 并检查会话令牌。2026-10-23 的 Release 原生 HTTP 冒烟通过，覆盖沙箱内监听、播放、前后 seek 与清理；未使用真实 NAS，不代替 SMB 服务端兼容性验收。
 
 ## 窗口外观
 

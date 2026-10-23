@@ -57,6 +57,38 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 回归覆盖索引
 
+### SMB HTTP 播放回源（2026-10-23）
+
+`test/core/infrastructure/storage/smb_http_playback_proxy_test.dart` 使用真实本机 HTTP 请求和内存 SMB 读取替身，验证 HEAD / GET、单段 / 开放结束 / 后缀 Range、越界 416、无效 / 多段 Range 回退、If-Range 回退、空文件、短读与分块、令牌 / Host / 路径校验、并发偏移及请求上限、读取失败和关闭中断。解析器测试确认凭据只交给读取器，URL 不含 SMB 主机和密码，目标重复释放只关闭一次。
+
+播放会话测试覆盖引擎换片前保留旧目标、换片后与退出时释放、退出后迟到结果释放，以及解析失败保持原会话；日志测试确认回源令牌被脱敏。提交前审查还补齐新媒体打开失败时旧目标立即释放的回归，避免反复换片失败积累连接。上述测试不连接真实 SMB 服务，不证明 NAS 协议与网络性能。
+
+首次接入全量 Dart 回归 258 项通过；后续快速 seek 修复结果见下文。静态检查仅保留固定 SDK 的 Material / Cupertino 导入弃用 info。
+
+快速 seek 回归复现过旧实现的缺陷：在源读取阻塞期间连续中断 8 个 Range 请求，最新请求收到 503 而非 206。现改为限制 4 个活动传输、让最新请求替换最旧传输，并在 SMB 读取出队前检查取消状态；该测试要求最新范围仍返回正确字节，旧任务不会占位阻断新请求。`HttpResponse.done` 不保证在下一次写入前就发现客户端已经断开，不能只依赖它回收名额。
+
+修复及提交前审查后全量 260 项测试通过，静态检查无错误或警告；macOS Release 已输出 `SMB HTTP RAPID SEEK PASS` 和 `SMB HTTP PLAYBACK SMOKE COMPLETE`。仍需在用户报告问题的真实 NAS / MP4 上重试，不能将隔离冒烟视为该媒体文件已经验收。
+
+原生冒烟使用正式 runner、media_kit / libmpv 和临时生成的 RGB AVI，读取替身经正式 HTTP 转发服务提供视频，不访问用户数据库或凭据：
+
+```bash
+fvm flutter run -d macos --release -t integration_test/smb_http_playback_smoke.dart
+# Windows 待验收：
+fvm flutter run -d windows --release -t integration_test/smb_http_playback_smoke.dart
+```
+
+2026-10-23 首次 macOS Release 已输出 `SMB HTTP PLAYBACK SMOKE COMPLETE`，验证沙箱内监听、视频开始播放、向前 / 向后 seek、关闭引擎后释放目标与读取器。快速 seek 补充入口使用 40 秒视频和每块 30ms 读取延迟，每轮间隔 15ms 发出 8 次 seek，连续 3 轮后继续跳转；成功时另输出 `SMB HTTP RAPID SEEK PASS`。CLI 在应用自行退出后可能仍保持运行，看到成功标记后可结束 CLI。此证据不覆盖真实 SMB 连接、重连、Windows 或高码率视频。
+
+同次原有 `windowing_smoke.dart` 的 macOS Release 回归也输出 `WINDOWING SMOKE COMPLETE`，覆盖替换播放器、关闭重开、全屏退出和最终进度落库，检查目标资源所有权接入后的窗口生命周期回归。
+
+真实 NAS 手工验收应补充以下记录：
+
+- 记录操作系统、NAS / SMB 服务端版本、认证方式与样片大小 / 码率；不要记录密码或完整会话令牌。
+- 从 SMB 媒体源打开视频，前后多次拖动、接近末尾跳转，再关闭 / 重开确认续播；切换队列与更换来源后确认新文件播放正常。
+- 播放中断开再恢复网络，确认错误可见、可关闭，重新打开可恢复；高码率样片记录缓冲与 seek 延迟。
+- 单独关闭播放器后主窗口正常；重复打开 / 关闭及关闭主窗口退出，不残留监听端口或 SMB worker。
+- macOS Debug / Release 与 Windows 分别验收，不能将本机 HTTP 冒烟推广为真实 NAS 全平台通过。
+
 ### 媒体源连接结果布局
 
 媒体源启用开关复用 `SettingsSwitchItem`：开关保留自身宽度，标题和说明使用剩余空间。共享表单辅助说明允许换行，行高按内容增长；本地目录路径显示在整行下方。表单 Widget 测试覆盖 300 逻辑像素宽度下中英文启用说明、普通及 1.5 倍字号的文字边界，检查说明不被省略且不与开关重叠。
@@ -132,7 +164,7 @@ fvm flutter run -d windows -t integration_test/windowing_smoke.dart
 | 语言与布局 | 三种偏好、重启、播放 / 换片中切换、英文长文案、已有弹层 | 双视图一致、不重开媒体，格式 / 复数正确，无溢出 |
 | 边界与发布 | 多显示器 / DPI、跨 Spaces、遮挡 / 后台、长时间播放、键盘 / VoiceOver、安装启动 | 逐平台记录，构建与签名 / 公证分别确认 |
 
-真实 SMB 浏览 / 超时与捆绑播放器协议能力分别验证；直链播放实测失败，HTTP 回源尚未实现。Emby、系统 PiP 未实施，不加入本轮应通过的清单。
+真实 SMB 浏览 / 超时与 HTTP 转发播放分别验证；已移除不可用的直链路径，回源已接入，真实 NAS 播放与 seek 仍待验收。Emby、系统 PiP 未实施，不加入本轮应通过的清单。
 
 ## CI 与待完善项
 

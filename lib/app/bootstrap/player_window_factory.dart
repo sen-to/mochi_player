@@ -24,17 +24,24 @@ Future<PlayerWindowSession> createPlayerWindow({
   final closeCoordinator = PlayerWindowCloseCoordinator();
   final lifecycle = _PlayerWindowLifecycle(session: session, resolver: resolver, closeCoordinator: closeCoordinator);
   const windowSetup = WindowSetup(size: Size(1280, 720), minimumSize: Size(720, 405));
-  final windows = host.create(
-    setup: windowSetup,
-    builder: (_) => PlayerWindowApp(
-      session: session,
-      closeCoordinator: closeCoordinator,
-      onCloseRequested: lifecycle.close,
-      windowControls: lifecycle.windowControls,
-      engineFactory: engineFactory,
-      resolver: resolver,
-    ),
-  );
+  final WindowService windows;
+  try {
+    windows = host.create(
+      setup: windowSetup,
+      builder: (_) => PlayerWindowApp(
+        session: session,
+        closeCoordinator: closeCoordinator,
+        onCloseRequested: lifecycle.close,
+        windowControls: lifecycle.windowControls,
+        engineFactory: engineFactory,
+        resolver: resolver,
+      ),
+    );
+  } catch (_) {
+    await bootstrap.initialTarget?.release();
+    session.dispose();
+    rethrow;
+  }
   lifecycle.windows = windows;
   lifecycle.windowControls = WindowControlsController(viewId: windows.viewId);
   try {
@@ -79,15 +86,23 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
       mediaRepository: session.bootstrap.mediaRepository,
       resolver: resolver,
     );
-    if (!next.isReady) throw StateError('播放器无法准备新的媒体请求。');
-    if (isClosing) return;
-    await closeCoordinator.flushProgress();
-    await closeCoordinator.releaseResources();
-    if (isClosing) return;
-    session.close();
-    await WidgetsBinding.instance.endOfFrame;
-    if (!isClosing) session.open(next);
-    await WidgetsBinding.instance.endOfFrame;
+    var adopted = false;
+    try {
+      if (!next.isReady) throw StateError('播放器无法准备新的媒体请求。');
+      if (isClosing) return;
+      await closeCoordinator.flushProgress();
+      await closeCoordinator.releaseResources();
+      await session.bootstrap.initialTarget?.release();
+      if (isClosing) return;
+      session.close();
+      await WidgetsBinding.instance.endOfFrame;
+      if (isClosing) return;
+      session.open(next);
+      adopted = true;
+      await WidgetsBinding.instance.endOfFrame;
+    } finally {
+      if (!adopted) await next.initialTarget?.release();
+    }
   }
 
   @override
@@ -120,8 +135,14 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
     try {
       await windows.close();
     } finally {
-      windowControls.dispose();
-      session.dispose();
+      try {
+        // Also covers a bootstrap whose page never mounted. Normal playback
+        // closes it through its session; target resources close idempotently.
+        await session.bootstrap.initialTarget?.release();
+      } finally {
+        windowControls.dispose();
+        session.dispose();
+      }
     }
   }
 }

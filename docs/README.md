@@ -46,7 +46,7 @@
 | [0002](decisions/0002-playback-engine.md) | libmpv 经 media_kit 接入，PlaybackEngine 门面 | Accepted |
 | [0003](decisions/0003-persistence-migration.md) | drift + SQLite 与新库迁移边界 | Accepted |
 | [0004](decisions/0004-i18n-l10n.md) | gen-l10n / ARB、应用内语言切换 | Accepted |
-| [0005](decisions/0005-smb-playback-path.md) | SMB 本地 HTTP 回源方向 | Accepted，回源尚未实现 |
+| [0005](decisions/0005-smb-playback-path.md) | SMB 本地 HTTP 回源 | Accepted，已接入，真实 NAS 待验收 |
 | [0006](decisions/0006-media-server-integration.md) | 独立媒体服务器层，Emby 优先 | Accepted，适配器尚未实现 |
 
 `Accepted` 表示决策已接受，不等于功能已交付；`Proposed` 表示待确认；`Superseded by NNNN` 表示已被其他 ADR 替代。新决策从 [模板](decisions/0000-template.md) 开始，必须写重估条件。

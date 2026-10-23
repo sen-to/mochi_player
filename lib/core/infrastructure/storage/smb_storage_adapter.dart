@@ -1,6 +1,7 @@
 import 'package:dart_smb2/dart_smb2.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/domain/storage/smb_source_location.dart';
+import 'package:mochi_player/core/infrastructure/storage/smb_client_connection.dart';
 
 /// A protocol-neutral SMB directory entry, kept small so callers do not
 /// depend on the third-party SMB client package.
@@ -50,15 +51,7 @@ class SmbStorageAdapter implements StorageAdapter {
     SmbSourceLocation location,
     StorageCredentials? credentials,
   ) async {
-    final username = credentials?.username.trim() ?? '';
-    final password = credentials?.password ?? '';
-    final pool = await Smb2Pool.connect(
-      host: location.host,
-      share: location.share,
-      user: username.isEmpty ? null : username,
-      password: password.isEmpty ? null : password,
-      workers: 1,
-    );
+    final pool = await connectSmbPool(location, credentials);
     return _Smb2DirectoryClient(pool);
   }
 }

@@ -3,6 +3,12 @@ import 'package:mochi_player/features/playback/application/playback_engine.dart'
 import 'package:mochi_player/features/playback/application/playback_log_buffer.dart';
 
 void main() {
+  test('redacts loopback playback session tokens', () {
+    final sanitized = PlaybackLogBuffer.sanitize('Opening http://127.0.0.1:53127/video?token=session-secret');
+    expect(sanitized, contains('127.0.0.1:53127/video'));
+    expect(sanitized, isNot(contains('session-secret')));
+  });
+
   test('keeps only the newest libmpv entries', () {
     final buffer = PlaybackLogBuffer(capacity: 2);
 

@@ -4,7 +4,7 @@
 
 ## 系统边界
 
-Mochi Player 是面向 macOS / Windows 的本地优先桌面媒体库播放器。文件系统媒体源包括本地、WebDAV 和 SMB；扫描与 TMDB 刮削形成本地索引，播放器使用 libmpv（经 media_kit）。SMB 可浏览 / 扫描，但当前捆绑播放器不能直接打开或 seek SMB URL；HTTP 回源和媒体服务器接入仍是计划。
+Mochi Player 是面向 macOS / Windows 的本地优先桌面媒体库播放器。文件系统媒体源包括本地、WebDAV 和 SMB；扫描与 TMDB 刮削形成本地索引，播放器使用 libmpv（经 media_kit）。SMB 浏览 / 扫描使用 dart_smb2，播放通过本地 HTTP Range 回源接入，不依赖播放器的 SMB 协议；真实 NAS 验收与媒体服务器接入仍待完成。
 
 ```mermaid
 flowchart LR

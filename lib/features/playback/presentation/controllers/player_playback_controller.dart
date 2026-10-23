@@ -328,7 +328,13 @@ class PlayerPlaybackController extends ChangeNotifier {
     if (!_canUsePlayer(generation)) return;
 
     try {
-      await engine.open(_session.currentTarget, start: resumePosition);
+      try {
+        await engine.open(_session.currentTarget, start: resumePosition);
+      } finally {
+        // A failed open has also retired the previous queue target. Do not
+        // accumulate its SMB connection across repeated failed queue moves.
+        if (_canUsePlayer(generation)) await _session.releaseRetiredTargets();
+      }
       if (!_canUsePlayer(generation)) return;
       await _applySubtitleStyleMode(generation);
       if (!_canUsePlayer(generation)) return;
@@ -450,12 +456,20 @@ class PlayerPlaybackController extends ChangeNotifier {
 
   Future<void> _releasePlayer() async {
     _isClosing = true;
+    _session.beginShutdown();
     _nextMediaOpenGeneration();
     _progressSaveTimer?.cancel();
     _bufferingIndicatorTimer?.cancel();
     _resumeNoticeTimer?.cancel();
-    await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
-    await engine.dispose();
+    try {
+      await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
+    } finally {
+      try {
+        await engine.dispose();
+      } finally {
+        await _session.releaseTargets();
+      }
+    }
   }
 
   Future<void> _handlePlaybackCompleted() async {

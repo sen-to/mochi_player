@@ -4,8 +4,8 @@ import 'dart:typed_data';
 
 /// A moving RGB AVI created inside the test app's sandbox, without network,
 /// copyrighted media, external encoders or checked-in binary assets.
-Future<File> createVideoFixture(Directory directory) async {
-  const width = 160, height = 90, fps = 10, frames = 100;
+Future<File> createVideoFixture(Directory directory, {int frames = 100}) async {
+  const width = 160, height = 90, fps = 10;
   const frameSize = width * height * 3;
   Uint8List words(List<int> values) {
     final data = ByteData(values.length * 4);
