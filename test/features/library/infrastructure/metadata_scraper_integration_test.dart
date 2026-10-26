@@ -1,8 +1,9 @@
+import 'package:mochi_player/features/library/infrastructure/tmdb_metadata_source.dart';
 import 'package:dio/dio.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import '../../../support/tmdb_fixture.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
+import 'package:mochi_player/features/library/infrastructure/database_metadata_repository.dart';
 import '../../../support/database_fixture.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,10 +11,10 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/database/app_database.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
+import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
-import 'package:mochi_player/features/library/infrastructure/metadata_match_resolver.dart';
-import 'package:mochi_player/features/library/infrastructure/metadata_scraper.dart';
+import 'package:mochi_player/features/library/application/metadata_match_resolver.dart';
+import 'package:mochi_player/features/library/application/metadata_scraper.dart';
 
 void main() {
   late DatabaseService db;
@@ -54,8 +55,11 @@ void main() {
         );
       });
       final scraper = MetadataScraper(
-        importer: MetadataImporter(database: db),
-        matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+        repository: DatabaseMetadataRepository(database: db),
+        matchResolver: MetadataMatchResolver(
+          source: TmdbMetadataSource(service: tmdb),
+          repository: DatabaseMetadataRepository(database: db),
+        ),
       );
       final result = await scraper.scrapeBatch([file]);
       expect(result.failCount, 1);
@@ -93,8 +97,11 @@ void main() {
       (request, handler) => handler.resolve(Response<dynamic>(requestOptions: request, statusCode: 404)),
     );
     final result = await MetadataScraper(
-      importer: MetadataImporter(database: db),
-      matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+      repository: DatabaseMetadataRepository(database: db),
+      matchResolver: MetadataMatchResolver(
+        source: TmdbMetadataSource(service: tmdb),
+        repository: DatabaseMetadataRepository(database: db),
+      ),
     ).scrapeBatch([file]);
     expect(result.requestFailures.single.statusCode, 404);
     expect(result.failCount, 1);
@@ -127,8 +134,11 @@ void main() {
       ),
     );
     final result = await MetadataScraper(
-      importer: MetadataImporter(database: db),
-      matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+      repository: DatabaseMetadataRepository(database: db),
+      matchResolver: MetadataMatchResolver(
+        source: TmdbMetadataSource(service: tmdb),
+        repository: DatabaseMetadataRepository(database: db),
+      ),
     ).scrapeBatch([file]);
     expect(result.failCount, 1);
     expect(result.requestFailures, isEmpty);
@@ -179,12 +189,15 @@ void main() {
       }
     });
     final result = await MetadataScraper(
-      importer: MetadataImporter(database: db),
-      matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+      repository: DatabaseMetadataRepository(database: db),
+      matchResolver: MetadataMatchResolver(
+        source: TmdbMetadataSource(service: tmdb),
+        repository: DatabaseMetadataRepository(database: db),
+      ),
     ).scrapeBatch(files);
     expect(result.successCount, 1);
     expect(result.failCount, 2);
-    expect(result.requestFailures.single.kind, TmdbFailureKind.timeout);
+    expect(result.requestFailures.single.userFailure, AppFailure.tmdbTimeout);
     expect((await db.getMediaFile('nas', '/season1'))!.episodeKey, '2_s1e1');
     final failed = (await db.getMediaFile('nas', '/season2'))!;
     expect(failed.episodeKey, '1_s2e1');
@@ -215,7 +228,7 @@ void main() {
     await db.updateProgress(files.first, 40, duration: 100);
     await db.setTitleFavorite(const TVShow(tmdbId: '999', title: 'Show'), true);
     final result = await MetadataScraper(
-      importer: MetadataImporter(database: db),
+      repository: DatabaseMetadataRepository(database: db),
       matchResolver: _EpisodeResolver(db),
     ).scrapeBatch(files);
     expect(result.successCount, 1);
@@ -245,7 +258,10 @@ void main() {
       tvShowTmdbId: '1',
       addedAt: DateTime.utc(2026),
     );
-    final resolver = MetadataMatchResolver(tmdb: TmdbService(), database: db);
+    final resolver = MetadataMatchResolver(
+      source: TmdbMetadataSource(service: TmdbService()),
+      repository: DatabaseMetadataRepository(database: db),
+    );
     final candidate = ScrapeCandidate.fromMediaFile(file);
     expect((await resolver.resolveMovie(candidate)).metadata!.tmdbId, '2');
     expect((await resolver.resolveTVShow(candidate)).metadata!.tmdbId, '2');
@@ -253,7 +269,11 @@ void main() {
 }
 
 class _EpisodeResolver extends MetadataMatchResolver {
-  _EpisodeResolver(DatabaseService database) : super(tmdb: TmdbService(), database: database);
+  _EpisodeResolver(DatabaseService database)
+    : super(
+        source: TmdbMetadataSource(service: TmdbService()),
+        repository: DatabaseMetadataRepository(database: database),
+      );
   @override
   bool get isConfigured => true;
 
@@ -264,9 +284,8 @@ class _EpisodeResolver extends MetadataMatchResolver {
   );
 
   @override
-  Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) async =>
-      const TmdbSeasonResult(
-        season: Season(tvShowTmdbId: '123', seasonNumber: 1, title: 'Season'),
-        episodes: [Episode(tvShowTmdbId: '123', seasonNumber: 1, episodeNumber: 1, title: 'One')],
-      );
+  Future<SeasonMetadata?> fetchSeason(String showId, int seasonNumber) async => const SeasonMetadata(
+    season: Season(tvShowTmdbId: '123', seasonNumber: 1, title: 'Season'),
+    episodes: [Episode(tvShowTmdbId: '123', seasonNumber: 1, episodeNumber: 1, title: 'One')],
+  );
 }

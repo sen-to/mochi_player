@@ -10,7 +10,7 @@
 | mini | 复用播放器窗口，缩小 / 置顶并恢复原状态 | 两平台真实媒体交互；系统 PiP 不在当前范围 |
 | [播放引擎](architecture/playback.md#播放引擎) | PlaybackEngine 门面，唯一后端为 media_kit / libmpv | 两平台编码、音轨、字幕、硬解、HDR 与长时间样片 |
 | [媒体库与持久化](architecture/data-model.md) | drift + SQLite schema 2，六表、约束 / 索引、共享后台连接与字段级写入；TMDB 请求失败与未匹配分类、失败保留原关联 | 大库容量、元数据回收、请求重试 / 退避、凭据安全存储；正式发布后的保留数据迁移 |
-| [应用职责](architecture/overview.md#职责边界) | 页面通过应用入口操作；依赖显式组装；播放持久化通过契约隔离 | 仍有应用层具体实现依赖，尚非严格 Clean Architecture |
+| [应用职责](architecture/overview.md#职责边界) | 页面通过应用入口操作；依赖显式组装；播放持久化与媒体库同步 / 元数据链路通过契约隔离 | 展示查询、收藏与来源管理仍有具体实现依赖；尚非全项目严格 Clean Architecture |
 | [本地化](architecture/localization.md) | 中英 / 跟随系统，共享语言偏好与 ARB 生成 | 全页面布局、系统语言变化与原生界面交互 |
 | 本地 / WebDAV | 浏览、扫描、URL 与认证头解析 | 真实媒体及不同服务端 / 网络条件 |
 | [SMB 播放](architecture/playback.md#smb-http-回源) | dart_smb2 随机读 + 回环 HTTP Range；会话资源释放与快速 seek 请求替换 | 问题报告所用的 NAS / MP4 重测；真实认证、重连、高码率及 Windows 运行 |

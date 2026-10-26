@@ -1,12 +1,20 @@
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
+import 'package:mochi_player/features/library/application/metadata_repository.dart';
 
 /// Imports provider metadata and matches atomically, without writing user state.
-class MetadataImporter {
-  MetadataImporter({required DatabaseService database}) : _database = database;
+class DatabaseMetadataRepository implements MetadataRepository {
+  DatabaseMetadataRepository({required DatabaseService database}) : _database = database;
   final DatabaseService _database;
 
+  @override
+  Future<Movie?> findMovie(String id) => _database.getMovieByTmdbId(id);
+
+  @override
+  Future<TVShow?> findTVShow(String id) => _database.getTVShowByTmdbId(id);
+
+  @override
   Future<bool> importMovie(Movie movie, MediaFile file) => _database.database.transaction(() async {
     final isNew = await _database.getMovieByTmdbId(movie.tmdbId) == null;
     await _database.saveMovieMetadata(movie);
@@ -21,13 +29,15 @@ class MetadataImporter {
     return isNew;
   });
 
-  Future<bool> importTVShow(TVShow show) async {
+  @override
+  Future<bool> importTVShow(TVShow show) => _database.database.transaction(() async {
     final isNew = await _database.getTVShowByTmdbId(show.tmdbId) == null;
     await _database.saveTVShowMetadata(show);
     return isNew;
-  }
+  });
 
-  Future<Set<String>> importSeasonEpisodes(TmdbSeasonResult result, String showId, List<MediaFile> files) =>
+  @override
+  Future<Set<String>> importSeasonEpisodes(SeasonMetadata result, String showId, List<MediaFile> files) =>
       _database.database.transaction(() async {
         if (result.season.tvShowTmdbId != showId) {
           throw ArgumentError('Season does not belong to the requested show');
@@ -48,6 +58,7 @@ class MetadataImporter {
         return matches.map((file) => file.storageKey).toSet();
       });
 
+  @override
   Future<void> markUnmatched(List<MediaFile> files) => _database.updateMediaMatches([
     for (final file in files)
       file.copyWith(

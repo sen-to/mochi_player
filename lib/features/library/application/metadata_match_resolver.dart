@@ -1,35 +1,37 @@
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/core/domain/media/season_metadata.dart';
+import 'package:mochi_player/features/library/application/metadata_repository.dart';
+import 'package:mochi_player/features/library/application/metadata_source.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
 import 'package:mochi_player/features/library/application/scrape_plan.dart';
 
-/// Resolves parsed local media into a single, confidence-checked TMDB match.
-/// Persistence of fetched metadata belongs to the importer, not this class.
+/// Resolves explicit/local IDs before trying ordered title searches.
+/// Metadata imports belong to the repository, not this matching policy.
 class MetadataMatchResolver {
-  MetadataMatchResolver({required TmdbService tmdb, required DatabaseService database, ScrapePlanFactory? planFactory})
-    : _tmdb = tmdb,
-      _database = database,
-      _planFactory = planFactory ?? const ScrapePlanFactory();
+  MetadataMatchResolver({
+    required MetadataSource source,
+    required MetadataRepository repository,
+    ScrapePlanFactory? planFactory,
+  }) : _source = source,
+       _repository = repository,
+       _planFactory = planFactory ?? const ScrapePlanFactory();
 
-  final TmdbService _tmdb;
-  final DatabaseService _database;
+  final MetadataSource _source;
+  final MetadataRepository _repository;
   final ScrapePlanFactory _planFactory;
 
-  bool get isConfigured => _tmdb.isConfigured;
+  bool get isConfigured => _source.isConfigured;
 
-  Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) =>
-      _tmdb.fetchSeason(tvId, seasonNumber, showTmdbId: showTmdbId);
+  Future<SeasonMetadata?> fetchSeason(String showId, int seasonNumber) => _source.fetchSeason(showId, seasonNumber);
 
   Future<MetadataMatch<Movie>> resolveMovie(ScrapeCandidate candidate) async {
     final knownId = candidate.numericExplicitTmdbId ?? candidate.movieTmdbId;
     if (knownId != null) {
-      final local = await _database.getMovieByTmdbId(knownId);
+      final local = await _repository.findMovie(knownId);
       if (local != null) {
         return MetadataMatch.confirmed(local, source: MetadataMatchSource.localId);
       }
-      final remote = await _tmdb.fetchMovieById(int.parse(knownId));
+      final remote = await _source.fetchMovieById(knownId);
       if (remote != null) {
         return MetadataMatch.confirmed(
           remote,
@@ -50,11 +52,11 @@ class MetadataMatchResolver {
   Future<MetadataMatch<TVShow>> resolveTVShow(ScrapeCandidate candidate) async {
     final knownShowId = candidate.numericExplicitTmdbId ?? candidate.tvShowTmdbId;
     if (knownShowId != null) {
-      final local = await _database.getTVShowByTmdbId(knownShowId);
+      final local = await _repository.findTVShow(knownShowId);
       if (local != null) {
         return MetadataMatch.confirmed(local, source: MetadataMatchSource.localId);
       }
-      final remote = await _tmdb.fetchTVShowById(int.parse(knownShowId));
+      final remote = await _source.fetchTVShowById(knownShowId);
       if (remote != null) {
         return MetadataMatch.confirmed(remote, source: MetadataMatchSource.explicitId);
       }
@@ -69,7 +71,7 @@ class MetadataMatchResolver {
 
   Future<MetadataMatch<Movie>?> _searchMovieCandidates(ScrapeCandidate candidate) async {
     for (final attempt in _planFactory.createTitleSearchPlan(candidate).attempts) {
-      final remote = await _tmdb.fetchMovie(attempt.query, year: attempt.year);
+      final remote = await _source.searchMovie(attempt.query, year: attempt.year);
       if (remote != null) {
         return MetadataMatch.confirmed(remote, source: MetadataMatchSource.titleSearch, query: attempt.query);
       }
@@ -79,7 +81,7 @@ class MetadataMatchResolver {
 
   Future<MetadataMatch<TVShow>?> _searchTVShowCandidates(ScrapeCandidate candidate) async {
     for (final attempt in _planFactory.createTitleSearchPlan(candidate).attempts) {
-      final remote = await _tmdb.fetchTVShow(attempt.query, year: attempt.year);
+      final remote = await _source.searchTVShow(attempt.query, year: attempt.year);
       if (remote != null) {
         return MetadataMatch.confirmed(remote, source: MetadataMatchSource.titleSearch, query: attempt.query);
       }

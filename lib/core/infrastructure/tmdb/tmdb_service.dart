@@ -1,9 +1,9 @@
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_client.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_metadata_mapper.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_search_matcher.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 
 /// Coordinates TMDB requests, result matching and metadata conversion.
 class TmdbService {
@@ -66,7 +66,7 @@ class TmdbService {
     return _mapResponse(() => _mapper.tvShow(data));
   }
 
-  Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) async {
+  Future<SeasonMetadata?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) async {
     final data = await _client.get(
       '/tv/$tvId/season/$seasonNumber',
       operation: '获取季详情',

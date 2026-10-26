@@ -3,39 +3,24 @@ import 'package:logger/logger.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
-import 'package:mochi_player/features/library/application/storage_sources_service.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/library/infrastructure/library_repository.dart';
-import 'package:mochi_player/features/library/infrastructure/metadata_scraper.dart';
-import 'package:mochi_player/features/library/infrastructure/storage_media_scanner.dart';
+import 'package:mochi_player/features/library/application/library_source_scanner.dart';
+import 'package:mochi_player/features/library/application/library_sync_repository.dart';
+import 'package:mochi_player/features/library/application/metadata_scraper.dart';
+import 'package:mochi_player/features/library/application/scrape_result.dart';
 
-/// Coordinates storage scans and TMDB metadata scraping.
+/// Coordinates source scans, index cleanup and optional metadata scraping.
 class LibrarySyncService extends ChangeNotifier {
   LibrarySyncService({
-    required DatabaseService database,
-    required LibraryRepository repository,
-    required TmdbService tmdbService,
+    required LibrarySyncRepository repository,
+    required LibrarySourceScanner sourceScanner,
     required MetadataScraper metadataScraper,
-    required StorageSourcesService storageSources,
-    required StorageAdapterRegistry storageAdapterRegistry,
-    required StorageMediaScanner Function(StorageConnection connection) storageScannerFactory,
-  }) : _db = database,
-       _repository = repository,
-       _tmdbService = tmdbService,
-       _metadataScraper = metadataScraper,
-       _storageSources = storageSources,
-       _storageAdapterRegistry = storageAdapterRegistry,
-       _storageScannerFactory = storageScannerFactory;
+  }) : _repository = repository,
+       _sourceScanner = sourceScanner,
+       _metadataScraper = metadataScraper;
 
-  final DatabaseService _db;
-  final LibraryRepository _repository;
-  final TmdbService _tmdbService;
+  final LibrarySyncRepository _repository;
+  final LibrarySourceScanner _sourceScanner;
   final MetadataScraper _metadataScraper;
-  final StorageSourcesService _storageSources;
-  final StorageAdapterRegistry _storageAdapterRegistry;
-  final StorageMediaScanner Function(StorageConnection connection) _storageScannerFactory;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
   bool _shuttingDown = false;
@@ -108,8 +93,8 @@ class LibrarySyncService extends ChangeNotifier {
   /// This workflow deliberately does not require a TMDB key. Metadata
   /// scraping is a separate optional step after files have been discovered.
   Future<MediaSourceScanSummary?> scanEnabledMediaSources() {
-    if (_shuttingDown || isLoading) return Future.value(null);
-    return _activeScan = _scanEnabledMediaSources();
+    if (_shuttingDown || _activeScan != null || isLoading) return Future.value(null);
+    return _activeScan = _scanEnabledMediaSources().whenComplete(() => _activeScan = null);
   }
 
   Future<MediaSourceScanSummary?> _scanEnabledMediaSources() async {
@@ -121,12 +106,9 @@ class LibrarySyncService extends ChangeNotifier {
     _notify();
 
     try {
-      await _db.init();
-
       if (_shuttingDown) return null;
-      final sources = (await _storageSources.getAll())
-          .where((source) => source.enabled && _storageAdapterRegistry.supports(source.type))
-          .toList(growable: false);
+      final sources = await _sourceScanner.enabledSources();
+      if (_shuttingDown) return null;
       if (sources.isEmpty) {
         _error = AppFailure.scanSourceRequired;
         return null;
@@ -143,25 +125,20 @@ class LibrarySyncService extends ChangeNotifier {
         _scanCurrentSource = source.name;
         _notify();
         try {
-          final credentials = await _storageSources.readCredentials(source.id);
-          final connection = await _storageAdapterRegistry.connect(source, credentials);
-          try {
-            final result = await _scanFilesFromStorage(connection);
-            discoveredFileCount += result.discoveredCount;
-            newFileCount += result.newCount;
-            removedFileCount += result.removedCount;
-            _logger.i(
-              '媒体源 ${source.name} 扫描完成：发现 ${result.discoveredCount} 个视频，'
-              '新增 ${result.newCount} 个，移除 ${result.removedCount} 个',
-            );
-            if (result.hadReadError) {
-              failedSourceCount++;
-              _logger.w('媒体源 ${source.name} 的扫描不完整，已跳过失效文件清理');
-            } else {
-              completedSourceCount++;
-            }
-          } finally {
-            await connection.close();
+          final result = await _scanSource(source);
+          if (result == null) break;
+          discoveredFileCount += result.discoveredCount;
+          newFileCount += result.newCount;
+          removedFileCount += result.removedCount;
+          _logger.i(
+            '媒体源 ${source.name} 扫描完成：发现 ${result.discoveredCount} 个视频，'
+            '新增 ${result.newCount} 个，移除 ${result.removedCount} 个',
+          );
+          if (result.hadReadError || result.closeFailed) {
+            failedSourceCount++;
+            if (result.hadReadError) _logger.w('媒体源 ${source.name} 的扫描不完整，已跳过失效文件清理');
+          } else {
+            completedSourceCount++;
           }
         } catch (error) {
           failedSourceCount++;
@@ -201,11 +178,12 @@ class LibrarySyncService extends ChangeNotifier {
   }
 
   Future<ScrapeResult?> _scrapeScannedMediaFiles() async {
-    if (_shuttingDown || !_tmdbService.isConfigured) return null;
+    if (_shuttingDown || !_metadataScraper.isConfigured) return null;
     return _scrapeMetadata();
   }
 
   void reset() {
+    if (_activeScan != null || isLoading) return;
     _isScanning = false;
     _isScraping = false;
     _error = null;
@@ -261,21 +239,43 @@ class LibrarySyncService extends ChangeNotifier {
     }
   }
 
-  Future<_LibraryScanResult> _scanFilesFromStorage(StorageConnection connection) async {
-    final scanner = _storageScannerFactory(connection);
-    final knownPaths = await _repository.sourcePaths(connection.source.id);
+  Future<_LibraryScanResult?> _scanSource(StorageSource source) async {
+    final scan = await _sourceScanner.open(source);
+    _LibraryScanResult? result;
+    try {
+      // Shutdown can begin while credentials or the connection are being resolved.
+      if (!_shuttingDown) result = await _scanFilesFromSource(source.id, scan);
+    } finally {
+      try {
+        await scan.close();
+      } catch (error) {
+        _logger.w('关闭媒体源 ${source.name} 失败: $error');
+        if (result == null) rethrow;
+        // The index changes already committed before close failed still count.
+        result = result.withCloseFailure();
+      }
+    }
+    return result;
+  }
+
+  Future<_LibraryScanResult> _scanFilesFromSource(String sourceId, LibrarySourceScan scanner) async {
+    final knownPaths = await _repository.sourcePaths(sourceId);
     var newCount = 0;
     var discoveredCount = 0;
     final scannedPaths = <String>{};
     final pending = <MediaFile>[];
     Future<void> flush() async {
-      await _db.saveScannedFiles(pending);
+      if (pending.isEmpty) return;
+      final batch = List<MediaFile>.unmodifiable(pending);
       pending.clear();
+      // A failed write aborts the source; cleanup must not implicitly retry it.
+      await _repository.saveScannedFiles(batch);
     }
 
     // Persist successful discoveries even when a later directory fails.
     try {
-      await for (final file in scanner.scan()) {
+      final files = _shuttingDown ? const Stream<MediaFile>.empty() : scanner.scan();
+      await for (final file in files) {
         if (_shuttingDown) break;
         discoveredCount++;
         if (scannedPaths.add(file.path) && !knownPaths.contains(file.path)) newCount++;
@@ -287,7 +287,7 @@ class LibrarySyncService extends ChangeNotifier {
     }
     final removedCount = (_shuttingDown || scanner.hadReadError)
         ? 0
-        : await _repository.removeMissingFiles(connection.source.id, scannedPaths);
+        : await _repository.removeMissingFiles(sourceId, scannedPaths);
 
     return _LibraryScanResult(
       discoveredCount: discoveredCount,
@@ -304,12 +304,22 @@ class _LibraryScanResult {
     required this.newCount,
     required this.removedCount,
     required this.hadReadError,
+    this.closeFailed = false,
   });
 
   final int discoveredCount;
   final int newCount;
   final int removedCount;
   final bool hadReadError;
+  final bool closeFailed;
+
+  _LibraryScanResult withCloseFailure() => _LibraryScanResult(
+    discoveredCount: discoveredCount,
+    newCount: newCount,
+    removedCount: removedCount,
+    hadReadError: hadReadError,
+    closeFailed: true,
+  );
 }
 
 /// The outcome of scanning all currently enabled media sources.

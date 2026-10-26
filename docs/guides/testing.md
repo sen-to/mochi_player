@@ -42,11 +42,11 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 验证基线
 
-以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-26 的记录来自播放会话资源管理与 TMDB 错误分类实现的工作区；此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
+以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-26 的记录来自播放会话资源管理、TMDB 错误分类与媒体库应用边界实现的工作区；此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
 
 | 验证项 | 记录日期 / 结果 | 覆盖与限制 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 2026-10-26，311 项通过 | 包含 TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败；不代表真实 NAS 或大库性能 |
+| macOS 全量 Dart 回归 | 2026-10-26，340 项通过 | 包含媒体库编排互斥 / 退出、连接收尾、失败批次 / 部分结果统计、元数据事务回滚 / 并发导入去重、TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败；不代表真实 NAS 或大库性能 |
 | 格式 / 静态检查 / 文案 | 2026-10-26，格式通过；无错误 / 警告；280 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
 | macOS Release SMB HTTP 冒烟 | 2026-10-26，两个成功标记均输出 | 会话管理真实 media_kit 的打开与释放，前后及快速 seek；读取器为带延迟的替身，不连接 NAS |
 | macOS Release 多窗口冒烟 | 2026-10-26，成功标记输出 | 创建 / 替换 / 关闭重开、全屏、共享状态及最终进度持久化；不代替原生关闭按钮或长期使用 |
@@ -62,9 +62,11 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 | 领域 | 主要位置 | 关注点 |
 | --- | --- | --- |
 | 数据层 | `test/core/infrastructure/database/` | 组合唯一键、外键 / CHECK、JSON、日期、事务、局部更新、级联 / 禁止删除、开发库并发重建、双后台连接、关闭重开 |
-| TMDB 与刮削 | `test/core/infrastructure/tmdb/tmdb_client_test.dart`、`test/features/library/infrastructure/metadata_scraper_test.dart`、`test/features/library/application/library_sync_service_test.dart` | 401 / 403、429 / Retry-After、超时 / 连接 / 取消 / 5xx、异常响应、列表接口 404 与详情资源 404、真正空结果；失败不回退或清除匹配、季级隔离、重新扫描与错误提示；使用请求替身和真实 SQLite，不请求真实 TMDB |
+| TMDB 与刮削 | `test/core/infrastructure/tmdb/tmdb_client_test.dart`、`test/features/library/application/metadata_*_test.dart`、`test/features/library/infrastructure/metadata_scraper_integration_test.dart`、`library_sync_integration_test.dart` | 401 / 403、429 / Retry-After、超时 / 连接 / 取消 / 5xx、异常响应、列表接口 404 与详情资源 404、真正空结果；失败不回退或清除匹配、季级隔离、重新扫描与错误提示；使用请求替身和真实 SQLite，不请求真实 TMDB |
 | 库查询 | `test/features/library/application/library_repository_test.dart` | 标题可用性、搜索 / 收藏 / 续播排序、有限结果、SQL 与领域规则一致性、共享订阅 |
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
+| 同步编排 | `test/features/library/application/library_sync_service_test.dart` | 不使用 SQLite / TMDB / 协议实例的行为测试：互斥、批次、部分扫描、失败隔离、写入失败不重试、关闭计数 / 已入库数量保留、退出等待、迟到连接与路径查询期间退出 |
+| 媒体库适配 | `test/features/library/infrastructure/database_metadata_repository_test.dart`、`storage_library_source_scanner_test.dart`、`tmdb_metadata_source_test.dart` | 真实 SQLite 验证原子回滚；凭据 / 来源过滤、连接幂等关闭、失败完整性标记及后端错误转换 |
 | 媒体源应用入口 | `test/features/library/application/storage_sources_service_test.dart`、`file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知及迟到连接关闭 |
 | 应用组装 | `test/app/bootstrap/` | 共享 TMDB / 数据库、独立实例；窗口创建失败时释放已准备会话且不创建引擎 |
 | 应用退出 | `test/app/application/` | 重复请求、保存 / 释放顺序、失败与超时、最终快照持久化 |

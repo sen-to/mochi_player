@@ -1,3 +1,4 @@
+import 'package:mochi_player/features/library/infrastructure/database_library_sync_repository.dart';
 import '../../../support/database_fixture.dart';
 import 'dart:async';
 
@@ -90,7 +91,7 @@ void main() {
     expect(await repository.watchTitles(kind: 'movie', limit: 200).first, hasLength(124));
     expect((await repository.watchTitles(query: 'Movie 123').first).single.tmdbId, '123');
     expect(await repository.watchTitles(query: 'Movie 124').first, isEmpty);
-    await repository.removeMissingFiles('nas', {'/123'});
+    await DatabaseLibrarySyncRepository(database: db).removeMissingFiles('nas', {'/123'});
     expect((await repository.watchTitles().first).single.tmdbId, '123');
     expect((await repository.watchHero().first)!.tmdbId, '123');
   });
@@ -252,6 +253,9 @@ void main() {
       file('/override', movieId: '1').copyWith(explicitTmdbId: '3'),
       file('/nonnumeric', movieId: '1').copyWith(explicitTmdbId: '1_s1e1'),
     ]);
-    expect((await repository.scrapeCandidates()).map((f) => f.path), ['/missing', '/override']);
+    expect((await DatabaseLibrarySyncRepository(database: db).scrapeCandidates()).map((f) => f.path), [
+      '/missing',
+      '/override',
+    ]);
   });
 }

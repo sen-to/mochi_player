@@ -1,6 +1,6 @@
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_url.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 
 class TmdbMetadataMapper {
   const TmdbMetadataMapper();
@@ -44,7 +44,7 @@ class TmdbMetadataMapper {
     );
   }
 
-  TmdbSeasonResult season(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
+  SeasonMetadata season(Map<String, dynamic> data, String showTmdbId, int seasonNumber) {
     final episodeData = (data['episodes'] as List? ?? []).whereType<Map<String, dynamic>>().toList();
     final metadata = Season(
       tvShowTmdbId: showTmdbId,
@@ -54,7 +54,7 @@ class TmdbMetadataMapper {
       overview: data['overview'],
       numberOfEpisodes: episodeData.length,
     );
-    return TmdbSeasonResult(
+    return SeasonMetadata(
       season: metadata,
       episodes: episodeData.map((episode) => _episode(episode, showTmdbId, seasonNumber)).toList(),
     );
