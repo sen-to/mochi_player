@@ -1,6 +1,6 @@
 # 代码组织与新增功能
 
-本文规定后续新增和修改代码的目录骨架与职责边界。当前实现、命名约定及资源所有权见 [架构总览](../architecture/overview.md)；运行与检查命令见 [测试指南](testing.md)。这里的规则指导增量开发，不代表现有代码已满足严格 Clean Architecture，也不要求为统一目录而重写已有实现。
+本文规定后续新增和修改代码的目录骨架与职责边界。当前实现及资源所有权见 [架构总览](../architecture/overview.md)；运行与检查命令见 [测试指南](testing.md)。这里的规则指导增量开发，不代表现有代码已满足严格 Clean Architecture，也不要求为统一目录而重写已有实现。
 
 ## 目录骨架
 
@@ -36,7 +36,28 @@ tool/                             # 开发与验证脚本，不放应用运行�
 macos/、windows/                   # 原生宿主与平台桥实现
 ```
 
-不要在 `lib/` 顶层另建一套全局 `providers / services / repositories / pages`，与 `features/` 并行组织同一业务。文件在功能内按职责归属，类型后缀按 [统一命名约定](../architecture/overview.md#命名约定)选择；Provider、Controller 和 Service 不各自代表固定的一层。
+不要在 `lib/` 顶层另建一套全局 `providers / services / repositories / pages`，与 `features/` 并行组织同一业务。文件在功能内按职责归属，类型后缀按下方 [命名约定](#命名约定)选择；Provider、Controller 和 Service 不各自代表固定的一层。
+
+## 命名约定
+
+同一类职责使用同一后缀，文件名使用与主要公开类型对应的 `snake_case`。后缀表达职责，不表达注入方式，也不保证所在层或实例作用域：
+
+| 后缀 | 职责与使用范围 | 当前示例 |
+| --- | --- | --- |
+| `Provider` | 维护界面可订阅状态、加载展示数据并提供界面操作入口 | `MediaLibraryProvider`、`FileBrowserProvider`、`TrendingMediaProvider`、`AppSettingsProvider`、`ThemeProvider`、`AppLocaleProvider` |
+| `Controller` | 控制具体交互、播放会话或窗口状态机 | `PlayerPlaybackController`、`PlaybackSessionController`、`PlayerWindowModeController`、`PlayerWindowController`、`WindowControlsController` |
+| `Repository` | 持久化业务数据的查询、保存与订阅；接口可只暴露调用方需要的操作 | `LibraryRepository`、`PlaybackMediaRepository`、`AppSettingsRepository` |
+| `Service` | 编排业务用例，或提供职责明确的技术能力；通过名称与所在层区分 | 应用层 `LibrarySyncService`、`StorageSourcesService`；技术服务 `TmdbService`、`WindowService`、`DatabaseService` |
+| `Adapter` | 将协议或外部能力适配为项目契约 | `StorageAdapter`、`LocalStorageAdapter`、`WebDavStorageAdapter`、`SmbStorageAdapter` |
+| `Engine` | 执行播放与管理媒体运行资源的后端边界 | `PlaybackEngine`、`MediaKitPlaybackEngine` |
+| `Coordinator` | 协调多个参与者及异步操作顺序，通常不负责页面展示状态 | `PlayerWindowCoordinator`、`ApplicationExitCoordinator`、`PlayerWindowCloseCoordinator` |
+| 具体动作 / 数据结构名称 | 职责已经明确时保留具体含义 | `Resolver`、`Scanner`、`Mapper`、`Policy`、`Writer`、`Buffer`、`Registry`、`ViewModel` 等 |
+
+按主要职责选择后缀，不按继承关系机械命名。`ChangeNotifier` 可用于 Provider 的界面状态、Controller 的交互状态，也可用于 Service 的任务进度通知；例如 `LibrarySyncService` 虽会通知扫描进度，主要职责仍是编排扫描与刮削，界面通过 `MediaLibraryProvider` 观察它。
+
+Provider 包的 `Provider`、`ChangeNotifierProvider`、`MultiProvider` 是注入机制，不决定业务对象的后缀。项目的 `*Provider` 表示界面状态角色，不要求为每个注入对象创建一个 Provider 类。持久化访问统一使用 `Repository`，不混用 `Store`。
+
+`PlaybackState` 等状态快照继续使用 `State`；`PlayerWindowController` 控制播放器视图的打开、关闭与替换状态，保留 Controller。方法名包含 `open / close / beginShutdown` 本身不是选择后缀的依据。`ApplicationDependencies` 是依赖组装入口，不是业务 Service，也不是自动装配容器。
 
 ## 决定代码归属
 
@@ -90,12 +111,20 @@ macos/、windows/                   # 原生宿主与平台桥实现
 
 ### 表单布局约定
 
-- 输入字段可以使用固定标签列；开关、操作按钮等设置行使用内容宽度的控件，文字区域占据剩余空间。开关行复用 `SettingsSwitchItem`，不要重复固定宽度的标签与开关布局。
-- 辅助说明默认允许换行，表单行采用最小高度并随内容增长，不用单行省略隐藏操作后果、错误原因或必要路径。需要更大文字区域时，使用 `AppFormItem.subtitleBelowControl` 将说明放到整行下方。
-- 占位提示说明输入格式或提供简短示例，不重复字段标签，也不把示例当作实际默认值。WebDAV 主机提示 IP / 域名，端口提示“如：5244”，新增 WebDAV 路径输入留空并显示 `/dav` 占位示例（留空提交仍表示根路径 `/`）；端口必填，测试与保存均校验 1–65535 范围内的整数，不依赖留空推断。编辑已有地址时显示该 URL 的实际端口（包含 HTTP / HTTPS 的 80 / 443）。5244 是 OpenList 等服务的示例端口，不是所有 WebDAV 服务的默认值。
-- 状态与操作保持统一：媒体源连接测试保留标题，结果用标题下方的小字显示，成功仅显示“连接成功”，失败显示可换行的原因；右侧按钮按内容宽度居中对齐。兼顾中英文与系统字号放大，修改共享布局时检查窄弹窗。
+- 输入字段可用固定标签列；开关、按钮保留自身宽度，文字使用剩余空间。开关行复用 `SettingsSwitchItem`。
+- 说明和错误允许换行，行高随内容增长。需占用整行时用 `AppFormItem.subtitleBelowControl`，不省略操作后果或必要路径。
+- 占位提示提供格式或短示例，不重复标签，不作为实际默认值。
+- 修改共享组件时检查窄弹窗、中英文和放大字号。布局参考 [Ant Design Form](https://ant.design/components/form/) 与 [MUI Switch](https://mui.com/material-ui/react-switch/)。
 
-上述约定参考 [Ant Design Form](https://ant.design/components/form/) 的标签 / 辅助说明分工与 [MUI Switch](https://mui.com/material-ui/react-switch/) 的开关 / 标签组合能力，具体布局由本项目的桌面表单组件实现。
+### 媒体源表单约定
+
+| 项目 | 规则 |
+| --- | --- |
+| 连接测试 | 标题下显示结果，右侧按钮按内容宽度居中；成功仅显示“连接成功”，失败原因可换行，不展示目录项数 |
+| 本地路径 | 在整行下方显示，允许换行 |
+| WebDAV 主机 | 占位提示 IP / 域名 |
+| WebDAV 端口 | 必填，测试和保存均校验整数 1–65535；提示“如：5244”。5244 是 OpenList 等服务的示例，不是通用默认端口；编辑时显示 URL 实际端口，含 80 / 443 |
+| WebDAV 路径 | 新建时留空，显示 `/dav` 示例；留空提交表示根路径 `/` |
 
 ### 开发检查
 

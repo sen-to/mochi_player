@@ -1,40 +1,28 @@
 # 当前实施状态
 
-更新日期：2026-10-23。这里集中区分“已决定”“已实现”和“已验证”；`Accepted` 只表示 ADR 已接受，不自动表示功能已交付。验证命令、证据及未覆盖范围见 [测试指南](guides/testing.md)。
+整理日期：2026-10-25。下表是当前完成度与待办的统一入口；验证日期、测试结果与证据范围见 [测试指南](guides/testing.md#验证基线)。文档整理没有重新执行平台验收。
 
-| 能力 / 决策 | 当前实现 | 验证与剩余范围 |
+## 功能状态
+
+| 能力 | 当前实现 | 尚待完成 / 验收 |
 | --- | --- | --- |
-| [官方单引擎多视图](decisions/0001-multi-window-strategy.md) | 一个引擎、主视图 + 最多一个播放器；共享应用状态与数据库，窗口按 viewId 操作 | macOS 构建与隔离播放冒烟通过；Windows CI 成功由用户确认，原生输入 / 多显示器 / 退出仍待人工验收 |
-| mini 播放器 | 同一窗口缩小、默认置顶、可切换置顶、退出恢复原状态 | 故障重试有单元测试；双平台真实媒体交互仍需回归；系统 PiP 暂不考虑 |
-| [播放引擎门面](decisions/0002-playback-engine.md) | `PlaybackEngine` 已接入，后端为 media_kit / libmpv | 假引擎测试与 RGB AVI 冒烟通过，不代表 HDR、各编码 / 音轨和字幕样片全通过 |
-| [drift + SQLite](decisions/0003-persistence-migration.md) | schema 2 六表、显式季集归属、外键 / CHECK / 组合索引、共享后台连接与字段级写入 | 真实 SQLite、开发库并发重建、标题类型隔离与查询计划测试通过；版本 1 开发数据全部重置，无 Isar 导入；大库容量与发布后迁移仍需验证 |
-| [职责分离](architecture/overview.md#已落实的职责边界) | 媒体源应用入口、私有仓库 / 应用查询、播放数据库适配归位、窗口工厂与界面分离、关键共享依赖显式注入 | 227 项回归与 macOS 原生窗口播放冒烟通过；保留应用层部分具体实现依赖，未宣称严格 Clean Architecture；本轮 Windows 运行时未验收 |
-| [本地化](decisions/0004-i18n-l10n.md) | ARB / gen-l10n、中英与跟随系统、共享语言偏好 | 277 条文案检查与 Widget 回归通过，完整页面布局 / 原生语言交互仍待验收 |
-| 本地与 WebDAV | 浏览、扫描、解析播放 URL 与认证头已实现 | 生产媒体与网络条件分别验证，不以假适配器测试承诺所有服务器 |
-| [SMB 播放路径](decisions/0005-smb-playback-path.md) | SMB 浏览 / 扫描已实现；播放改为 dart_smb2 随机读 + 回环 HTTP Range，目标资源随会话释放；Release 监听权限已补 | 协议与会话回归已覆盖；真实 NAS、断线恢复与高码率表现仍待验收 |
-| [媒体服务器](decisions/0006-media-server-integration.md) | Emby 优先的独立适配方向已接受 | 尚未实现服务器账户、目录、播放协商与进度上报；不是现有 StorageAdapter 能力 |
-| 独立 UI 包迁移 | 仍使用 SDK 的旧 Material / Cupertino 导入 | 弃用提示保留；相关图片、图标、路由包主版本升级尚未进行 |
+| [官方多视图](architecture/playback.md) | 单引擎，主视图 + 最多一个播放器；共享状态和数据库；主窗口关闭即退出 | 双平台原生输入、退出竞争、多显示器 / DPI 与长时间运行 |
+| mini | 复用播放器窗口，缩小 / 置顶并恢复原状态 | 两平台真实媒体交互；系统 PiP 不在当前范围 |
+| [播放引擎](architecture/playback.md#播放引擎) | PlaybackEngine 门面，唯一后端为 media_kit / libmpv | 两平台编码、音轨、字幕、硬解、HDR 与长时间样片 |
+| [媒体库与持久化](architecture/data-model.md) | drift + SQLite schema 2，六表、约束 / 索引、共享后台连接与字段级写入 | 大库容量、元数据回收、匹配错误分类、凭据安全存储；正式发布后的保留数据迁移 |
+| [应用职责](architecture/overview.md#职责边界) | 页面通过应用入口操作；依赖显式组装；播放持久化通过契约隔离 | 仍有应用层具体实现依赖，尚非严格 Clean Architecture |
+| [本地化](architecture/localization.md) | 中英 / 跟随系统，共享语言偏好与 ARB 生成 | 全页面布局、系统语言变化与原生界面交互 |
+| 本地 / WebDAV | 浏览、扫描、URL 与认证头解析 | 真实媒体及不同服务端 / 网络条件 |
+| [SMB 播放](architecture/playback.md#smb-http-回源) | dart_smb2 随机读 + 回环 HTTP Range；会话资源释放与快速 seek 请求替换 | 问题报告所用的 NAS / MP4 重测；真实认证、重连、高码率及 Windows 运行 |
+| [媒体服务器计划](decisions/0006-media-server-integration.md) | Emby 优先方向已接受，尚未实现 | 账户、远端条目、播放协商与服务器进度上报 |
+| 发布 | 尚无正式 Release 版本 | 签名 / 公证、安装验收与正式分发；CI 产物不等于正式发布 |
 
-## 当前明确边界
+## 平台与工具链边界
 
-- Windows 窗口创建后重新提交最小尺寸约束：主窗口 900×600、播放器 720×405、mini 420×260（逻辑内容尺寸），规避固定 SDK 初始约束丢失；验证范围见 [测试指南](guides/testing.md)。
-- macOS 标题栏配置后显式重设内容最小尺寸，与 mini 动态约束共用 `contentMinSize`；当前环境无法进行 macOS 构建及原生运行，效果待 Mac 验证。
+- 固定 SDK 由 [`.fvmrc`](../.fvmrc) 管理，官方多视图仍使用实验能力；升级时需重新验证原生宿主与插件。
+- Windows 因原生 AXTree 崩溃暂时关闭无障碍语义树，读屏不可用。SDK 最小窗口尺寸规避与插件补丁的移除条件见 [Windows 指南](guides/build-windows.md)。
+- macOS 最小内容尺寸专项验收仍需单独记录，不能用播放冒烟替代真实拖动 / 约束检查；权限与标题栏机制见 [macOS 指南](guides/build-macos.md)。
+- 仍使用旧 Material / Cupertino 导入；独立 UI 包迁移尚未进行。SPM、macOS CI、格式 CI 和发布流程仍需完善。
+- SMB 隔离 HTTP 冒烟不连接真实 NAS；Windows 历史 CI / 冒烟也不替代当前提交的人工验收。文件对话框的既有人工确认未逐项注明平台与边界。
 
-- Windows 无障碍语义树因原生 AXTree 崩溃临时关闭，读屏不可用；AppSlider 局部 Overlay 规避已撤回。详见 [Windows 指南](guides/build-windows.md)。
-
-- 关闭主窗口必须停止播放器、保存进度并退出整个程序；播放器单独关闭保留主窗口和共享数据库。
-- 无多引擎插件、窗口 RPC、JSON 启动兼容协议或语言快照；测试宿主关闭实验原生窗口初始化不影响正式应用。
-- 系统 PiP、直接 libmpv 后端替换与媒体服务器接入尚未实现；SMB 回源已接入不代表真实 NAS 与全平台验收已完成。
-- 当前没有 Release 发布版；CI 构建产物与签名、公证、正式发布是不同状态。
-
-## 仍需跟进
-
-| 类别 | 待办 | 依据 |
-| --- | --- | --- |
-| 原生交互 | Windows 输入冻结回归、关闭 / 重开、mini / 全屏、文件对话框、DPI；macOS 原生关闭 / 退出与完整页面 | ADR 0001、测试指南 |
-| 媒体能力 | 真实格式样片、seek、音轨 / 字幕、HDR、长时间与后台播放 | ADR 0002 |
-| 数据正确性 | 网络错误分类、无引用元数据回收、凭据存储、完成阈值统一 | 数据模型、媒体流水线 |
-| 容量 | 大库搜索 / 排序 / 扩展 LIMIT、索引计划、扫描路径集合内存 | 数据模型、算法说明 |
-| 工具链与发布 | 插件 SPM 支持、SDK 升级、macOS CI、格式 CI、签名与公证 | 构建指南、测试指南 |
-
-这张表是事实与边界清单，不代表所有待办需要同时开工；新增实现时同步对应架构文档和 ADR 的实施状态，再更新验证证据。
+后续优先补真实平台 / 媒体验收与容量基线。新增机制更新对应架构，验证结果更新测试指南；技术方向变化才修订 ADR。

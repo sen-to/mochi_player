@@ -15,19 +15,19 @@
 | 音频 | 多音轨切换、声道下混（2.0 / 5.1 / 7.1 标识与播放） |
 | 画质 | HDR10 / 杜比视界文件的正常播放与映射；硬件解码开关 |
 | 播放控制 | 0.5×–2× 变速、进度跳转、缓存与预读可配置 |
-| 网络 | HTTP(S) 直链（含 WebDAV 带认证头）、局域网共享（不依赖不可用的 SMB 直链，[0005](0005-smb-playback-path.md) 的 HTTP 回源已接入、真实 NAS 待验收） |
+| 网络 | HTTP(S) 直链（含 WebDAV 带认证头）、局域网共享（不依赖不可用的 SMB 直链，[0005](0005-smb-playback-path.md) 的本地 HTTP 回源方案） |
 | 平台 | macOS 12+ 与 Windows 桌面，单进程内嵌渲染 |
 
 这张表是验收标准，不代表各项已完成实测。仓库目前没有覆盖两平台、HDR / 杜比视界、多音轨与字幕呈现的完整样片验收记录；这些能力在记录验证结果前应视为待验收。
 
-现状：`media_kit 1.2.6` + `media_kit_video 2.0.1` + `media_kit_libs_video 1.0.7`，底层 libmpv。
+决策时的依赖：`media_kit 1.2.6` + `media_kit_video 2.0.1` + `media_kit_libs_video 1.0.7`，底层 libmpv；实际锁定版本以 pubspec.lock 为准。
 
-本轮实施前，控制器通过 `NativePlayer.setProperty` 下发缓存、预读、硬件解码与字幕参数，控制栏通过 `getProperty` 读取缓存速度，页面直接持有 `VideoController`。本轮已收敛到下述门面，业务与 UI 使用项目自己的状态、轨道和设置类型。
+收敛前，控制器通过 `NativePlayer.setProperty` 下发缓存、预读、硬件解码与字幕参数，控制栏通过 `getProperty` 读取缓存速度，页面直接持有 `VideoController`。这些后端类型和参数散落在业务与 UI 中，是引入门面的原因。
 
 ### media_kit 维护风险（2026-10-12 核查）
 
 - 作者于 **2025-11-25** 发布 [Limited Maintenance 公告](https://github.com/media-kit/media-kit/issues/1337)：没有全职团队，主要处理关键问题及相关 PR，不能将及时修复或新功能支持作为项目依赖条件。
-- [pub.dev 发布列表](https://pub.dev/packages/media_kit/versions) 的最新正式版本仍为 `1.2.6`；[查到的主干提交记录](https://github.com/media-kit/media-kit/commits/main/) 包含 2026-08-30 的内存泄漏修复，以及此前的渲染、热重启和原生库更新。有限维护不等于停止维护，主干修复也不等于已包含在当前锁定版本中。
+- 该次核查时，[pub.dev 发布列表](https://pub.dev/packages/media_kit/versions) 的最新正式版本为 `1.2.6`；[主干提交记录](https://github.com/media-kit/media-kit/commits/main/) 包含 2026-08-30 的内存泄漏修复，以及此前的渲染、热重启和原生库更新。有限维护不等于停止维护，主干修复也不等于已包含在项目锁定版本中。
 - 社区仍有贡献，包括尚未合并的 [Windows 窗口实例与全屏状态 PR #1448](https://github.com/media-kit/media-kit/pull/1448)。它与多窗口场景相关，不能据此认定本项目 Windows 冻结已定位或修复。
 
 结论：当前保留 media_kit 后端，同时具备在后端层维护局部补丁的准备；维护风险已确认，完整播放能力仍按上表验收，不能写成「media_kit 已满足全部需求」。
@@ -53,27 +53,14 @@
   - 安装包体积包含完整 libmpv 与编解码依赖；
   - `media_kit` 已明确有限维护；版本升级、局部补丁与原生构建验证仍需项目自行承担。
 - **跟进**
-  - 门面已实施；后续新增能力必须通过类型明确的接口和后端实现接入，避免重新泄漏 mpv 参数；
+  - 新增能力必须通过类型明确的接口和后端实现接入，避免重新泄漏 mpv 参数；
   - 把上面的需求表补进测试或手工验收清单，作为替代方案评估基准。
 
-## 实施状态（2026-10-12）
+## 相关文档
 
-已实施：
-
-- [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) 提供打开媒体、暂停 / 切换播放、seek、音量 / 倍速、音轨 / 字幕选择、类型明确的缓存 / 硬解 / 语言设置、字幕覆盖模式、缓存速度与状态流，并提供 Flutter 视频视图与资源释放入口。
-- [PlaybackTrack](../../lib/features/playback/domain/playback_track.dart) 定义项目轨道类型，区分嵌入轨、自动、关闭及外挂来源，保留标题、语言、默认轨、音频编码与声道信息；门面不返回 media_kit 对象。
-- [MediaKitPlaybackEngine](../../lib/features/playback/infrastructure/media_kit_playback_engine.dart) 是唯一当前后端，内部拥有 `Player` / `VideoController`，完成轨道与状态转换、HTTP 请求头、日志脱敏和所有 mpv 属性读写。切换 / 退出时使未完成的参数批次失效，释放接口幂等。
-- `PlayerPlaybackController` 使用注入的门面处理播放命令、状态流、续播和字幕策略，队列 / URL 解析与串行进度由 `PlaybackSessionController` 协调；页面、控制栏、键盘操作均经门面访问播放与渲染。应用组装入口选择后端工厂，窗口工厂与页面使用注入的工厂，不导入或选择具体后端类型。
-- 播放窗口由 `app/bootstrap/player_window_factory.dart` 组装，展示状态在 `PlayerWindowController`，界面在 `PlayerWindowApp`。`PlaybackMediaRepository` 仅定义应用契约，数据库实现位于 `infrastructure/database_playback_media_repository.dart`，使用注入的共享连接。
-- 回归测试使用假引擎验证媒体目标与设置传递、轨道状态 / 外挂字幕选择、控制栏播放 / seek，以及暂停后最终保存、保存后释放和重复释放行为。
-
-2026-10-14 小窗决策：继续使用 mini 播放器，复用同一播放会话、视频表面、字幕与控制逻辑。暂不为系统 PiP 扩展 `PlaybackEngine` 或增加 AVKit 视频帧出口；具体取舍见 [ADR 0001](0001-multi-window-strategy.md)。
-
-待验收 / 跟进：
-
-- 上表中的两平台媒体样片、硬解、HDR / 杜比视界、字幕呈现及真实视频 mini / 全屏退出验收；门面迁移通过检查不代表这些能力已验收。
-- 本轮未直接绑定 libmpv，未改动播放依赖版本或捆绑产物；该轮尚未实现 SMB HTTP 回源，后续接入状态见 ADR 0005。
-- 直接 libmpv 迁移原型须同时验证 macOS / Windows 的视频嵌入、硬解、字幕、seek、事件线程、资源释放和打包；在验收前不替换当前后端，不长期保留两套业务流程。
+- [实施状态](../status.md)：完成度与待办。
+- [引擎门面与后端实现](../architecture/playback.md)：当前代码机制。
+- [测试与验收](../guides/testing.md)：验证证据与操作清单；逐轮记录见 [验证历史](../history/validation-2026-10.md)。
 
 ## Alternatives（备选与否决理由）
 

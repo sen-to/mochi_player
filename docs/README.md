@@ -1,60 +1,57 @@
-# Mochi Player 开发文档
+# 开发文档
 
-面向用户的功能、安装、快捷键和限制放在根 [README](../README.md)。本目录说明开发者需要理解的实现、决策、操作和验证边界。
+用户功能、安装与快捷键见根 [README](../README.md)。开发者先读 [实施状态](status.md)，再按任务选择下列文档。
 
-## 建议阅读顺序
+## 从哪里开始
 
-1. [当前实施状态](status.md)：哪些已实现、哪些只是已接受的计划、哪些尚待验证。
-2. [架构总览](architecture/overview.md)：系统数据流、分层职责、实际调用路径、已落实的职责边界与资源所有权。
-3. [数据模型](architecture/data-model.md) → [媒体流水线](architecture/media-pipeline.md) → [播放](architecture/playback.md)：按实际调用链理解代码。
-4. [算法说明](architecture/algorithms.md)：文件解析、搜索评分、续播、任务调度及复杂度边界。
-5. 开始编码前阅读 [代码组织与新增功能](guides/code-organization.md)：目录骨架、代码落位、依赖规则与评审流程。
-6. [测试指南](guides/testing.md) 与对应平台构建指南：复现、验收和排障。
-7. 修改技术方向前阅读相关 ADR。
-
-## 文档分工
-
-| 类型 | 回答的问题 | 维护方式 |
-| --- | --- | --- |
-| `status.md` | 已决定 / 已实现 / 尚待验证什么？ | 功能阶段变化时更新，引用验证证据 |
-| `architecture/` | 当前代码如何运行？ | 实现变化时更新，不混入未来接口作为现状 |
-| `decisions/` | 为什么这样设计，什么时候重估？ | 保留决策背景，明确当前实施状态 |
-| `guides/` | 如何运行、测试、构建和排障？ | 命令和验收步骤保持可执行 |
-| `history/` | 当时验证了什么，原型提供了什么证据？ | 保留历史 SDK、素材与验证边界，不作为当前操作指南 |
-
-## 架构与指南索引
-
-| 文档 | 内容 |
+| 任务 | 阅读入口 |
 | --- | --- |
-| [架构总览](architecture/overview.md) | 分层职责、统一命名约定、依赖作用域、实际业务调用及运行时资源 |
-| [代码组织与新增功能](guides/code-organization.md) | 后续编码的目录骨架、代码归属、依赖边界、扩展示例与评审流程 |
-| [数据模型](architecture/data-model.md) | 六表完整字段字典、类型 / 主外键 / 约束 / 索引、设计取舍、ORM 与读写边界 |
-| [媒体流水线](architecture/media-pipeline.md) | 扫描、文件名解析、TMDB 刮削、错误边界与索引展示 |
-| [播放](architecture/playback.md) | 请求、目标解析、引擎门面、mini / 全屏、退出时序、字幕与进度 |
-| [算法说明](architecture/algorithms.md) | 项目规则与 SQL 策略，区分后端能力与自研实现 |
-| [macOS 构建](guides/build-macos.md) | CocoaPods / SPM、沙箱、标题栏、原生插件警告 |
-| [Windows 构建](guides/build-windows.md) | 单引擎宿主、原生扩展、固定 SDK CI、构建与运行时边界 |
-| [测试与验收](guides/testing.md) | 测试分工、当前结果、真实窗口冒烟和手工清单 |
-| [验证历史](history/validation-2026-10.md) | 2026 年 10 月各轮验证的原始上下文 |
-| [官方多窗口原型](history/official-single-engine-windowing.md) | 历史实验、SDK / Release 证据及适用边界 |
+| 了解系统与调用链 | [架构总览](architecture/overview.md) |
+| 新增或修改代码 | [代码组织与新增功能](guides/code-organization.md)：目录、命名、依赖与评审规则 |
+| 修改数据库 | [数据模型](architecture/data-model.md)：完整字段、主外键、约束、索引与迁移 |
+| 修改扫描 / 刮削 | [媒体流水线](architecture/media-pipeline.md)、[算法说明](architecture/algorithms.md) |
+| 修改播放 / 窗口 | [播放](architecture/playback.md)：目标解析、SMB 回源、资源所有权与退出 |
+| 修改语言 / 文案 | [本地化](architecture/localization.md) |
+| 构建与排障 | [macOS](guides/build-macos.md)、[Windows](guides/build-windows.md) |
+| 运行检查 / 验收 | [测试指南](guides/testing.md) |
+| 查设计依据 | 下方 ADR 索引；旧验证与排障见 [验证历史](history/validation-2026-10.md) |
 
-## 决策记录
+## 文档职责与更新规则
 
-| 编号 | 决策 | 状态 |
+每类事实只在一个位置维护，其他文档通过链接引用：
+
+| 文档 | 负责的内容 | 何时修改 |
 | --- | --- | --- |
-| [0001](decisions/0001-multi-window-strategy.md) | 官方单引擎多视图、mini、主窗口关闭即退出 | Accepted |
-| [0002](decisions/0002-playback-engine.md) | libmpv 经 media_kit 接入，PlaybackEngine 门面 | Accepted |
-| [0003](decisions/0003-persistence-migration.md) | drift + SQLite 与新库迁移边界 | Accepted |
-| [0004](decisions/0004-i18n-l10n.md) | gen-l10n / ARB、应用内语言切换 | Accepted |
-| [0005](decisions/0005-smb-playback-path.md) | SMB 本地 HTTP 回源 | Accepted，已接入，真实 NAS 待验收 |
-| [0006](decisions/0006-media-server-integration.md) | 独立媒体服务器层，Emby 优先 | Accepted，适配器尚未实现 |
+| `status.md` | 当前完成度、待验收范围与待办 | 实施阶段或验收状态变化 |
+| `architecture/` | 当前实现的机制、调用、数据与资源边界 | 机制或接口变化 |
+| `guides/code-organization.md` | 后续编码的目录骨架、命名与依赖规则 | 开发约定变化 |
+| 其他 `guides/` | 可执行命令、平台适配说明、测试覆盖与最近验证证据 | 操作方式或验证记录变化 |
+| `decisions/` | 决策背景、约束、取舍和重估条件 | 技术方向或约束变化 |
+| `history/` | 阶段验证证据、关键故障与历史选型依据 | 归档有追溯价值的结论时，合并重复过程记录 |
+| 根 `README.md` | 面向用户的功能、限制、安装与最短运行路径 | 用户可见行为或使用方式变化 |
 
-`Accepted` 表示决策已接受，不等于功能已交付；`Proposed` 表示待确认；`Superseded by NNNN` 表示已被其他 ADR 替代。新决策从 [模板](decisions/0000-template.md) 开始，必须写重估条件。
+普通实现变更只更新受影响的机制与测试说明，不要求逐篇修改 ADR。功能阶段变化更新 `status.md`；ADR 的 `Accepted` 是决策状态，不随单次测试结果变化。测试数量、成功标记与平台证据集中在 [测试指南](guides/testing.md#验证基线)，旧记录移入历史，不反复抄写到各文档。
 
-## 维护约定
+## ADR 索引
 
-- 正文使用简体中文，代码标识、路径和命令保持原文；代码引用用从文档出发的相对链接。
-- 变更实现时同步受影响的架构、ADR 实施状态和 `status.md`；验证结果只在测试指南汇总，逐轮细节进入历史记录。
-- 图优先使用 Markdown 内嵌 Mermaid，注明箭头代表导入、数据流还是逻辑关系；不能画出代码尚未声明的 SQL 外键约束。
-- 外部能力附来源与核对范围；假设、计划、构建结果、原生运行和人工确认分别表述，不扩大证据范围。
-- 文档不参与应用打包。产品截图放 `images/screenshots/`，其他素材目录按实际需要创建。优先控制图片体积，不把缓存、测试视频和生成日志提交到仓库。
+| 编号 | 决策 |
+| --- | --- |
+| [0001](decisions/0001-multi-window-strategy.md) | 官方单引擎多视图、mini、主窗口关闭即退出 |
+| [0002](decisions/0002-playback-engine.md) | libmpv 经 media_kit 接入，PlaybackEngine 门面 |
+| [0003](decisions/0003-persistence-migration.md) | drift + SQLite 与开发库数据边界 |
+| [0004](decisions/0004-i18n-l10n.md) | gen-l10n / ARB 与应用内语言切换 |
+| [0005](decisions/0005-smb-playback-path.md) | SMB 本地 HTTP 回源 |
+| [0006](decisions/0006-media-server-integration.md) | 独立媒体服务器层，Emby 优先 |
+
+`Accepted` 表示已接受，不代表已经实现或验收；`Proposed` 表示待确认；`Superseded by NNNN` 表示已被替代。新决策使用 [模板](decisions/0000-template.md)。尚未实现的方案仅保留在决策 / 计划中，不画成当前架构。
+
+## 写作约定
+
+- 正文用简体中文，路径与代码标识保留原文；代码引用使用相对链接。
+- 面向所有项目读者直接说明需求、约束与结论，不写“用户要求”“按要求”或对话轮次；验证记录注明自动检查、日志或人工反馈等证据来源。
+- 当前实现文档直接描述工作方式、接口与边界，不夹带旧方案、删除清单或重构过程；选型取舍放 ADR，实施沿革放 `history/`。
+- 图使用内嵌 Mermaid，注明箭头含义，区分模块归属、导入与运行时数据流。
+- 保留字段字典、协议语义和资源关闭顺序等必要细节；用链接替代重复的大段说明。
+- 外部结论附来源及核对日期；区分构建、隔离冒烟、真实环境与人工确认，不扩大证据范围。
+- 历史验证按阶段合并，保留日期、提交 / 环境、结果与证据边界；故障保留原因、处理及被推翻的结论。不重复归档整篇实现说明、已完成计划或现行验收清单。
+- 文档不参与应用打包；截图放 `images/screenshots/`。不提交缓存、日志或测试视频，不创建空素材目录。

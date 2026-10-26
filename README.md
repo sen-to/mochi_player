@@ -63,7 +63,7 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 
 | 平台 | 状态 |
 | --- | --- |
-| macOS | 正在验证官方多视图迁移；暂无 CI，需要从源码构建 |
+| macOS | 使用官方多视图；暂无 CI，需要从源码构建 |
 | Windows | 官方多视图版本 CI 构建已通过，原生交互仍待验收；见下方「下载与安装」 |
 
 ## 📥 下载与安装
@@ -117,7 +117,7 @@ TMDB Key 由用户自行申请和管理，请不要将自己的 Key 提交到仓
 
 ## 🛠️ 从源码运行
 
-本迁移分支通过 FVM 固定使用 Flutter main 提交 `5ba8961b517919e97cd58e404b75dcdcf313017a`（见 [`.fvmrc`](.fvmrc)），启用官方实验单引擎多视图 API。SDK 由 FVM 下载，不需要自行编译引擎；项目开关也适用于 Release。当前 Windows 新宿主尚待运行时验收，详见 [ADR 0001](docs/decisions/0001-multi-window-strategy.md)。
+项目通过 FVM 固定 Flutter main 的特定提交（见 [`.fvmrc`](.fvmrc)），启用官方实验单引擎多视图 API。SDK 由 FVM 下载，不需要自行编译引擎；项目开关也适用于 Release。平台验证范围见 [测试指南](docs/guides/testing.md#验证基线)，选型依据见 [ADR 0001](docs/decisions/0001-multi-window-strategy.md)。
 
 构建前置条件：
 
@@ -162,35 +162,11 @@ fvm flutter run -d macos
 fvm flutter run -d windows
 ```
 
-构建 macOS Debug 应用：
+平台构建与排障分别见 [macOS 指南](docs/guides/build-macos.md) 和 [Windows 指南](docs/guides/build-windows.md)。macOS 当前使用 CocoaPods；SPM 设置与迁移条件集中在平台指南中维护。
 
-```bash
-fvm flutter build macos --debug
-```
+开始编码先读 [代码组织与新增功能](docs/guides/code-organization.md)，提交前执行 [统一检查步骤](docs/guides/testing.md#推荐运行顺序)。数据库生成与迁移操作见 [数据模型](docs/architecture/data-model.md#连接schema-与凭据)，文案规则见 [本地化](docs/architecture/localization.md)。
 
-macOS 原生插件目前由 CocoaPods 管理。由于本项目尚未完成 SPM 迁移，`pubspec.yaml` 已将 Swift Package Manager 仅对本项目关闭，不需要修改 Flutter 的全局配置。该设置是过渡措施：Flutter [官方说明](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers)指出 CocoaPods registry 将于 2026-12-02 转为只读，请在此之前确认插件的 SPM 兼容性并安排迁移，细节见[构建指南](docs/guides/build-macos.md#前置)。
-
-提交代码前请执行：
-
-```bash
-fvm dart format lib test tool integration_test
-fvm dart run tool/check_l10n.dart
-fvm flutter gen-l10n
-fvm flutter analyze --no-fatal-infos
-fvm flutter test
-```
-
-本地化源文件位于 `lib/l10n/app_en.arb` 与 `app_zh.arb`，生成目录 `lib/l10n/generated/` 不提交。干净检出或修改 ARB 后，先检查资源并执行 `fvm flutter gen-l10n`，再进行静态检查、测试或构建，见 [本地化 ADR](docs/decisions/0004-i18n-l10n.md)。
-
-代码统一使用 120 列，已在 [`analysis_options.yaml`](analysis_options.yaml) 的 `formatter.page_width` 中声明，因此 `fvm dart format` 无需额外参数。
-
-修改 `lib/core/infrastructure/database/app_database.dart`、`media_tables.drift` 中的表定义或 `build.yaml` 中的 drift 配置后，需要重新生成数据库代码：
-
-```bash
-fvm dart run build_runner build
-```
-
-生成结果（`app_database.g.dart`）已随仓库提交，普通构建不需要执行这一步。数据库使用 drift + SQLite，首次运行创建 `mochi_player.sqlite`。当前 schema 为 2，包含显式季集归属、外键与组合唯一约束。项目尚未发布 Release：旧 SQLite 版本 1 开发库会重建，媒体源、元数据、进度与收藏重置，需要重新配置与扫描；不导入旧 Isar 数据。字段与 ORM 代码说明见 [数据模型](docs/architecture/data-model.md)。
+项目尚未正式发布：旧 SQLite schema 1 开发库升级会重建，媒体源、元数据、进度和收藏重置，需要重新配置与扫描。普通构建不需要重新生成 drift 代码。
 
 ## 🗂️ 项目结构
 
@@ -205,7 +181,7 @@ test/           与 lib/ 结构对应的单元测试与 Widget 测试
 windows/ macos/ 各平台 runner
 ```
 
-新增代码遵循 [代码组织与新增功能](docs/guides/code-organization.md) 中的骨架与依赖规则，类型命名遵循 [架构总览](docs/architecture/overview.md#命名约定)。功能内部按需设置 `application / domain / infrastructure / presentation`，不强制补齐空层。
+新增代码遵循 [代码组织与新增功能](docs/guides/code-organization.md) 中的骨架与依赖规则，类型命名遵循 [编码指南](docs/guides/code-organization.md#命名约定)。功能内部按需设置 `application / domain / infrastructure / presentation`，不强制补齐空层。
 
 播放通过 `PlaybackEngine` 门面接入，当前唯一实现为 media_kit + libmpv。播放控制、状态订阅、音轨 / 字幕、缓存与硬解设置、视频视图均通过门面；mpv 属性读写集中在后端实现。实施状态和未来直接接 libmpv 的条件见 [播放引擎 ADR](docs/decisions/0002-playback-engine.md)。
 

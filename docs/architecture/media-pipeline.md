@@ -57,17 +57,13 @@ flowchart TD
 [metadata_scraper.dart](../../lib/features/library/infrastructure/metadata_scraper.dart) 与
 [metadata_match_resolver.dart](../../lib/features/library/infrastructure/metadata_match_resolver.dart)：
 
-1. **跳过已刮削**：使用 SQL EXISTS 筛选待处理文件，不全量读取元数据表；总数为 0 时不发请求。
-2. **构造查询计划**：`ScrapePlanFactory` 对每个候选最多生成两轮——「标题 + 年份」与「去掉年份的标题」。
-3. **匹配**：`MetadataMatchResolver` 先看显式 ID / 已确认 ID（命中则直接读本地库），否则依次尝试查询计划，**取第一个非空结果**（`TmdbSearchMatcher.findBest` 直接返回首条，注释说明以 TMDB 自身排序为准）。
-4. **详情与转换**：`TmdbService` 请求详情（`append_to_response=credits,release_dates,images` 或剧集对应参数，`language=zh-CN`），由 `TmdbMetadataMapper` 转成领域模型。
-5. **剧集**：按 `tmdb:<id>` 或规范化标题分组，逐组匹配剧集并拉取各季详情，经 `MetadataImporter.importSeasonEpisodes` 写入季与集；集 ID 形如 `show_s1e1`。
-6. **并发**：`_runWithConcurrency` 分电影与剧集分组两个阶段执行，各最多 5 个异步 worker；限制 I/O 请求并发，不是 CPU 多线程。进度通过回调上报（完成数 / 总数 / 成功 / 失败 / 当前标题）。
-7. **未匹配**：标记为未匹配并清空 ID。
+1. 用 SQL EXISTS 筛选缺少元数据或显式 ID 发生变化的文件；没有候选时不发请求。
+2. `ScrapePlanFactory` 构造查询，`MetadataMatchResolver` 匹配目标；搜索顺序、剧集分组与并发限制见 [算法说明](algorithms.md#刮削计划与有界并发)。
+3. `TmdbService` 请求详情（电影附带 `credits,release_dates,images`，剧集使用对应参数；`language=zh-CN`），`TmdbMetadataMapper` 转为领域模型。
+4. `MetadataImporter.importSeasonEpisodes` 写入季集，集 ID 形如 `show_s1e1`。任务回调报告完成数、总数、成功 / 失败与当前标题。
+5. 未匹配时标记状态并清空 ID；当前网络错误也可能进入该分支，见下方已知问题。
 
 网络与代理：`TmdbClient` 统一处理 API Key、语言、超时与代理（`PROXY host:port`，不支持代理认证），图片走 `TmdbImageCacheManager`（30 天、1200 条上限，使用相同代理）。
-
-错误处理现状：`TmdbClient.get` 捕获异常后返回 `null`，调用方无法区分「网络失败」与「没有结果」，而后续的未匹配标记会清空原有正确 ID。这是已知缺陷，处置见 [0003](../decisions/0003-persistence-migration.md) 的后续范围（网络错误应与未命中区分）。
 
 ## 阶段 4：索引与展示
 
@@ -76,7 +72,7 @@ flowchart TD
 | 查询投影 | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
 | 订阅与分页 | [library_query.dart](../../lib/features/library/presentation/widgets/library_query.dart) | 页面维持稳定查询订阅，网格按需扩展 LIMIT |
 | 继续观看 | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
-| 搜索 | [library_search_text.dart](../../lib/core/domain/media/library_search_text.dart) | 共享 Unicode 归一化，SQL 按精确 / 前缀 / 包含排序，同分按稳定业务键排序 |
+| 搜索 | [library_search_text.dart](../../lib/core/domain/media/library_search_text.dart) | 小写并移除指定空格 / 分隔符；评分与排序见 [算法说明](algorithms.md#本地搜索评分) |
 | 收藏 | [media_library_provider.dart](../../lib/features/library/application/media_library_provider.dart) | 标题级批量切换，作用于该标题下全部版本 |
 
 ## 已知问题
@@ -84,7 +80,7 @@ flowchart TD
 | 问题 | 影响 |
 | --- | --- |
 | 无元数据回收 | 删除文件后电影/剧集/季/集残留 |
-| 网络错误被当作未匹配 | 瞬时断网可能清掉正确 ID |
+| 网络错误被当作未匹配 | `TmdbClient.get` 捕获异常返回 null，调用方无法区分断网与未命中，可能清掉正确 ID |
 | 分组与标题归一化逻辑多处重复 | 修改规则需同步多个实现 |
 
 处置见 [0003 持久化](../decisions/0003-persistence-migration.md)。

@@ -249,7 +249,7 @@ CHECK (episode_key = tv_show_tmdb_id || '_s' || season_number || 'e' || episode_
 六张表均有主键，但只有文件使用自增整数。主键承担行身份与唯一性，不要求每个表都使用整数代理键：
 
 - 文件有较长的来源 / 路径组合业务键，并可能有多个物理版本；内部 `id` 用于查询结果定位和稳定排序，业务唯一性仍由 `(sourceId, path)` 保证。
-- 来源已经有应用生成的稳定 `sourceId`，没有再保留第二套整数身份。
+- 来源使用应用生成的稳定 `sourceId` 作为主键。
 - 当前电影 / 剧元数据以 TMDB 为身份来源，分别使用 `tmdbId`；两个表的相同 ID 不代表同一个标题，查询必须同时区分类型。
 - 一季由“所属剧 + 季号”确定；单集使用 `episodeKey`，另通过三字段唯一约束和 CHECK 固定归属，不把真实 TMDB 单集 ID 当作唯一的内部身份。
 
@@ -281,19 +281,19 @@ erDiagram
 
 一个逻辑标题可以对应多个实际文件，例如同一电影的不同来源、分辨率或编码版本。文件进度与收藏存于 `MediaFiles`；标题级收藏操作批量修改该标题下的文件，尚无独立收藏表。
 
-文件字段分别保存显式解析 ID、已匹配电影 ID、所属剧集 ID、单集键与匹配状态，不再用一个派生 `tmdbId` 混合电影 ID 和单集键。版本查询和标题收藏接收 `LibraryItem`，按电影 / 剧类型选择关联字段；电影与剧的相同 TMDB 数字 ID 不会串查或同时修改。
+文件字段分别保存显式解析 ID、已匹配电影 ID、所属剧集 ID、单集键与匹配状态。版本查询和标题收藏接收 `LibraryItem`，按电影 / 剧类型选择关联字段；电影与剧的相同 TMDB 数字 ID 不会串查或同时修改。
 
 ### 字段取舍与完整性
 
 | 设计 | 原因与约束 |
 | --- | --- |
 | 文件的 `sourceId + path` | 数据库组合唯一，避免拼接字符串分隔符造成身份冲突；领域 `storageKey` 仅为任务和队列中的派生标识，不存数据库 |
-| 来源只保留 `sourceId` 主键 | 对外身份已经稳定，删除没有业务用途的第二个自增 ID |
+| 来源使用 `sourceId` 主键 | 应用生成的稳定标识同时用于关联和对外引用 |
 | `parsedSeason / parsedEpisode` 与匹配关系分开 | 文件名解析和元数据匹配是不同阶段；未匹配的文件也可浏览、排序与播放 |
 | 文件保留 `tvShowTmdbId` 与 `episodeKey` | 支持直接按剧查询版本和播放队列；组合外键确保单集确实属于该剧，不能将两个各自有效但不相属的 ID 混用 |
 | 单集业务键与三字段唯一约束 | 稳定关联标识与业务归属均受约束；CHECK 保证业务键与剧 / 季 / 集字段一致，季号 0 的特别篇合法 |
 | `watchStatus` 保留为查询字段 | 是进度的派生状态，便于 SQL 筛选；写进度时统一计算，数据库、续播与界面共用 `WatchProgressPolicy` 的 95% 阈值 |
-| 进度 / 收藏保留在文件表 | 继续采用每物理文件独立进度、标题收藏批量修改文件的产品语义，不引入账户或独立标题状态表 |
+| 进度 / 收藏存于文件表 | 每个物理文件独立记录进度；标题收藏批量修改所属文件 |
 
 数据库 CHECK 拒绝负文件大小、负时长 / 位置、负季集号，以及电影 / 剧集关联混用。外键拒绝不存在的来源、电影、剧、季和单集；事务负责多次操作的原子性，两者不能互相替代。匹配状态与业务操作的完整语义仍由字段级写入服务维护，不宣称所有业务规则均已转为 SQL 约束。
 
@@ -306,10 +306,10 @@ erDiagram
 
 ## 映射、字段编码与索引
 
-- drift `@UseRowClass` / SQL `WITH` 直接构造不可变领域模型；Dart 表生成 `toInsertable()`，SQL 表通过 typed Companion 写入。媒体源使用生成的 `StorageSourceRow` 经服务转换，不另设一套元数据 Entity。
+- drift `@UseRowClass` / SQL `WITH` 直接构造不可变领域模型；Dart 表生成 `toInsertable()`，SQL 表通过 typed Companion 写入。媒体源使用生成的 `StorageSourceRow` 经服务转换。
 - 类型、演员和客串演员列表由 [JSON 转换器](../../lib/core/infrastructure/database/json_converters.dart) 存为 TEXT，不是关联表。当前满足展示，复杂的按演员 / 类型查询仍需评估。
 - 枚举存名称；日期按 [build.yaml](../../build.yaml) 配置存 ISO 文本以保留微秒精度。播放位置和时长以毫秒存储。
-- 文件唯一索引 `(sourceId, path)` 同时支持来源路径查找，不再另建重复的来源单列索引；电影索引 `(movieTmdbId, addedAt)` 支持按电影找版本与最早添加时间；剧集索引 `(tvShowTmdbId, parsedSeason, parsedEpisode, path)` 支持剧集版本排序；保留单集键、观看状态、最近观看时间、收藏与添加时间索引，移除缺乏当前独立查询用途的显式 ID 索引。
+- 文件唯一索引 `(sourceId, path)` 同时支持来源路径查找；电影索引 `(movieTmdbId, addedAt)` 支持按电影找版本与最早添加时间；剧集索引 `(tvShowTmdbId, parsedSeason, parsedEpisode, path)` 支持剧集版本排序；单集键、观看状态、最近观看时间、收藏与添加时间索引用于对应查询。
 - 季组合主键与集的 `(tvShowTmdbId, seasonNumber, episodeNumber)` 唯一索引支持归属过滤与排序。单集的 `(episodeKey, tvShowTmdbId)` 唯一约束是文件组合外键的目标，不是多余的业务主键。
 - 每个连接在开放业务读写前执行 `PRAGMA foreign_keys=ON`，真实 SQLite 测试确认拒绝错误引用和执行删除级联。
 - 文件与单集表在 `media_tables.drift` 声明组合外键，让生成器识别完整关系和季 → 集的级联订阅通知；其他四表使用 Dart 声明，不重复定义同一张表。不手工修改生成代码或使用内部通知 API。SQL 表与现有领域模型的组合方式见 [drift 文件](https://drift.simonbinder.eu/sql_api/drift_files/) 与 [行模型映射](https://drift.simonbinder.eu/dart_api/rows/)。
@@ -354,17 +354,17 @@ flowchart LR
 
 ## 读取、订阅与容量边界
 
-SQL 完成列表搜索、排序、收藏去重和每标题续播目标选择，再返回有限投影。首页保留 15 条最近添加、15 条续播和 1 条 Hero；详情、版本与队列按相关标题读取，不加载完整元数据 Catalog。电视剧详情一次查询本剧所有季、一次查询本剧所有集，再按季分组，不再逐季查询单集。
+SQL 完成列表搜索、排序、收藏去重和每标题续播目标选择，再返回有限投影。首页保留 15 条最近添加、15 条续播和 1 条 Hero；详情、版本与队列按相关标题读取。电视剧详情分别查询本剧所有季和所有集，再按季分组。
 
 网格初始 `LIMIT 100`，滚动时增大 100 再读取前 N 条，属于扩展结果窗口，**不是 OFFSET 或游标分页**。搜索通过自定义确定性函数 `library_normalize` 与 `instr` 计算匹配；不是 FTS 全文检索。大库性能需要查询计划和容量测试，已有单列索引不代表所有过滤和排序都能利用索引。
 
-播放器写入与媒体库查询使用同一 drift 连接，订阅直接刷新，不回传变更键、不手动失效。双独立连接只用于并发 / 持久化测试；未来若引入独立连接，需重新设计通知边界。
+播放器写入与媒体库查询使用同一 drift 连接，提交后由 drift 订阅刷新查询结果。双独立连接只用于并发 / 持久化测试；未来若引入独立连接，需重新设计通知边界。
 
 ## 连接、schema 与凭据
 
 [sqlite_setup.dart](../../lib/core/infrastructure/database/sqlite_setup.dart) 启用 WAL、5 秒 busy timeout 并注册 `library_normalize`；首次切换 WAL 锁竞争限时重试。首次建表在 `BEGIN IMMEDIATE` 写锁内复查 `user_version` 并原子提交。生产共享连接仍保留这些并发安全措施。
 
-项目尚无 Release；Isar 替换建立新库，不读取、导入或删除旧 Isar 文件。当前 `schemaVersion = 2`；打开版本 1 的 SQLite 开发库时，在写锁内原子删除六张旧表并按新结构重建，不搬运数据，媒体源、元数据、进度和收藏全部重置，需要重新配置与扫描。SharedPreferences 设置和图片缓存不在这次重建范围内。版本复查可防止并发打开重复重建；其他版本不自动清空，拒绝未知版本转换。
+项目尚无 Release，当前 `schemaVersion = 2`；打开版本 1 的 SQLite 开发库时，在写锁内原子删除六张旧表并按新结构重建，不搬运数据，媒体源、元数据、进度和收藏全部重置，需要重新配置与扫描。SharedPreferences 设置和图片缓存不在这次重建范围内。版本复查可防止并发打开重复重建；其他版本不自动清空，拒绝未知版本转换。
 
 生成代码与 [schema 快照](../../drift_schemas/) 入库；版本 1 快照保留为历史基线。修改表定义执行：
 
@@ -375,7 +375,7 @@ fvm dart run drift_dev schema dump lib/core/infrastructure/database/app_database
 
 后续 SQLite schema 变化需提升版本并明确迁移策略 / 测试，不能把这次开发库重建推广为发布版可随意清空数据。
 
-媒体源用户名 / 密码当前是 SQLite 普通文本，尚未接入系统凭据存储。语言偏好由共享 `AppLocaleProvider` 保存为 SharedPreferences 的 `app_language`（`system / zh / en`），不写 SQLite，也不使用跨窗口快照。主题和播放器设置由各自服务保存。
+媒体源用户名 / 密码当前是 SQLite 普通文本，尚未接入系统凭据存储。语言偏好由共享 `AppLocaleProvider` 保存为 SharedPreferences 的 `app_language`（`system / zh / en`）。主题和播放器设置由各自服务保存。
 
 ## 待完善
 

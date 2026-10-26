@@ -1,34 +1,75 @@
 # 2026 年 10 月验证历史
 
-这是 2026-10-14 文档整理前的记录快照，保留各轮测试数量、旧架构背景与当时未验证的边界，**不作为当前状态或操作指南**。最新命令和证据见 [测试指南](../guides/testing.md) 与 [实施状态](../status.md)。下方多引擎、RPC、独立连接等描述只适用于对应历史阶段。
+本文保留阶段验证与关键故障，记录按阶段合并，整理日期不作为测试执行日期。当前完成度见 [实施状态](../status.md)，最新基线、运行命令与手工清单见 [测试指南](../guides/testing.md)。
 
+## 阶段验证
 
-## 各轮验证记录
+以下均为当时的记录。未注明应用提交的旧记录无法精确对应某个检出；测试数量随套件调整变化，不能据数量推断覆盖增减。原型另见 [官方单引擎实验](official-single-engine-windowing.md)。
 
-2026-10-11 验证记录：`flutter analyze` 无问题，全部 186 项测试通过，macOS Debug 构建成功。macOS 使用临时检查入口、隔离 SQLite 和模拟播放资源验证了原生双窗口 / RPC：子窗口独立关闭并重新创建、带子窗口关闭主窗口、子窗口聚焦时 Cmd+Q；记录确认最终进度写入后才释放资源、关闭子数据库，随后关闭主数据库并结束进程。临时入口不随项目交付。真实视频 mini / 全屏、Windows 原生运行时及无响应注入仍待验收。
+| 日期 / 阶段 | 记录结果 | 范围与限制 |
+| --- | --- | --- |
+| 10-11，多引擎退出协调 | 186 项测试、静态检查、macOS Debug 构建通过 | 临时入口与隔离 SQLite / 模拟播放资源验证双窗口 RPC、单独关闭 / 重开、主窗口关闭与播放器聚焦时 Cmd+Q；最终进度写入后关闭子 / 主数据库并退出。仅适用于已退役的多引擎方案 |
+| 10-12，播放门面 | 190 项测试、静态检查、macOS Debug 构建通过 | 假引擎验证业务 / UI 与门面交互；不证明真实渲染、参数效果、硬解或 Windows 可用 |
+| 10-12，本地化接入及收尾 | 最终 203 项测试、277 条文案检查通过；生成目录删除后可重新生成，静态检查与接入时 macOS Debug 构建通过 | 补齐语义占位符、locale 数字格式、ICU 复数、保存失败重试；不等于完整页面或原生交互验收 |
+| 10-13，官方多视图迁移 | 198 项测试、277 条文案检查、macOS Debug / Release 构建通过；隔离播放冒烟完成 | 双视图共享语言 / 数据库、置顶、mini 尺寸、替换、关闭重开与最终进度；RGB AVI 不代表真实编码 / HDR，frame-time 诊断仍有出现；全屏修正见下文 |
+| 10-14，依赖升级与职责分离 | 升级阶段 209 项、职责分离后 227 项测试通过；277 条文案检查及生成通过；macOS Debug 构建与播放冒烟通过 | 临时连接释放、退出排空、迟到连接、共享依赖与查询刷新；`WINDOWING SMOKE COMPLETE` 覆盖新工厂 / 控制器与 SQLite 关闭重开。该阶段没有新的完整 Release / 签名验收 |
+| 10-14，文件对话框与标题栏 | 人工验收反馈确认文件对话框通过；标题栏重命名的 3 项通道测试与 Swift 语法检查通过 | 人工确认未逐项注明平台 / 边界；通道测试不证明原生视觉效果 |
+| 10-17–18，Windows 启动与尺寸 | 228 项测试、静态检查、Debug 启动、Release 构建与窗口冒烟通过 | 输出 `WINDOWING SMOKE COMPLETE`、`WINDOW CONSTRAINTS SMOKE COMPLETE`；验证纹理、双视图、mini / 全屏、换片、关闭重开与最终进度。包含语义树禁用规避；不代替鼠标缩放、DPI、输入或长期播放验收 |
+| 10-23，SMB 回源与快速 seek | 提交 `d23458b`：最终 260 项测试、275 条文案检查、格式与静态检查通过；macOS Release 两类播放冒烟通过 | 输出 `SMB HTTP RAPID SEEK PASS`、`SMB HTTP PLAYBACK SMOKE COMPLETE` 与 `WINDOWING SMOKE COMPLETE`；HTTP 使用读取替身，未连接 NAS。问题报告所用的 NAS / MP4、Windows SMB 与高码率仍未验收 |
+| 10 月，媒体源表单 | Widget 回归覆盖窄弹窗、中英文、普通 / 1.5 倍字号、说明换行及连接结果 / 按钮对齐 | 验证布局和输入规则，不证明真实协议连接成功；具体执行日未单独记录 |
 
-2026-10-12：全部 190 项测试通过，`flutter analyze` 无问题，macOS Debug 构建成功。假引擎回归验证门面与业务 / UI 的交互，不替代后端参数效果、真实视频渲染、硬解和 Windows 运行时验收；能力基线与维护风险见 [ADR 0002](../decisions/0002-playback-engine.md)。
+静态检查在官方多视图迁移后保留固定 SDK 的旧 Material / Cupertino 导入弃用 info；记录中的“通过”不表示没有这些提示。对应的 [官方 UI 包迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui) 保留为后续升级依据。
 
-2026-10-12 本轮验证：275 条中英文文案完整性检查通过，删除生成目录后重新生成成功；`flutter analyze` 无问题，全部 201 项测试通过，macOS Debug 构建成功。生成代码未纳入 Git。
+## 关键故障与处理
 
-同日收尾修复：占位符改为语义名称，计数使用整数与 locale 数字格式，目录连接 / 删除 / 扫描提示补齐英文复数规则，扫描结果的连接标点交给 ARB。语言偏好区分当前选择与已成功保存的值，保存失败后可重试同一选择，且不会重复广播。回归新增保存失败重试和计数边界测试；277 条文案检查通过，静态检查无问题，全部 203 项测试通过。
+### Windows CI：测试宿主初始化与 C++ 宏冲突
 
-2026-10-13 macOS Debug 运行已验证：两个独立 FlutterView、共享语言渲染、按 viewId 的原生置顶与 480×300 尺寸、主窗口尺寸保持不变、官方全屏进出、请求替换复用视图、单独关闭保留主窗口与数据库、共享查询订阅接收进度、两次关闭重开，以及最终进度在 SQLite 关闭重开后存在。观察到 160×90 视频纹理分配与解码日志。底层仍偶发 `Reported frame time is older than the last one; clamping`，没有将其视为长期稳定性通过。
+| 证据 | 原因与处理 | 结果边界 |
+| --- | --- | --- |
+| [首次 master CI](https://github.com/sen-to/mochi_player/actions/runs/38505530613/job/115662050561) | 26 个测试文件因缺少 `InternalFlutterWindows_WindowManager_Initialize` 加载失败；在创建 binding 前关闭普通测试进程的实验窗口能力，正式应用继续启用 | 当次静态检查通过、原生构建未执行；测试隔离不代表产品关闭多视图 |
+| [第二次 CI](https://github.com/sen-to/mochi_player/actions/runs/38509922678/job/115675829212) | 209 项测试通过，原生构建因 Win32 `small` 宏冲突失败；变量改为 `int32_value`，本地宏复现检查通过 | 随后收到 CI 成功的人工反馈，记录未附成功运行链接；仅确认构建，不确认原生交互 |
 
-2026-10-13 自动化回归 198 项通过，277 条 l10n 文案检查通过；正式入口 macOS Debug 与 Release 构建成功。构建仍提示 media_kit 的 SPM 支持和上游 Swift 头文件警告；本项目保持 CocoaPods，未宣称这些上游问题已解决。
+测试隔离机制见 [测试宿主](../guides/testing.md#测试宿主与真实窗口)，SDK 升级后需复查。
 
-修正全屏动画完成确认。上轮最后一次运行的“全屏检查通过”结论不能直接沿用：固定等待一秒不可靠，状态位更新后立刻退出可能丢失请求。现在等待 AppKit 完成通知，单次确认最多 5 秒；窗口模式测试覆盖重复点击、进入过程中关闭、进入 / 退出失败后的重试。修正后的真实播放集成检查已完成整个退出与 SQLite 重开流程。
+### Windows：两类不同的原生崩溃
 
-文件 / 目录选择不再依赖隐式视图插件。2026-10-14，用户确认文件对话框手工验收完成。该确认未逐项列出平台与边界用例；Windows 宿主、COM 对话框和 DPI 处理仍未确认编译或运行通过。后续目标平台回归清单包括：主窗口添加 / 编辑本地目录，播放器打开 / 取消外挂字幕对话框，中文路径、扩展名过滤、父窗口关闭和全屏下选择。
+| 故障 | 定位与处理 | 验证及代价 |
+| --- | --- | --- |
+| 插件注册时退出 | `media_kit_video 2.0.1` 解引用不存在的隐式视图，模块为 `media_kit_video_plugin.dll`、异常 `0xc0000005`；替换注册源文件，改用插件自己的 message-only 窗口 | Debug 启动与 Release 纹理 / 播放冒烟通过；升级插件后需复查并移除补丁，详见 [Windows 指南](../guides/build-windows.md#media_kit_video-的无隐式视图兼容补丁) |
+| 缩放窗口时 AXTree 崩溃 | `flutter_windows.dll + 0x3cf46`，异常 `0xc0000005` / `0xc000041d`；固定 SDK 的 PDB 定位到 `AccessibilityBridge::CreateRemoveReparentedNodesUpdate + 186`。上游有 [报告 #175041](https://github.com/flutter/flutter/issues/175041) 与 [空父节点修复 #190903](https://github.com/flutter/flutter/pull/190903)；项目暂时禁用 Windows 语义树 | 正式启动及 Release 冒烟未再输出 AXTree 错误；Windows 读屏不可用，未证明 SDK 根因修复或人工缩放通过，移除条件见 [平台指南](../guides/build-windows.md#临时关闭-windows-无障碍语义树) |
 
-2026-10-14：最终回归 204 项通过，277 条文案检查通过。资源释放 / 窗口恢复阶段改为最多 12 秒，覆盖正在进入全屏后再退出的动画确认；应用退出整体的 18 秒播放器阶段与 8 秒应用清理上限保留。资源无响应会记录失败并继续解绑视图，不无限等待。
+**失效结论**：AppSlider 局部 Overlay 曾在隔离测试中消除 AXTree 错误，但后续人工反馈表明正式应用仍有问题；该方案及隔离缩放入口已撤回，不能作为修复证据。
 
-2026-10-14 代码审查收尾：删除全局 `PlayerWindow` 转发层，协调器通过 Provider 注入；mini 切换捕获失败，进入失败尝试撤回部分修改，恢复成功后才清除原尺寸记录，失败后可重试。macOS 原生按钮操作成功后才提交 mini 按钮状态。新增五项故障回归，全量 209 项测试通过，静态检查无错误或警告，保留 108 条 SDK 旧 UI 导入弃用提示。Windows 桥检查尺寸 / 置顶等 Win32 调用结果并返回失败；本轮未执行 Windows 编译或运行验收。
+### 窗口最小尺寸与 macOS 全屏
 
-2026-10-14 依赖升级：`dio 5.11.1`、`flutter_cache_manager 3.4.5`、`logger 2.8.0`、`shared_preferences 2.5.6`、`sqlite3 3.7.1`、`dart_smb2 0.1.3`；同步最低版本约束、Dart / CocoaPods 锁文件，`path` 改为 `^1.9.1`。SQLite 所需的 `hooks` 与 `record_use` 随依赖解析更新。全量 209 项测试（含真实 SQLite 与 SMB 适配测试）、277 条文案检查、本地化生成与 macOS Debug 构建通过；静态检查无错误或警告，108 条 SDK 弃用提示及 SPM 提示保留。真实 SMB 连接 / 超时与 Windows 原生运行未验收；SMB 客户端升级不代表 ADR 0005 中捆绑播放器的 `smb://` 打开 / seek 问题已解决。涉及独立 UI 包迁移的三个主版本升级另行处理。
+- **Windows 最小尺寸**：固定 SDK 创建窗口时未保存宿主约束，适配层创建后重新设置。10-18 原生冒烟通过 `WM_GETMINMAXINFO` 检查主窗口 900×600、播放器 720×405、mini 420×260 及恢复、视图隔离与重开；不替代鼠标拖动 / DPI 验收。
+- **macOS 最小尺寸**：问题反馈指出窗口可无限缩小，原生桥在标题栏配置后重设 `contentMinSize`。当时没有执行 Mac 专项；后来的播放冒烟不能替代该项验收，当前证据见 [验证基线](../guides/testing.md#验证基线)。
+- **macOS 全屏**：固定等待一秒曾误判动画完成，状态位更新后立即退出可能丢失请求。改为等待 AppKit 完成通知，覆盖重复点击、转换中关闭与失败重试；修正后的播放集成检查完成退出及 SQLite 重开。原先仅凭延时的“全屏通过”结论失效。
+- **退出超时**：10-14 将资源释放 / 窗口恢复等待扩展到 12 秒，覆盖全屏动画；无响应仍有界结束。具体关闭顺序与各阶段上限统一见 [播放生命周期](../architecture/playback.md#生命周期与退出)，超时退出不保证最后快照保存。
 
-## Windows CI 排障历史
+### SMB：快速 seek 被旧请求阻塞
 
-- [首次 master CI](https://github.com/sen-to/mochi_player/actions/runs/38505530613/job/115662050561)：静态检查通过，26 个测试文件因 Win32 窗口初始化原生符号缺失而加载失败，构建未执行；随后加入普通测试启动配置。
-- [第二次 CI](https://github.com/sen-to/mochi_player/actions/runs/38509922678/job/115675829212)：209 项测试通过，Windows C++ 构建遇到 `small` 宏冲突；变量改为 `int32_value`，本地宏复现检查通过。
-- 随后用户确认 CI 成功，作为 Windows 构建通过的记录；未提供成功运行链接，不代表原生运行时人工验收通过。
+10-23 回归复现：源读取阻塞时连续中断 8 个 Range 请求，最新请求收到 503 而非 206。`HttpResponse.done` 不保证在下一次写入前发现断开，只等待它回收名额不可靠。
+
+修复为最多保留 4 个活动传输，新请求替换最旧传输；SMB 读取出队前检查取消，超时任务也取消。回归要求最新范围返回正确字节、旧任务不阻塞新请求，并覆盖新媒体打开失败时释放旧目标、迟到结果释放与重复关闭。协议细节见 [SMB 回源](../architecture/playback.md#smb-http-回源)。
+
+macOS Release 使用 40 秒 RGB AVI、每块 30ms 读取延迟，连续三轮快速 seek 后继续跳转，两个 SMB 成功标记均输出。该结果验证真实播放器与 HTTP 服务，**未证明问题报告所用的真实 NAS / MP4 已修复**；所附 frame-time clamping 日志也不能单独证明 SMB 故障原因。
+
+### macOS：原生依赖警告
+
+Podfile 钩子修正插件宏列表后，`pod install --no-repo-update` 与 Debug 构建成功，日志不再出现宏重定义；依赖版本及 Podspec 校验值未变，仅 Podfile 校验值更新。具体执行日未单独记录。
+
+SPM 提示仍存在；增量构建未输出 `objc_ownership` 警告不能证明上游生成接口已修复。警告来源与补丁移除条件见 [macOS 指南](../guides/build-macos.md#原生依赖警告)。
+
+## 迁移边界与清理记录
+
+| 变化 | 保留的历史结论 | 当前说明 |
+| --- | --- | --- |
+| SDK 固定 | 10-13 迁移锁定 `5ba8961b517919e97cd58e404b75dcdcf313017a`；提交时间 2026-10-13 10:03:36 UTC，FVM 显示 Flutter `3.49.0-1.0.pre-447` / `master`。使用预编译引擎，未自行编译引擎 | 实际锁定值以 [`.fvmrc`](../../.fvmrc) 为准；通道核查依据见 [历史原型](official-single-engine-windowing.md) |
+| 旧窗口后端退役 | 删除 `flutter_window.*`、`win32_window.*`、`RunOnSeparateThread` 冻结规避、`DesktopMultiWindowSetWindowCreatedCallback`、`SetQuitOnClose(false)`；移除 `desktop_multi_window`、`window_manager`、`screen_retriever` 和依赖隐式视图的 `file_selector` | 只保留单引擎宿主与按 viewId 的扩展，不保留旧 RPC / JSON / 语言快照回退；清理不等于输入冻结已通过人工回归 |
+| Windows 链接项 | 移除旧宿主遗留的 `dwmapi.lib`；保留 COM 对话框与命令行解析所需的 `ole32.lib`、`shell32.lib`、`uuid.lib` | [Windows 指南](../guides/build-windows.md) |
+| 共享状态与职责 | 10-13 语言改为双视图共享实例；后续移除全局播放器转发层、页面协议连接 / 数据库访问和隐藏依赖创建，分开窗口组装、展示状态与播放持久化契约 | [职责边界](../architecture/overview.md#职责边界)、[本地化](../architecture/localization.md) |
+| 持久化 | 以 drift + SQLite 替代 Isar，删除全量 Catalog / 修订号与跨连接手动失效；生产视图共用后台连接。schema 1 开发库重建不保留旧数据，保留 schema 快照与并发回归 | [数据模型](../architecture/data-model.md) 保留完整字段、约束、索引及生成 / 迁移说明 |
+| 播放与 mini | PlaybackEngine 隔离 media_kit 类型；10-14 决定继续用同一播放器窗口的 mini，暂不接入系统 PiP 或直接绑定 libmpv | [播放架构](../architecture/playback.md)、[ADR 0001](../decisions/0001-multi-window-strategy.md)、[ADR 0002](../decisions/0002-playback-engine.md) |
+
+重复的实现清单、已完成阶段计划及旧待办已合并或删除。新的验证记录仅保留日期、提交 / 环境、结果、证据与未覆盖范围；有复用价值的故障另记现象、原因、处理和失效结论，不再完整抄入架构或操作指南。
