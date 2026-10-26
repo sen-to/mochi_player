@@ -7,11 +7,15 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
+import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
+import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/infrastructure/storage/smb_http_playback_proxy.dart';
 import 'package:mochi_player/core/infrastructure/storage/smb_media_reader.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
+import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
 
 // ignore: always_use_package_imports
@@ -33,7 +37,22 @@ void main() async {
   final reader = _FixtureReader(await fixture.readAsBytes());
   final proxy = await SmbHttpPlaybackProxy.start(reader);
   final target = PlaybackTarget(url: proxy.uri.toString(), resource: proxy);
-  final engine = MediaKitPlaybackEngine(
+  final file = MediaFile(
+    id: 1,
+    path: fixture.path,
+    fileName: 'fixture.avi',
+    parsedTitle: 'SMB smoke',
+    addedAt: DateTime(2026),
+  );
+  final session = PlaybackSessionController(
+    mediaRepository: _SmokeRepository(),
+    initialItem: file,
+    queueItems: [file],
+    resolver: _SmokeResolver(target),
+  );
+  if (!await session.prepare()) throw StateError('Smoke target preparation failed');
+  final engine = session.attachEngine(
+    MediaKitPlaybackEngine.new,
     const PlaybackOptions(
       cacheMaxBytes: 2 * 1024 * 1024,
       readaheadSeconds: 1,
@@ -53,7 +72,7 @@ void main() async {
     (_) => unawaited(() async {
       var succeeded = false;
       try {
-        await engine.open(target);
+        await session.openCurrent(subtitleStyleOverride: false);
         await waitFor(
           () => engine.state.duration.inSeconds >= 9 && engine.state.position.inMilliseconds > 300,
           'HTTP video did not start',
@@ -88,9 +107,9 @@ void main() async {
         debugPrint('SMB HTTP SMOKE FAILED: $error\n$stack');
       } finally {
         try {
-          await engine.dispose();
-          await target.release();
-          await target.release();
+          await session.prepareClose();
+          await session.close();
+          await session.close();
           await errorsSubscription.cancel();
           if (reader.closeCalls != 1) throw StateError('Source not released exactly once');
           await directory.delete(recursive: true);
@@ -123,4 +142,18 @@ class _FixtureReader implements SmbMediaReader {
 
   @override
   Future<void> close() async => closeCalls++;
+}
+
+class _SmokeResolver implements PlaybackTargetResolver {
+  _SmokeResolver(this.target);
+  final PlaybackTarget target;
+  @override
+  Future<PlaybackTarget?> resolve(MediaFile file) async => target;
+}
+
+class _SmokeRepository implements PlaybackMediaRepository {
+  @override
+  Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async => null;
+  @override
+  Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {}
 }

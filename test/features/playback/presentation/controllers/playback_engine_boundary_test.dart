@@ -7,6 +7,7 @@ import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
+import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
@@ -37,7 +38,7 @@ void main() {
   late _Repository store;
   late PlayerPlaybackController controller;
   const target = PlaybackTarget(url: 'https://example.com/movie.mkv', httpHeaders: {'Authorization': 'test'});
-  setUp(() {
+  setUp(() async {
     engine = FakePlaybackEngine();
     final item = MediaFile(
       id: 1,
@@ -48,19 +49,22 @@ void main() {
       addedAt: DateTime(2026),
     );
     store = _Repository(item, engine.events);
-    controller = PlayerPlaybackController(
-      engine: engine,
+    final session = PlaybackSessionController(
       mediaRepository: store,
+      initialItem: item,
+      queueItems: [item],
+      resolver: _Resolver(target),
+    );
+    await session.prepare();
+    controller = PlayerPlaybackController(
+      engineFactory: (_) => engine,
+      session: session,
       settings: const AppSettings(
         playbackCacheSizeMb: 128,
         playbackReadaheadSeconds: 30,
         enableHardwareAcceleration: false,
         subtitleLanguagePriority: 'ja,eng',
       ),
-      initialItem: item,
-      queueItems: [item],
-      initialTarget: target,
-      resolver: _Resolver(),
     );
   });
   tearDown(() async {
@@ -79,25 +83,82 @@ void main() {
     expect(engine.events.indexOf('options'), lessThan(engine.events.indexOf('open')));
   });
 
-  test('a failed queue open releases its previous target before window shutdown', () async {
+  test('a failed initial open presents an error and releases its target before window shutdown', () async {
     final resource = _TargetResource();
     final failedEngine = _FailingOpenEngine();
-    final failedController = PlayerPlaybackController(
-      engine: failedEngine,
+    final session = PlaybackSessionController(
       mediaRepository: store,
-      settings: const AppSettings(),
       initialItem: store.item,
       queueItems: [store.item],
-      initialTarget: PlaybackTarget(url: 'http://127.0.0.1/video?token=old', resource: resource),
-      resolver: _Resolver(),
+      resolver: _Resolver(PlaybackTarget(url: 'http://127.0.0.1/video?token=old', resource: resource)),
+    );
+    await session.prepare();
+    final failedController = PlayerPlaybackController(
+      engineFactory: (_) => failedEngine,
+      session: session,
+      settings: const AppSettings(),
     );
     try {
-      await failedController.playQueueOffset(0);
+      await failedController.initialize();
       expect(failedController.playerError, isNotNull);
       expect(resource.closeCalls, 1);
     } finally {
       await failedController.shutdown();
       failedController.dispose();
+    }
+  });
+
+  test('failed stop closes the session and blocks further playback interaction', () async {
+    final failedEngine = _FailingStopEngine();
+    final session = PlaybackSessionController(
+      mediaRepository: store,
+      initialItem: store.item,
+      queueItems: [store.item],
+      resolver: _Resolver(target),
+    );
+    await session.prepare();
+    final failedController = PlayerPlaybackController(
+      engineFactory: (_) => failedEngine,
+      session: session,
+      settings: const AppSettings(),
+    );
+    try {
+      await failedController.initialize();
+      expect(failedController.playerError, isNotNull);
+      expect(failedController.canControlPlayback, isFalse);
+      expect(failedEngine.disposeCount, 1);
+      expect(await failedController.setAudioTrack(const PlaybackAudioTrack('1', null, null)), isFalse);
+      await failedController.playQueueOffset(0);
+      expect(failedEngine.disposeCount, 1);
+    } finally {
+      await failedController.shutdown();
+      failedController.dispose();
+    }
+  });
+
+  test('a post-open subtitle command failure is presented instead of escaping a queue action', () async {
+    final failingEngine = _FinalStyleFailingEngine();
+    final session = PlaybackSessionController(
+      mediaRepository: store,
+      initialItem: store.item,
+      queueItems: [store.item],
+      resolver: _Resolver(target),
+    );
+    await session.prepare();
+    final player = PlayerPlaybackController(
+      engineFactory: (_) => failingEngine,
+      session: session,
+      settings: const AppSettings(),
+    );
+    try {
+      await player.initialize();
+      expect(player.playerError, isNull);
+      await player.playQueueOffset(0);
+      expect(player.playerError, isNotNull);
+      expect(player.canControlPlayback, isTrue);
+    } finally {
+      await player.shutdown();
+      player.dispose();
     }
   });
 
@@ -128,6 +189,7 @@ void main() {
   });
 
   test('shutdown pauses before final snapshot and disposes the injected engine once', () async {
+    await controller.initialize();
     engine.state = const PlaybackState(position: Duration(seconds: 42), duration: Duration(seconds: 100));
     engine.pauseGate = Completer<void>();
     final preparing = controller.prepareClose();
@@ -170,8 +232,10 @@ void main() {
 }
 
 class _Resolver implements PlaybackTargetResolver {
+  _Resolver(this.target);
+  final PlaybackTarget target;
   @override
-  Future<PlaybackTarget?> resolve(MediaFile file) async => const PlaybackTarget(url: 'https://example.com/movie.mkv');
+  Future<PlaybackTarget?> resolve(MediaFile file) async => target;
 }
 
 class _FailingOpenEngine extends FakePlaybackEngine {
@@ -183,4 +247,18 @@ class _TargetResource implements PlaybackTargetResource {
   int closeCalls = 0;
   @override
   Future<void> close() async => closeCalls++;
+}
+
+class _FailingStopEngine extends _FailingOpenEngine {
+  @override
+  Future<void> stop() async => throw StateError('stop failed');
+}
+
+class _FinalStyleFailingEngine extends FakePlaybackEngine {
+  int styleCalls = 0;
+  @override
+  Future<void> setSubtitleStyleOverride(bool override) async {
+    if (++styleCalls == 4) throw StateError('subtitle update failed');
+    await super.setSubtitleStyleOverride(override);
+  }
 }

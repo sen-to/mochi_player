@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/media_type.dart';
-import 'package:mochi_player/core/domain/playback/playback_target.dart';
-import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
+import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_playback_controller.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
 import 'package:mochi_player/features/playback/presentation/controllers/player_window_mode_controller.dart';
@@ -23,24 +21,16 @@ import 'package:provider/provider.dart';
 
 class PlayerPage extends StatefulWidget {
   final PlaybackEngine Function(PlaybackOptions) engineFactory;
-  final MediaFile videoItem;
-  final PlaybackTarget target;
+  final PlaybackSessionController session;
   final String? contextTitle;
-  final List<MediaFile> playlist;
-  final PlaybackMediaRepository mediaRepository;
-  final PlaybackTargetResolver resolver;
   final PlayerWindowCloseCoordinator closeCoordinator;
   final Size regularMinimumWindowSize;
 
   const PlayerPage({
     super.key,
-    required this.videoItem,
+    required this.session,
     required this.engineFactory,
-    required this.target,
     this.contextTitle,
-    this.playlist = const [],
-    required this.mediaRepository,
-    required this.resolver,
     required this.closeCoordinator,
     required this.regularMinimumWindowSize,
   });
@@ -84,16 +74,11 @@ class _PlayerPageState extends State<PlayerPage> {
   void initState() {
     super.initState();
     _playbackSettings = context.read<AppSettingsProvider>().settings;
-    final queueItems = widget.playlist.isNotEmpty ? widget.playlist : [widget.videoItem];
 
     _playbackController = PlayerPlaybackController(
-      mediaRepository: widget.mediaRepository,
-      resolver: widget.resolver,
+      session: widget.session,
       settings: _playbackSettings,
-      engine: widget.engineFactory(PlayerPlaybackController.optionsFor(_playbackSettings)),
-      initialItem: widget.videoItem,
-      queueItems: queueItems,
-      initialTarget: widget.target,
+      engineFactory: widget.engineFactory,
       onPlaybackActivity: _startHideControlsTimer,
     )..addListener(_handlePlaybackChanged);
     widget.closeCoordinator.registerProgressFlusher(_playbackController.prepareClose);
@@ -174,7 +159,7 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (_isDisposed || event is! KeyDownEvent) return KeyEventResult.handled;
+    if (_isDisposed || !_playbackController.canControlPlayback || event is! KeyDownEvent) return KeyEventResult.handled;
 
     final player = _playbackController.engine;
     final key = event.logicalKey;
@@ -239,7 +224,10 @@ class _PlayerPageState extends State<PlayerPage> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              _playbackController.engine.buildVideoSurface(),
+              if (_playbackController.canControlPlayback)
+                _playbackController.engine.buildVideoSurface()
+              else
+                const ColoredBox(color: Colors.black),
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
@@ -306,38 +294,41 @@ class _PlayerPageState extends State<PlayerPage> {
                     ),
                   ),
                 ),
-              PlayerControls(
-                engine: _playbackController.engine,
-                title: _displayTitle,
-                secondaryTitle: _displaySecondaryTitle,
-                isVisible: _isControlsVisible,
-                isFullScreen: _windowModeController.isFullScreen,
-                isMiniPlayer: _windowModeController.isMiniPlayer,
-                isMiniPlayerAlwaysOnTop: _windowModeController.isMiniPlayerAlwaysOnTop,
-                onToggleFullScreen: _windowModeController.toggleFullScreen,
-                onPrevious: _playbackController.hasPrevious
-                    ? () => unawaited(_playbackController.playQueueOffset(-1))
-                    : null,
-                onNext: _playbackController.hasNext ? () => unawaited(_playbackController.playQueueOffset(1)) : null,
-                onPip: _windowModeController.toggleMiniPlayer,
-                onToggleMiniPlayerAlwaysOnTop: _windowModeController.toggleMiniPlayerAlwaysOnTop,
-                onControlBarBoundsChanged: _setControlBarBounds,
-                audioTracks: _playbackController.audioTracks,
-                selectedAudioTrack: _playbackController.selectedAudioTrack,
-                onAudioSelected: (track) {
-                  unawaited(_playbackController.setAudioTrack(track));
-                },
-                subtitleTracks: _playbackController.subtitleTracks,
-                selectedSubtitleTrack: _playbackController.selectedSubtitleTrack,
-                onExternalSubtitleRequested: () => unawaited(_loadExternalSubtitle()),
-                overrideEmbeddedSubtitleStyle: _playbackController.overrideEmbeddedSubtitleStyle,
-                onSubtitleStyleOverrideChanged: _playbackController.setSubtitleStyleOverride,
-                onMenuVisibilityChanged: _setPlayerMenuVisibility,
-                onSubtitleSelected: (track) {
-                  unawaited(_playbackController.setSubtitleTrack(track));
-                },
-                onControlPointerDown: _pauseHideControlsTimer,
-                onInteraction: _startHideControlsTimer,
+              IgnorePointer(
+                ignoring: !_playbackController.canControlPlayback,
+                child: PlayerControls(
+                  engine: _playbackController.engine,
+                  title: _displayTitle,
+                  secondaryTitle: _displaySecondaryTitle,
+                  isVisible: _isControlsVisible,
+                  isFullScreen: _windowModeController.isFullScreen,
+                  isMiniPlayer: _windowModeController.isMiniPlayer,
+                  isMiniPlayerAlwaysOnTop: _windowModeController.isMiniPlayerAlwaysOnTop,
+                  onToggleFullScreen: _windowModeController.toggleFullScreen,
+                  onPrevious: _playbackController.hasPrevious
+                      ? () => unawaited(_playbackController.playQueueOffset(-1))
+                      : null,
+                  onNext: _playbackController.hasNext ? () => unawaited(_playbackController.playQueueOffset(1)) : null,
+                  onPip: _windowModeController.toggleMiniPlayer,
+                  onToggleMiniPlayerAlwaysOnTop: _windowModeController.toggleMiniPlayerAlwaysOnTop,
+                  onControlBarBoundsChanged: _setControlBarBounds,
+                  audioTracks: _playbackController.audioTracks,
+                  selectedAudioTrack: _playbackController.selectedAudioTrack,
+                  onAudioSelected: (track) {
+                    unawaited(_playbackController.setAudioTrack(track));
+                  },
+                  subtitleTracks: _playbackController.subtitleTracks,
+                  selectedSubtitleTrack: _playbackController.selectedSubtitleTrack,
+                  onExternalSubtitleRequested: () => unawaited(_loadExternalSubtitle()),
+                  overrideEmbeddedSubtitleStyle: _playbackController.overrideEmbeddedSubtitleStyle,
+                  onSubtitleStyleOverrideChanged: _playbackController.setSubtitleStyleOverride,
+                  onMenuVisibilityChanged: _setPlayerMenuVisibility,
+                  onSubtitleSelected: (track) {
+                    unawaited(_playbackController.setSubtitleTrack(track));
+                  },
+                  onControlPointerDown: _pauseHideControlsTimer,
+                  onInteraction: _startHideControlsTimer,
+                ),
               ),
             ],
           ),

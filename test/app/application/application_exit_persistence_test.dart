@@ -46,7 +46,11 @@ void main() {
     final exit = ApplicationExitCoordinator(
       beginShutdown: () => events.add('begin'),
       closePlayers: () async {
-        final report = await player.prepareClose(settleSession: () async {}, detachView: () async {});
+        final report = await player.prepareClose(
+          settleSession: () async {},
+          closeSession: () async {},
+          detachView: () async {},
+        );
         expect(report.saved, isTrue);
         events.add('player closed');
       },

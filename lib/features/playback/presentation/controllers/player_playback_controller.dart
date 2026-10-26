@@ -3,43 +3,28 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
-import 'package:mochi_player/core/domain/playback/playback_target.dart';
-import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/formatters/media_format.dart';
 import 'package:mochi_player/features/playback/application/external_subtitle_track.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
-import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
-import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/features/playback/application/playback_log_buffer.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 
-/// Owns the playback engine and the playback state presented by [PlayerPage].
-///
-/// Queue and URL resolution remain in [PlaybackSessionController]. Window
-/// modes and widget-only interaction state deliberately remain outside.
+/// Presents playback state and translates UI actions into session commands.
+/// Window modes and widget-only interaction state remain outside.
 class PlayerPlaybackController extends ChangeNotifier {
   static const Duration _progressSaveInterval = Duration(seconds: 10);
   static const Duration localBufferingIndicatorDelay = Duration(milliseconds: 350);
 
   PlayerPlaybackController({
-    required PlaybackMediaRepository mediaRepository,
+    required PlaybackSessionController session,
     required AppSettings settings,
-    required MediaFile initialItem,
-    required List<MediaFile> queueItems,
-    required PlaybackTarget initialTarget,
-    required this.engine,
-    required PlaybackTargetResolver resolver,
+    required PlaybackEngine Function(PlaybackOptions) engineFactory,
     this.onPlaybackActivity,
   }) : _settings = settings,
-       _session = PlaybackSessionController(
-         mediaRepository: mediaRepository,
-         initialItem: initialItem,
-         queueItems: queueItems,
-         initialTarget: initialTarget,
-         resolver: resolver,
-       ) {
+       _session = session,
+       engine = session.attachEngine(engineFactory, optionsFor(settings)) {
     _bindPlayerStreams();
   }
 
@@ -55,7 +40,6 @@ class PlayerPlaybackController extends ChangeNotifier {
   Timer? _resumeNoticeTimer;
   bool _isDisposed = false;
   bool _isClosing = false;
-  Future<void>? _flushInFlight;
   Future<void>? _shutdown;
   bool _hasRestoredPosition = false;
   bool _hasFlushedProgress = false;
@@ -78,6 +62,8 @@ class PlayerPlaybackController extends ChangeNotifier {
   PlaybackSubtitleTrack _selectedSubtitleTrack = const PlaybackSubtitleTrack.automatic();
 
   MediaFile get currentItem => _session.currentItem;
+
+  bool get canControlPlayback => !_isDisposed && !_isClosing && !_session.isClosed;
 
   bool get hasPrevious => _session.hasPrevious;
 
@@ -118,7 +104,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   Future<void> playQueueOffset(int offset) async {
-    if (_isDisposed || _isClosing || _session.isSwitching) return;
+    if (!canControlPlayback || _session.isSwitching) return;
 
     final generation = _nextMediaOpenGeneration();
     _setBuffering(true);
@@ -126,33 +112,39 @@ class PlayerPlaybackController extends ChangeNotifier {
     _showResumeNotice = false;
     notifyListeners();
 
-    final move = await _session.moveBy(
-      offset,
-      positionMs: engine.state.position.inMilliseconds,
-      durationMs: engine.state.duration.inMilliseconds,
-    );
+    final PlaybackQueueMoveResult? move;
+    try {
+      move = await _session.moveBy(
+        offset,
+        subtitleStyleOverride: _overrideEmbeddedSubtitleStyle,
+        onMediaChanged: () {
+          _resumeNoticeTimer?.cancel();
+          _progressSaveTimer?.cancel();
+          _resetMediaState();
+          notifyListeners();
+        },
+      );
+    } catch (error) {
+      debugPrint('切换媒体失败: ${PlaybackLogBuffer.sanitize(error.toString())}');
+      if (_canUsePlayer(generation)) {
+        _setBuffering(false);
+        _playerError = AppFailure.playbackOpen;
+        notifyListeners();
+      }
+      return;
+    }
     if (!_canUsePlayer(generation)) return;
-
-    if (move == null) {
+    if (move == null || !move.isReady) {
       _setBuffering(false);
+      _playerError = move?.failure;
       notifyListeners();
       return;
     }
-    if (!move.isReady) {
-      _setBuffering(false);
-      _playerError = AppFailure.playbackLink;
-      notifyListeners();
-      return;
-    }
-
-    _resumeNoticeTimer?.cancel();
-    _resetMediaState();
-    notifyListeners();
-    await _openMedia(generation);
+    await _finishOpen(move.resumePosition, generation);
   }
 
   Future<bool> setAudioTrack(PlaybackAudioTrack track) async {
-    if (_isDisposed || _isClosing) return false;
+    if (!canControlPlayback) return false;
     _selectedAudioTrack = track;
     notifyListeners();
     try {
@@ -161,13 +153,13 @@ class PlayerPlaybackController extends ChangeNotifier {
       debugPrint('切换音轨失败: $error');
       return false;
     }
-    if (_isDisposed || _isClosing) return false;
+    if (!canControlPlayback) return false;
     onPlaybackActivity?.call();
     return true;
   }
 
   Future<void> setSubtitleTrack(PlaybackSubtitleTrack track) async {
-    if (_isDisposed || _isClosing) return;
+    if (!canControlPlayback) return;
     _didAutoSelectSubtitle = true;
     _selectedSubtitleTrack = track;
     notifyListeners();
@@ -185,7 +177,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   /// The player publishes the loaded subtitle as a normal track update, which
   /// is the single source of truth for the subtitle menu.
   Future<bool> loadExternalSubtitle(String path) async {
-    if (_isDisposed || _isClosing || path.trim().isEmpty) return false;
+    if (!canControlPlayback || path.trim().isEmpty) return false;
 
     final normalizedPath = ExternalSubtitleTrack.normalizePath(path);
     final previousLoad = _loadedExternalSubtitles[normalizedPath];
@@ -204,7 +196,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     _pendingExternalSubtitlePath = normalizedPath;
     try {
       await engine.setSubtitleTrack(track);
-      if (_isDisposed || _isClosing) return false;
+      if (!canControlPlayback) return false;
       _subtitleTracks = _normalizeSubtitleTracks(engine.state.tracks.subtitle);
       _syncPendingExternalSubtitleSelection();
       await _applySubtitleStyleMode();
@@ -222,7 +214,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void setSubtitleStyleOverride(bool value) {
-    if (_isDisposed || _isClosing || _overrideEmbeddedSubtitleStyle == value) return;
+    if (!canControlPlayback || _overrideEmbeddedSubtitleStyle == value) return;
     _overrideEmbeddedSubtitleStyle = value;
     _subtitle = const [];
     notifyListeners();
@@ -231,21 +223,21 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void cycleSubtitleTrack() {
-    if (_isDisposed || _isClosing || _subtitleTracks.isEmpty) return;
+    if (!canControlPlayback || _subtitleTracks.isEmpty) return;
     final currentIndex = _subtitleTracks.indexOf(_selectedSubtitleTrack);
     final nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % _subtitleTracks.length;
     unawaited(setSubtitleTrack(_subtitleTracks[nextIndex]));
   }
 
   void cycleAudioTrack() {
-    if (_isDisposed || _isClosing || _audioTracks.isEmpty) return;
+    if (!canControlPlayback || _audioTracks.isEmpty) return;
     final currentIndex = _audioTracks.indexOf(_selectedAudioTrack);
     final nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % _audioTracks.length;
     unawaited(setAudioTrack(_audioTracks[nextIndex]));
   }
 
   void adjustVolume(double delta) {
-    if (_isDisposed || _isClosing) return;
+    if (!canControlPlayback) return;
     final nextVolume = (engine.state.volume + delta).clamp(0.0, 100.0);
     engine.setVolume(nextVolume);
     if (nextVolume > 0) _lastVolumeBeforeMute = nextVolume;
@@ -253,7 +245,7 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   void toggleMute() {
-    if (_isDisposed || _isClosing) return;
+    if (!canControlPlayback) return;
     final currentVolume = engine.state.volume;
     if (currentVolume > 0) {
       _lastVolumeBeforeMute = currentVolume;
@@ -317,31 +309,9 @@ class PlayerPlaybackController extends ChangeNotifier {
   }
 
   Future<void> _openMedia(int generation) async {
-    await _session.refreshCurrentItem();
-    if (!_canUsePlayer(generation)) return;
-    final resumePosition = PlaybackResumePolicy.positionFor(currentItem, hasRestoredPosition: _hasRestoredPosition);
-
-    debugPrint('正在打开媒体播放目标：${_safeTargetDescription(_session.currentTarget.url)}');
-    await _applyPlayerSettings(generation);
-    if (!_canUsePlayer(generation)) return;
-    await _applySubtitleStyleMode(generation);
-    if (!_canUsePlayer(generation)) return;
-
     try {
-      try {
-        await engine.open(_session.currentTarget, start: resumePosition);
-      } finally {
-        // A failed open has also retired the previous queue target. Do not
-        // accumulate its SMB connection across repeated failed queue moves.
-        if (_canUsePlayer(generation)) await _session.releaseRetiredTargets();
-      }
-      if (!_canUsePlayer(generation)) return;
-      await _applySubtitleStyleMode(generation);
-      if (!_canUsePlayer(generation)) return;
-      await _restoreProgressIfNeeded(resumePosition, generation);
-      if (!_canUsePlayer(generation)) return;
-      _startProgressSaveTimer();
-      onPlaybackActivity?.call();
+      final start = await _session.openCurrent(subtitleStyleOverride: _overrideEmbeddedSubtitleStyle);
+      if (_canUsePlayer(generation)) await _finishOpen(start, generation);
     } catch (error) {
       debugPrint('打开媒体失败: ${PlaybackLogBuffer.sanitize(error.toString())}');
       _dumpLibmpvLogs();
@@ -352,20 +322,22 @@ class PlayerPlaybackController extends ChangeNotifier {
     }
   }
 
-  static String _safeTargetDescription(String url) {
-    final scheme = Uri.tryParse(url)?.scheme.toLowerCase();
-    return switch (scheme) {
-      'file' => '本地文件',
-      'http' || 'https' => 'HTTP 流',
-      'smb' => 'SMB 流',
-      final value when value != null && value.isNotEmpty => '$value 播放目标',
-      _ => '未知播放目标',
-    };
-  }
-
-  Future<void> _applyPlayerSettings([int? generation]) async {
-    if (!_canUsePlayer(generation)) return;
-    await engine.applyOptions(optionsFor(_settings));
+  Future<void> _finishOpen(Duration? start, int generation) async {
+    try {
+      if (!_canUsePlayer(generation)) return;
+      await _applySubtitleStyleMode(generation);
+      if (!_canUsePlayer(generation)) return;
+      await _restoreProgressIfNeeded(start, generation);
+      if (!_canUsePlayer(generation)) return;
+      _startProgressSaveTimer();
+      onPlaybackActivity?.call();
+    } catch (error) {
+      debugPrint('恢复播放状态失败: ${PlaybackLogBuffer.sanitize(error.toString())}');
+      if (_canUsePlayer(generation)) {
+        _playerError = AppFailure.playbackOpen;
+        notifyListeners();
+      }
+    }
   }
 
   static PlaybackOptions optionsFor(AppSettings settings) => PlaybackOptions(
@@ -416,7 +388,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     _progressSaveTimer = Timer.periodic(_progressSaveInterval, (_) => unawaited(_saveProgress()));
   }
 
-  Future<void> _saveProgress({bool force = false, bool allowDisposed = false, bool propagateFailure = false}) async {
+  Future<void> _saveProgress({bool force = false, bool allowDisposed = false}) async {
     if ((_isDisposed || _isClosing) && !allowDisposed) return;
     final positionMs = engine.state.position.inMilliseconds;
     final durationMs = engine.state.duration.inMilliseconds;
@@ -425,31 +397,15 @@ class PlayerPlaybackController extends ChangeNotifier {
       await _session.saveProgress(positionMs: positionMs, durationMs: durationMs, force: force);
     } catch (error) {
       debugPrint('保存播放进度失败: $error');
-      if (propagateFailure) rethrow;
     }
-  }
-
-  /// Persists the latest player snapshot before a window is closed.
-  Future<void> flushProgress() => _flushInFlight ??= _flushProgress();
-
-  Future<void> _flushProgress() async {
-    _hasFlushedProgress = true;
-    await _saveProgress(force: true, allowDisposed: true, propagateFailure: true);
-    await _session.drainProgress();
   }
 
   Future<void> prepareClose() async {
     _isClosing = true;
-    _session.beginShutdown();
+    _hasFlushedProgress = true;
     _nextMediaOpenGeneration();
     _progressSaveTimer?.cancel();
-    // Pause before taking the final snapshot. In-flight open/seek callbacks are
-    // invalidated above and cannot restart a session during shutdown.
-    try {
-      await engine.pause();
-    } finally {
-      await flushProgress();
-    }
+    await _session.prepareClose();
   }
 
   Future<void> shutdown() => _shutdown ??= _releasePlayer();
@@ -464,11 +420,7 @@ class PlayerPlaybackController extends ChangeNotifier {
     try {
       await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
     } finally {
-      try {
-        await engine.dispose();
-      } finally {
-        await _session.releaseTargets();
-      }
+      await _session.close();
     }
   }
 
@@ -488,7 +440,7 @@ class PlayerPlaybackController extends ChangeNotifier {
       return;
     }
 
-    final delay = bufferingIndicatorDelayFor(_session.currentTarget.url);
+    final delay = bufferingIndicatorDelayFor(_session.currentUrl ?? '');
     if (delay == Duration.zero) {
       _isBufferingIndicatorVisible = true;
       return;
@@ -506,7 +458,6 @@ class PlayerPlaybackController extends ChangeNotifier {
     _setBuffering(false);
     _hasRestoredPosition = false;
     _hasFlushedProgress = false;
-    _flushInFlight = null;
     _didAutoSelectSubtitle = false;
     _showResumeNotice = false;
     _resumePositionLabel = null;

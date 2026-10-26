@@ -15,11 +15,13 @@ class PlayerWindowCloseCoordinator {
 
   Future<PlayerWindowCloseReport> prepareClose({
     required Future<void> Function() settleSession,
+    required Future<void> Function() closeSession,
     required Future<void> Function() detachView,
-  }) => _preparing ??= _prepareClose(settleSession, detachView);
+  }) => _preparing ??= _prepareClose(settleSession, closeSession, detachView);
 
   Future<PlayerWindowCloseReport> _prepareClose(
     Future<void> Function() settleSession,
+    Future<void> Function() closeSession,
     Future<void> Function() detachView,
   ) async {
     final failedStages = <String>[];
@@ -36,7 +38,11 @@ class PlayerWindowCloseCoordinator {
 
     await stage('replacement', settleSession);
     final saved = await stage('progress', flushProgress);
-    final released = await stage('resources', releaseResources, timeout: resourceTimeout);
+    final released = await stage(
+      'resources',
+      () async => Future.wait([Future<void>.sync(releaseResources), Future<void>.sync(closeSession)]),
+      timeout: resourceTimeout,
+    );
     await stage('frame', detachView);
     return PlayerWindowCloseReport(saved: saved, released: released, failedStages: failedStages);
   }

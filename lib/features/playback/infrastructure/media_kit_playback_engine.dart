@@ -83,6 +83,9 @@ class MediaKitPlaybackEngine implements PlaybackEngine {
   );
 
   @override
+  Future<void> stop() => _player.stop();
+
+  @override
   Future<void> pause() => _player.pause();
 
   @override

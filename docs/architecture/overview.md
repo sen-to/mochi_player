@@ -1,6 +1,6 @@
 # 架构总览
 
-本文描述当前实现（核对日期：2026-10-25）。功能完成度见 [实施状态](../status.md)，技术取舍见 [ADR](../decisions/)，验证证据见 [测试指南](../guides/testing.md)。
+本文描述当前实现（核对日期：2026-10-26）。功能完成度见 [实施状态](../status.md)，技术取舍见 [ADR](../decisions/)，验证证据见 [测试指南](../guides/testing.md)。
 
 ## 系统边界
 
@@ -35,7 +35,7 @@ flowchart LR
 | 媒体源业务 | [StorageSourcesService](../../lib/features/library/application/storage_sources_service.dart) 协调配置、测试、删除回调与收尾；[FileBrowserProvider](../../lib/features/library/application/file_browser_provider.dart) 协调凭据与浏览连接 | 页面只处理输入、确认、展示；SMB 路径解析位于领域层，协议实例不进入页面 |
 | 媒体库查询 | [MediaLibraryProvider](../../lib/features/library/application/media_library_provider.dart) 提供查询订阅，仓库为私有字段；[LibraryQuery](../../lib/features/library/presentation/widgets/library_query.dart) 回调接收应用 Provider | 查询身份稳定，通过滚动扩展结果并订阅数据库变更 |
 | 播放持久化 | [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 只定义契约；[DatabasePlaybackMediaRepository](../../lib/features/playback/infrastructure/database_playback_media_repository.dart) 独立实现 | 播放会话不导入数据库实现，不使用默认数据库获取路径 |
-| 播放器组装与界面 | [player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 加载启动数据并维护会话展示状态；[PlayerWindowApp](../../lib/features/playback/presentation/player_window_app.dart) 只组装界面并使用注入的引擎工厂 | 负责创建、激活、换片、保存进度、释放资源与关闭顺序；创建后初始化失败也会退役视图 |
+| 播放器组装与界面 | [player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 保存启动数据并维护窗口展示状态；[PlayerWindowApp](../../lib/features/playback/presentation/player_window_app.dart) 组装界面并将引擎工厂交给播放会话 | 负责创建、激活、换片、保存进度、释放资源与关闭顺序；创建后初始化失败也会退役视图 |
 | 共享依赖 | [ApplicationDependencies](../../lib/app/bootstrap/application_dependencies.dart) 集中组装；数据库、TMDB、设置服务使用普通实例，关键应用 / 适配器构造参数必传 | 主视图和播放器共享数据库；设置运行配置可被趋势和刮削立即使用；测试可独立构造服务 |
 
 `DatabaseService` 管理共享连接与多表写入，`LibraryRepository` 提供媒体库读取。drift 直接映射部分领域模型，生成代码与表结构见 [数据模型](data-model.md)。
@@ -62,15 +62,16 @@ flowchart LR
     SourcesApp --> Storage["来源仓库 / 存储注册表"]
   end
   subgraph PlaybackPath["播放"]
-    Player["PlayerPlaybackController：界面播放控制"] --> Session["PlaybackSessionController：队列与进度"]
-    Player --> EngineContract["PlaybackEngine"]
+    Player["PlayerPlaybackController：界面播放控制"] --> Session["PlaybackSessionController：目标、引擎与进度"]
+    Session --> EngineContract["PlaybackEngine"]
+    Player --> EngineContract
     EngineContract --> Backend["MediaKitPlaybackEngine"]
     Session --> StoreContract["PlaybackMediaRepository"]
     StoreContract --> Store["DatabasePlaybackMediaRepository"]
   end
 ```
 
-播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。`PlaybackSessionController` 不调用播放引擎；真正的 open / seek 与状态流绑定由展示目录中的 `PlayerPlaybackController` 负责。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
+播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。`PlaybackSessionController` 负责目标解析、引擎打开 / 停止 / 释放与进度保存；展示目录中的 `PlayerPlaybackController` 订阅状态、处理界面控制并向会话发出换片 / 关闭请求。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
 
 ### 代表调用链
 
@@ -109,7 +110,8 @@ flowchart TB
 | --- | --- | --- |
 | 应用 | `PlayerWindowCoordinator`、设置、主题、语言、库任务与数据库 | 主窗口关闭 / 应用退出 |
 | 每个视图 | `WindowService`、`WindowControlsController`、消息队列 | 对应视图退役 |
-| 播放会话 | `PlaybackEngine`、播放目标资源、队列、进度写入与窗口模式控制器 | 换片或播放器关闭 |
+| 播放会话 | `PlaybackEngine`、播放目标资源、队列与进度写入 | 换片后释放前一目标；会话关闭时释放引擎与全部目标 |
+| 播放器页面 | 展示状态、窗口模式控制器、计时器与订阅 | 页面替换或播放器关闭 |
 
 共享界面 Provider 包括媒体库、文件浏览、趋势、设置、主题与 `AppLocaleProvider`；窗口接口和消息宿主按视图注入。`AppMessage` 通过调用方 context 找到消息宿主，不通过全局变量猜测窗口。
 
@@ -133,5 +135,5 @@ flowchart TB
 - 应用层仍依赖部分具体仓库 / 服务；`MetadataScraper`、`MetadataImporter` 等基础设施类也承担部分业务协调，当前不是严格 Clean Architecture。接口化由替换和测试需求驱动。
 - `ApplicationDependencies` 负责手工组装与构造注入，在应用范围内共享实例。共享对象由入口负责释放，Provider 通过 `.value` 暴露它们。
 - 一个 UI isolate 承载所有视图，同步重任务会影响整个界面；数据库后台 isolate 不代表所有计算都已隔离。
-- 播放资源在窗口工厂、会话与播放控制器之间分阶段移交；详细所有权和失败回收路径见 [播放](playback.md#播放目标资源所有权)。
+- 播放会话统一管理引擎与目标资源，窗口工厂通过会话关闭入口收尾；详细所有权和失败回收路径见 [播放](playback.md#播放目标资源所有权)。
 - 实验窗口 API、原生补丁、凭据存储和大库性能仍有约束；当前风险与待办集中见 [实施状态](../status.md)，平台细节见构建指南。

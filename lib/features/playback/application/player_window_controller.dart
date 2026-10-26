@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:mochi_player/core/domain/media/media_file.dart';
-import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
+import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 
 class PlayerWindowController extends ChangeNotifier {
@@ -41,51 +40,49 @@ class PlayerWindowController extends ChangeNotifier {
 enum PlayerLaunchFailure { load, target }
 
 class PlayerWindowBootstrap {
-  const PlayerWindowBootstrap._({
-    required this.request,
-    required this.mediaRepository,
-    this.failure,
-    this.initialMedia,
-    this.queue = const [],
-    this.initialTarget,
-  });
+  const PlayerWindowBootstrap._({required this.request, required this.mediaRepository, this.failure, this.playback});
 
   final PlayerWindowRequest request;
   final PlaybackMediaRepository mediaRepository;
   final PlayerLaunchFailure? failure;
-  final MediaFile? initialMedia;
-  final List<MediaFile> queue;
-  final PlaybackTarget? initialTarget;
+  final PlaybackSessionController? playback;
 
-  bool get isReady => initialMedia != null && initialTarget != null;
+  bool get isReady => failure == null && playback != null;
 
   static Future<PlayerWindowBootstrap> load(
     PlayerWindowRequest request, {
     required PlaybackMediaRepository mediaRepository,
     required PlaybackTargetResolver resolver,
   }) async {
+    PlaybackSessionController? playback;
     try {
-      final persistedInitialMedia = await mediaRepository.readMediaFile(
-        sourceId: request.initialMedia.sourceId,
-        path: request.initialMedia.path,
-      );
-      final initialMedia = persistedInitialMedia ?? request.initialMedia;
-      final queue = (await Future.wait(
+      final initialMedia =
+          await mediaRepository.readMediaFile(
+            sourceId: request.initialMedia.sourceId,
+            path: request.initialMedia.path,
+          ) ??
+          request.initialMedia;
+      final queue = await Future.wait(
         request.queue.map(
           (reference) async =>
               await mediaRepository.readMediaFile(sourceId: reference.sourceId, path: reference.path) ?? reference,
         ),
-      )).toList(growable: false);
-      final target = await resolver.resolve(initialMedia);
+      );
+      playback = PlaybackSessionController(
+        mediaRepository: mediaRepository,
+        initialItem: initialMedia,
+        queueItems: queue,
+        resolver: resolver,
+      );
+      final ready = await playback.prepare();
       return PlayerWindowBootstrap._(
         request: request,
         mediaRepository: mediaRepository,
-        failure: target == null ? PlayerLaunchFailure.target : null,
-        initialMedia: initialMedia,
-        queue: queue,
-        initialTarget: target,
+        failure: ready ? null : PlayerLaunchFailure.target,
+        playback: playback,
       );
-    } catch (error) {
+    } catch (_) {
+      await playback?.close();
       return PlayerWindowBootstrap._(
         request: request,
         mediaRepository: mediaRepository,

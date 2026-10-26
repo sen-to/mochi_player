@@ -1,6 +1,6 @@
 # 播放
 
-核对日期：2026-10-25。本文描述「点击播放」到「进度写回媒体库」的链路与同引擎会话调用。功能状态见 [实施状态](../status.md)，验证证据见 [测试指南](../guides/testing.md)。
+核对日期：2026-10-26。本文描述「点击播放」到「进度写回媒体库」的链路与同引擎会话调用。功能状态见 [实施状态](../status.md)，验证证据见 [测试指南](../guides/testing.md)。
 
 ```mermaid
 sequenceDiagram
@@ -15,8 +15,8 @@ sequenceDiagram
   else 媒体未入库
     MW->>MW: 使用请求中的文件对象
   end
-  MW->>MW: StorageSourcePlaybackResolver 解析播放目标
-  MW->>MPV: PlaybackEngine.open(target, start)
+  MW->>MW: PlaybackSessionController 准备并持有播放目标
+  MW->>MPV: 会话调用 PlaybackEngine.open(target, start)
   loop 每 10 秒检查，位移至少 5 秒才保存
     MW->>DB: 媒体已入库时写入播放进度
   end
@@ -28,13 +28,13 @@ sequenceDiagram
 - 入口：`PlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[playback_launcher.dart](../../lib/features/playback/presentation/playback_launcher.dart)）。
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
 - 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，在同一 isolate 内传递 `MediaFile`、队列和请求 ID。
-- [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器。[player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建独立视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 加载启动数据与维护会话展示状态；[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 负责界面，共享设置、语言与主题。引擎工厂、数据库播放适配和目标解析器均由组装入口注入。
+- [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器。[player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建独立视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 保存启动数据与窗口展示状态；[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 负责界面，共享设置、语言与主题。引擎工厂、数据库播放适配和目标解析器均由组装入口注入。
 - [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 是应用契约；[DatabasePlaybackMediaRepository](../../lib/features/playback/infrastructure/database_playback_media_repository.dart) 是基础设施实现，使用注入的共享数据库。播放会话不自行创建数据库服务或媒体源解析器。
 - 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
 ## 播放目标解析
 
-播放器窗口读到 `MediaFile` 后，交给 [StorageSourcePlaybackResolver](../../lib/core/infrastructure/storage/storage_source_playback_resolver.dart) 按媒体源类型分派：
+播放会话取得 `MediaFile` 后，交给 [StorageSourcePlaybackResolver](../../lib/core/infrastructure/storage/storage_source_playback_resolver.dart) 按媒体源类型分派：
 
 | 类型 | 解析结果 | 说明 |
 | --- | --- | --- |
@@ -79,21 +79,25 @@ sequenceDiagram
 
 ## 播放目标资源所有权
 
-`PlaybackTarget` 包含 URL、请求头和可选的 `PlaybackTargetResource`。本地 / WebDAV 目标不需要额外运行资源；SMB 目标附带回源服务。会话管理目标集合，播放控制器提供引擎已经结束使用旧目标的时机，窗口工厂处理移交前的失败。
+`PlaybackSessionController` 统一持有播放目标与引擎。`PlaybackTarget` 包含 URL、请求头和可选资源；SMB 资源是 HTTP 回源服务及其读取器。
 
-| 阶段 | 持有与收尾 |
+| 阶段 | 会话负责的操作 |
 | --- | --- |
-| 创建目标 | SMB 解析器打开读取器；HTTP 绑定失败时关闭读取器；成功后随目标交给窗口启动数据 |
-| 窗口启动 | 工厂负责创建失败、页面未挂载及替换请求未采用时的目标释放 |
-| 正常播放 / 队列换片 | 会话保留当前与已退役目标；控制器在引擎新 open 尝试结束后（包括失败）通知会话释放旧目标 |
-| 会话关闭 | 控制器销毁引擎后，让会话释放当前与残留旧目标；退出期间迟到的解析结果自行释放 |
-| 窗口级兜底 | 工厂对启动目标做幂等清理，覆盖页面未成功接管的路径 |
+| 准备 | 解析并接管目标，窗口或引擎尚未创建时也由会话保管；解析器负责创建失败时的内部清理 |
+| 创建引擎 | 使用注入的工厂创建，构造失败时释放已准备的目标；界面借用引擎展示与控制播放 |
+| 队列换片 | 保存进度、准备下一目标并打开；操作完成前拒绝重复换片，保留前一目标供引擎读取；打开完成后释放前一目标 |
+| 准备失败 | 保留当前媒体、引擎与资源，界面展示链接错误 |
+| 打开失败 | 等待引擎 stop 后释放相关目标；若 stop 失败，销毁引擎并关闭会话，界面展示播放错误 |
+| 退出准备 | 拒绝新操作，等待已接受操作，暂停引擎并保存最终进度；打开尚未完成的媒体不写进度 |
+| 关闭 | 先销毁引擎，再释放全部目标；单个释放失败仍尝试其余目标；重复关闭复用同一操作，迟到解析结果自行释放 |
 
-资源的逻辑所有者和释放触发点分布在会话、控制器与工厂中，仍需跨文件追踪。新增资源须明确移交点和失败责任，不能因为 close 幂等就省略所有权约定。
+窗口工厂只持有会话并调用关闭入口，覆盖窗口创建失败、替换未采用和页面未挂载等路径。展示控制器负责状态订阅与界面通知；换片通知只重置界面状态，资源释放由会话内部完成。
+
+引擎 open 的 Future 表示打开命令完成，不代表视频已成功解码。后续异步播放错误由状态流展示，目标在会话下一次切换或关闭时释放。会话只在目标成功打开后接受进度写入，避免把前一个文件的位置写到新文件。
 
 ## 播放引擎
 
-窗口入口选择 `MediaKitPlaybackEngine` 工厂，页面创建引擎并注入 `PlayerPlaybackController`。控制器和控制栏通过 [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) 使用项目状态与轨道类型，执行播放控制、状态订阅、选轨、字幕覆盖和缓存速度查询；视频视图也由后端提供。
+窗口入口注入 `MediaKitPlaybackEngine` 工厂，会话创建并持有引擎，`PlayerPlaybackController` 借用引擎。控制器和控制栏通过 [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) 使用项目状态与轨道类型，执行播放控制、状态订阅、选轨、字幕覆盖和缓存速度查询；视频视图也由后端提供。
 
 [MediaKitPlaybackEngine](../../lib/features/playback/infrastructure/media_kit_playback_engine.dart) 内部创建 `Player`（启用 libass）与 `VideoController`，将 `PlaybackTarget` 的 URL、请求头与续播起点转换为后端媒体对象。以下 mpv 参数仅在此实现中下发：
 
@@ -124,6 +128,8 @@ mini 复用同一播放会话、字幕和控制界面，不接入系统 PiP。�
 窗口操作使用按视图注入的 `WindowService` 和显式 `viewId`，不使用全局“当前窗口”。`DesktopWindowHost` 管理官方 registry；尺寸约束、激活和全屏走官方控制器，拖动、位置、普通置顶和文件对话框由原生桥补充。接口与平台规避分别见 [macOS](../guides/build-macos.md#窗口外观) 和 [Windows](../guides/build-windows.md#官方窗口宿主)。
 
 ## 生命周期与退出
+
+会话的 `prepareClose()` 负责暂停与最终进度，`close()` 负责引擎和目标释放；窗口关闭协调器为这些阶段设置超时；页面清理与未挂载页面的会话收尾共用同一资源阶段。
 
 关闭主窗口进入 `ApplicationExitCoordinator`：拒绝新请求，等待已接受的会话操作、最终进度和资源释放，注销视图并等待一帧，再销毁窗口；随后收尾任务、设置与共享数据库，结束进程。播放器单独关闭不关闭共享数据库。
 
@@ -163,7 +169,7 @@ macOS 退出原生通道将 Cmd+Q / Dock 退出导向同一退出协调器；窗
 
 | 环节 | 规则 |
 | --- | --- |
-| 周期保存 | 每 10 秒一次（[player_playback_controller.dart:21](../../lib/features/playback/presentation/controllers/player_playback_controller.dart#L21)） |
+| 周期保存 | 每 10 秒一次（[player_playback_controller.dart](../../lib/features/playback/presentation/controllers/player_playback_controller.dart)） |
 | 位移阈值 | 与上次保存位置相差不足 5000ms 时跳过（`PlaybackSessionController.saveProgress`） |
 | 强制保存 | 切换剧集、播放完成、关闭窗口前、组件销毁兜底 |
 | 写入顺序 | `PlaybackProgressWriter` 串行化，避免旧快照覆盖新位置 |

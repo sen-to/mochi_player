@@ -42,14 +42,14 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 验证基线
 
-以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。Dart 与 macOS SMB 接入对应提交 `d23458b`；不同日期、平台和样片的结论不可互相替代。
+以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-26 的记录来自播放会话资源管理实现的工作区；此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
 
 | 验证项 | 记录日期 / 结果 | 覆盖与限制 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 2026-10-23，260 项通过 | 包含真实 SQLite、状态 / 生命周期、布局和 SMB HTTP 替身测试；不代表真实 NAS 或大库性能 |
-| 格式 / 静态检查 / 文案 | 2026-10-23，格式通过；无错误 / 警告；275 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
-| macOS Release SMB HTTP 冒烟 | 2026-10-23，两个成功标记均输出 | 真实 media_kit 播放、前后及快速 seek、资源释放；读取器为带延迟的替身，不连接 NAS |
-| macOS Release 多窗口冒烟 | 2026-10-23，成功标记输出 | 创建 / 替换 / 关闭重开、全屏、共享状态及最终进度持久化；不代替原生关闭按钮或长期使用 |
+| macOS 全量 Dart 回归 | 2026-10-26，274 项通过 | 包含会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败；不代表真实 NAS 或大库性能 |
+| 格式 / 静态检查 / 文案 | 2026-10-26，格式通过；无错误 / 警告；275 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
+| macOS Release SMB HTTP 冒烟 | 2026-10-26，两个成功标记均输出 | 会话管理真实 media_kit 的打开与释放，前后及快速 seek；读取器为带延迟的替身，不连接 NAS |
+| macOS Release 多窗口冒烟 | 2026-10-26，成功标记输出 | 创建 / 替换 / 关闭重开、全屏、共享状态及最终进度持久化；不代替原生关闭按钮或长期使用 |
 | Windows Debug / Release 与多窗口冒烟 | 2026-10-17–18 的记录通过 | 旧阶段正式入口构建、纹理、双视图与退出；不证明当前 SMB 代码或手工输入 / DPI 通过 |
 | Windows 原生最小尺寸冒烟 | 2026-10-18，成功标记输出 | WM_GETMINMAXINFO、mini 约束切换、视图隔离与重开；真实鼠标拖动 / DPI 仍需验收 |
 | macOS 原生最小尺寸专项 | 尚无专项成功记录 | 播放冒烟不等于内容约束或手动缩放已验收 |
@@ -65,9 +65,9 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 | 库查询 | `test/features/library/application/library_repository_test.dart` | 标题可用性、搜索 / 收藏 / 续播排序、有限结果、SQL 与领域规则一致性、共享订阅 |
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
 | 媒体源应用入口 | `test/features/library/application/storage_sources_service_test.dart`、`file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知及迟到连接关闭 |
-| 应用组装 | `test/app/bootstrap/` | 设置与趋势共享 TMDB 实例、应用查询与播放写入共享数据库，独立实例无隐藏全局配置 |
+| 应用组装 | `test/app/bootstrap/` | 共享 TMDB / 数据库、独立实例；窗口创建失败时释放已准备会话且不创建引擎 |
 | 应用退出 | `test/app/application/` | 重复请求、保存 / 释放顺序、失败与超时、最终快照持久化 |
-| 播放 | `test/features/playback/` | 引擎门面、轨道 / 字幕、seek、进度队列、创建 / 替换 / 关闭、mini / 全屏失败重试 |
+| 播放 | `test/features/playback/` | 会话拥有引擎 / 目标；打开 / stop 失败、重复 / 竞争关闭、迟到解析回收、换片中禁止进度串写；门面、轨道 / 字幕、seek 与 mini / 全屏 |
 | 本地化 | `test/l10n/` | 三种偏好、保存失败重试、ICU 与格式化、语言切换不重建会话 |
 | SMB 回源 | `test/core/infrastructure/storage/smb_http_playback_proxy_test.dart`、`smb_playback_resolver_test.dart` | HEAD / Range、令牌 / Host / 路径、并发 / 取消、快速 seek 的最新请求不被 503 拒绝、读取失败与幂等关闭；不连接真实 NAS |
 | 表单布局 | `test/core/ui/components/app_form_item_test.dart` | 窄弹窗、中英文、字号放大、说明换行、连接结果与按钮对齐 |
@@ -97,7 +97,7 @@ fvm flutter run -d macos --release -t integration_test/smb_http_playback_smoke.d
 fvm flutter run -d windows --release -t integration_test/smb_http_playback_smoke.dart
 ```
 
-使用 40 秒 RGB AVI 和每块 30ms 读取延迟的替身，经正式回源服务交给 media_kit。每轮以 15ms 间隔发出 8 次 seek，连续 3 轮后继续跳转，检查最后目标可到达、后续 seek 有效、源只关闭一次。成功必须同时输出：
+使用 40 秒 RGB AVI 和每块 30ms 读取延迟的替身，由正式播放会话持有回源目标与 media_kit 引擎，并通过会话关闭接口检查释放。每轮以 15ms 间隔发出 8 次 seek，连续 3 轮后继续跳转，检查最后目标可到达、后续 seek 有效、源只关闭一次。成功必须同时输出：
 
 - `SMB HTTP RAPID SEEK PASS`
 - `SMB HTTP PLAYBACK SMOKE COMPLETE`

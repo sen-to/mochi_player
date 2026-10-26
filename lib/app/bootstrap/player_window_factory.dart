@@ -34,12 +34,14 @@ Future<PlayerWindowSession> createPlayerWindow({
         onCloseRequested: lifecycle.close,
         windowControls: lifecycle.windowControls,
         engineFactory: engineFactory,
-        resolver: resolver,
       ),
     );
   } catch (_) {
-    await bootstrap.initialTarget?.release();
-    session.dispose();
+    try {
+      await bootstrap.playback?.close();
+    } finally {
+      session.dispose();
+    }
     rethrow;
   }
   lifecycle.windows = windows;
@@ -92,7 +94,7 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
       if (isClosing) return;
       await closeCoordinator.flushProgress();
       await closeCoordinator.releaseResources();
-      await session.bootstrap.initialTarget?.release();
+      await session.bootstrap.playback?.close();
       if (isClosing) return;
       session.close();
       await WidgetsBinding.instance.endOfFrame;
@@ -101,7 +103,7 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
       adopted = true;
       await WidgetsBinding.instance.endOfFrame;
     } finally {
-      if (!adopted) await next.initialTarget?.release();
+      if (!adopted) await next.playback?.close();
     }
   }
 
@@ -126,6 +128,7 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
       settleSession: () async {
         await _replacement;
       },
+      closeSession: () async => session.bootstrap.playback?.close(),
       detachView: () async {
         session.close();
         await WidgetsBinding.instance.endOfFrame;
@@ -135,14 +138,8 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
     try {
       await windows.close();
     } finally {
-      try {
-        // Also covers a bootstrap whose page never mounted. Normal playback
-        // closes it through its session; target resources close idempotently.
-        await session.bootstrap.initialTarget?.release();
-      } finally {
-        windowControls.dispose();
-        session.dispose();
-      }
+      windowControls.dispose();
+      session.dispose();
     }
   }
 }

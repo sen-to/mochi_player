@@ -11,7 +11,11 @@ abstract interface class PlaybackEngine {
 
   Widget buildVideoSurface();
 
+  /// Completes when the open command settles; later decode errors use the stream.
   Future<void> open(PlaybackTarget target, {Duration? start});
+
+  /// Unload media; completion establishes that target resources can be released.
+  Future<void> stop();
 
   Future<void> pause();
 

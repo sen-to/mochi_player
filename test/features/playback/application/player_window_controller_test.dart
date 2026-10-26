@@ -20,8 +20,7 @@ void main() {
     final fresh = original.copyWith(position: 42000, duration: 100000);
     final resolver = _Resolver();
     final result = await PlayerWindowBootstrap.load(request, mediaRepository: _Repository(fresh), resolver: resolver);
-    expect(result.initialMedia!.position, 42000);
-    expect(result.queue.single.position, 42000);
+    expect(result.playback!.currentItem.position, 42000);
     expect(resolver.resolved!.position, 42000);
     expect(result.isReady, isTrue);
   });
@@ -31,7 +30,7 @@ void main() {
       mediaRepository: _Repository(null),
       resolver: _Resolver(available: false),
     );
-    expect(unresolved.initialMedia, same(original));
+    expect(unresolved.playback!.currentItem, same(original));
     expect(unresolved.failure, PlayerLaunchFailure.target);
     final failed = await PlayerWindowBootstrap.load(
       request,

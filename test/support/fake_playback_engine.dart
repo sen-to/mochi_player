@@ -68,6 +68,11 @@ class FakePlaybackEngine implements PlaybackEngine {
   }
 
   @override
+  Future<void> stop() async {
+    events.add('stop');
+  }
+
+  @override
   Future<void> pause() async {
     events.add('pause');
     await pauseGate?.future;

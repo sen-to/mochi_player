@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/ui/theme/app_theme.dart';
 import 'package:mochi_player/core/ui/components/feedback/app_message.dart';
@@ -20,7 +19,6 @@ class PlayerWindowApp extends StatelessWidget {
     required this.onCloseRequested,
     required this.windowControls,
     required this.engineFactory,
-    required this.resolver,
   });
 
   final PlayerWindowController session;
@@ -28,7 +26,6 @@ class PlayerWindowApp extends StatelessWidget {
   final Future<void> Function() onCloseRequested;
   final WindowControlsController windowControls;
   final PlaybackEngine Function(PlaybackOptions) engineFactory;
-  final PlaybackTargetResolver resolver;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +51,6 @@ class PlayerWindowApp extends StatelessWidget {
                 builder: (context, session, _) => _PlayerWindowHome(
                   bootstrap: session.bootstrap,
                   engineFactory: engineFactory,
-                  resolver: resolver,
                   isOpen: session.isOpen,
                   isClosing: session.isClosing,
                   closeCoordinator: closeCoordinator,
@@ -73,7 +69,6 @@ class _PlayerWindowHome extends StatelessWidget {
   const _PlayerWindowHome({
     required this.bootstrap,
     required this.engineFactory,
-    required this.resolver,
     required this.isOpen,
     required this.isClosing,
     required this.closeCoordinator,
@@ -82,7 +77,6 @@ class _PlayerWindowHome extends StatelessWidget {
 
   final PlayerWindowBootstrap bootstrap;
   final PlaybackEngine Function(PlaybackOptions) engineFactory;
-  final PlaybackTargetResolver resolver;
   final bool isOpen;
   final bool isClosing;
   final PlayerWindowCloseCoordinator closeCoordinator;
@@ -100,13 +94,9 @@ class _PlayerWindowHome extends StatelessWidget {
               : bootstrap.isReady
               ? PlayerPage(
                   key: ValueKey(bootstrap.request.requestId),
-                  videoItem: bootstrap.initialMedia!,
+                  session: bootstrap.playback!,
                   engineFactory: engineFactory,
-                  resolver: resolver,
-                  target: bootstrap.initialTarget!,
                   contextTitle: bootstrap.request.contextTitle,
-                  playlist: bootstrap.queue,
-                  mediaRepository: bootstrap.mediaRepository,
                   regularMinimumWindowSize: const Size(720, 405),
                   closeCoordinator: closeCoordinator,
                 )
