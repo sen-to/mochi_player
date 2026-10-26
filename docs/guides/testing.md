@@ -42,12 +42,12 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 验证基线
 
-以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-26 的记录来自播放会话资源管理实现的工作区；此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
+以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-26 的记录来自播放会话资源管理与 TMDB 错误分类实现的工作区；此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
 
 | 验证项 | 记录日期 / 结果 | 覆盖与限制 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 2026-10-26，274 项通过 | 包含会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败；不代表真实 NAS 或大库性能 |
-| 格式 / 静态检查 / 文案 | 2026-10-26，格式通过；无错误 / 警告；275 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
+| macOS 全量 Dart 回归 | 2026-10-26，311 项通过 | 包含 TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败；不代表真实 NAS 或大库性能 |
+| 格式 / 静态检查 / 文案 | 2026-10-26，格式通过；无错误 / 警告；280 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
 | macOS Release SMB HTTP 冒烟 | 2026-10-26，两个成功标记均输出 | 会话管理真实 media_kit 的打开与释放，前后及快速 seek；读取器为带延迟的替身，不连接 NAS |
 | macOS Release 多窗口冒烟 | 2026-10-26，成功标记输出 | 创建 / 替换 / 关闭重开、全屏、共享状态及最终进度持久化；不代替原生关闭按钮或长期使用 |
 | Windows Debug / Release 与多窗口冒烟 | 2026-10-17–18 的记录通过 | 旧阶段正式入口构建、纹理、双视图与退出；不证明当前 SMB 代码或手工输入 / DPI 通过 |
@@ -62,6 +62,7 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 | 领域 | 主要位置 | 关注点 |
 | --- | --- | --- |
 | 数据层 | `test/core/infrastructure/database/` | 组合唯一键、外键 / CHECK、JSON、日期、事务、局部更新、级联 / 禁止删除、开发库并发重建、双后台连接、关闭重开 |
+| TMDB 与刮削 | `test/core/infrastructure/tmdb/tmdb_client_test.dart`、`test/features/library/infrastructure/metadata_scraper_test.dart`、`test/features/library/application/library_sync_service_test.dart` | 401 / 403、429 / Retry-After、超时 / 连接 / 取消 / 5xx、异常响应、列表接口 404 与详情资源 404、真正空结果；失败不回退或清除匹配、季级隔离、重新扫描与错误提示；使用请求替身和真实 SQLite，不请求真实 TMDB |
 | 库查询 | `test/features/library/application/library_repository_test.dart` | 标题可用性、搜索 / 收藏 / 续播排序、有限结果、SQL 与领域规则一致性、共享订阅 |
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
 | 媒体源应用入口 | `test/features/library/application/storage_sources_service_test.dart`、`file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知及迟到连接关闭 |

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 
@@ -140,9 +141,17 @@ class AppSettingsProvider extends ChangeNotifier {
   }
 
   Future<bool> testTmdbConnection() async {
-    if (!hasTmdbApiKey) return false;
-    final result = await _tmdbService.fetchTrendingMovies(limit: 1);
-    return result.isNotEmpty;
+    _error = null;
+    try {
+      if (!hasTmdbApiKey) throw const TmdbFailure(TmdbFailureKind.configuration);
+      final result = await _tmdbService.fetchTrendingMovies(limit: 1);
+      return result.isNotEmpty;
+    } on TmdbFailure catch (failure) {
+      _error = failure.userFailure;
+      return false;
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<void> _applyRuntimeSettings() async {

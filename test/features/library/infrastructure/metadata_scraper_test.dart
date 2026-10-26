@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
+import '../../../support/tmdb_fixture.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
 import '../../../support/database_fixture.dart';
@@ -19,6 +22,177 @@ void main() {
     await db.init();
   });
   tearDown(() => db.close());
+
+  for (final status in [401, 429, 503]) {
+    test('HTTP $status preserves movie association and user state; a later retry succeeds', () async {
+      final file = MediaFile(
+        id: 0,
+        sourceId: 'nas',
+        path: '/movie',
+        fileName: 'Movie.mkv',
+        parsedTitle: 'Movie',
+        parsedYear: 2020,
+        mediaType: MediaType.movie,
+        explicitTmdbId: '2',
+        movieTmdbId: '1',
+        metadataMatchStatus: MetadataMatchStatus.confirmed,
+        addedAt: DateTime.utc(2026),
+      );
+      await saveMediaFixture(db, [file]);
+      await db.updateProgress(file, 40, duration: 100);
+      await db.setTitleFavorite(const Movie(tmdbId: '1', title: 'Movie'), true);
+      var failing = true;
+      final paths = <String>[];
+      final tmdb = tmdbFixture((request, handler) {
+        paths.add(request.uri.path);
+        handler.resolve(
+          Response<dynamic>(
+            requestOptions: request,
+            statusCode: failing ? status : 200,
+            data: {'id': 2, 'title': 'Movie'},
+          ),
+        );
+      });
+      final scraper = MetadataScraper(
+        importer: MetadataImporter(database: db),
+        matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+      );
+      final result = await scraper.scrapeBatch([file]);
+      expect(result.failCount, 1);
+      expect(result.successCount, 0);
+      expect(result.requestFailures.single.statusCode, status);
+      expect(paths, ['/3/movie/2']); // A failed request must not trigger title fallback.
+      final unchanged = (await db.getMediaFile('nas', '/movie'))!;
+      expect(unchanged.movieTmdbId, '1');
+      expect(unchanged.metadataMatchStatus, MetadataMatchStatus.confirmed);
+      expect(unchanged.position, 40);
+      expect(unchanged.isFavorite, isTrue);
+      failing = false;
+      final retried = await scraper.scrapeBatch([unchanged]);
+      expect(retried.successCount, 1);
+      expect(retried.requestFailures, isEmpty);
+      expect((await db.getMediaFile('nas', '/movie'))!.movieTmdbId, '2');
+    });
+  }
+
+  test('a missing search endpoint preserves the existing association', () async {
+    final file = MediaFile(
+      id: 0,
+      sourceId: 'nas',
+      path: '/movie',
+      fileName: 'Movie.mkv',
+      parsedTitle: 'Movie',
+      mediaType: MediaType.movie,
+      explicitTmdbId: '2',
+      movieTmdbId: '1',
+      metadataMatchStatus: MetadataMatchStatus.confirmed,
+      addedAt: DateTime.utc(2026),
+    );
+    await saveMediaFixture(db, [file]);
+    final tmdb = tmdbFixture(
+      (request, handler) => handler.resolve(Response<dynamic>(requestOptions: request, statusCode: 404)),
+    );
+    final result = await MetadataScraper(
+      importer: MetadataImporter(database: db),
+      matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+    ).scrapeBatch([file]);
+    expect(result.requestFailures.single.statusCode, 404);
+    expect(result.failCount, 1);
+    final stored = (await db.getMediaFile('nas', file.path))!;
+    expect(stored.movieTmdbId, '1');
+    expect(stored.metadataMatchStatus, MetadataMatchStatus.confirmed);
+  });
+
+  test('a successful empty search still marks a movie unmatched', () async {
+    final file = MediaFile(
+      id: 0,
+      sourceId: 'nas',
+      path: '/missing',
+      fileName: 'Missing.mkv',
+      parsedTitle: 'Missing',
+      mediaType: MediaType.movie,
+      explicitTmdbId: '2',
+      movieTmdbId: '1',
+      metadataMatchStatus: MetadataMatchStatus.confirmed,
+      addedAt: DateTime.utc(2026),
+    );
+    await saveMediaFixture(db, [file]);
+    final tmdb = tmdbFixture(
+      (request, handler) => handler.resolve(
+        Response<dynamic>(
+          requestOptions: request,
+          statusCode: request.uri.path.contains('/search/') ? 200 : 404,
+          data: {'results': []},
+        ),
+      ),
+    );
+    final result = await MetadataScraper(
+      importer: MetadataImporter(database: db),
+      matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+    ).scrapeBatch([file]);
+    expect(result.failCount, 1);
+    expect(result.requestFailures, isEmpty);
+    final stored = (await db.getMediaFile('nas', '/missing'))!;
+    expect(stored.movieTmdbId, isNull);
+    expect(stored.metadataMatchStatus, MetadataMatchStatus.unmatched);
+  });
+
+  test('a failed season retains its old episode while other seasons complete', () async {
+    final files = [
+      for (var season = 1; season <= 3; season++)
+        MediaFile(
+          id: 0,
+          sourceId: 'nas',
+          path: '/season$season',
+          fileName: 'S$season.mkv',
+          parsedTitle: 'Show',
+          parsedSeason: season,
+          parsedEpisode: 1,
+          mediaType: MediaType.episode,
+          explicitTmdbId: '2',
+          tvShowTmdbId: '1',
+          episodeKey: '1_s${season}e1',
+          metadataMatchStatus: MetadataMatchStatus.confirmed,
+          addedAt: DateTime.utc(2026),
+        ),
+    ];
+    await saveMediaFixture(db, files);
+    final tmdb = tmdbFixture((request, handler) {
+      final path = request.uri.path;
+      if (path.endsWith('/season/2')) {
+        handler.reject(DioException(requestOptions: request, type: DioExceptionType.connectionTimeout));
+      } else {
+        handler.resolve(
+          Response<dynamic>(
+            requestOptions: request,
+            statusCode: path.endsWith('/season/3') ? 404 : 200,
+            data: path.endsWith('/season/1')
+                ? {
+                    'name': 'Season',
+                    'episodes': [
+                      {'id': 21, 'episode_number': 1, 'name': 'Episode'},
+                    ],
+                  }
+                : {'id': 2, 'name': 'Show'},
+          ),
+        );
+      }
+    });
+    final result = await MetadataScraper(
+      importer: MetadataImporter(database: db),
+      matchResolver: MetadataMatchResolver(tmdb: tmdb, database: db),
+    ).scrapeBatch(files);
+    expect(result.successCount, 1);
+    expect(result.failCount, 2);
+    expect(result.requestFailures.single.kind, TmdbFailureKind.timeout);
+    expect((await db.getMediaFile('nas', '/season1'))!.episodeKey, '2_s1e1');
+    final failed = (await db.getMediaFile('nas', '/season2'))!;
+    expect(failed.episodeKey, '1_s2e1');
+    expect(failed.metadataMatchStatus, MetadataMatchStatus.confirmed);
+    final missing = (await db.getMediaFile('nas', '/season3'))!;
+    expect(missing.episodeKey, isNull);
+    expect(missing.metadataMatchStatus, MetadataMatchStatus.unmatched);
+  });
 
   test('partially matched immutable snapshots do not mark successful episodes unmatched', () async {
     final files = [

@@ -1,12 +1,16 @@
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_client.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_metadata_mapper.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_search_matcher.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_season_result.dart';
 
 /// Coordinates TMDB requests, result matching and metadata conversion.
 class TmdbService {
-  TmdbService() : _client = TmdbClient(), _mapper = const TmdbMetadataMapper(), _matcher = const TmdbSearchMatcher();
+  TmdbService({TmdbClient? client})
+    : _client = client ?? TmdbClient(),
+      _mapper = const TmdbMetadataMapper(),
+      _matcher = const TmdbSearchMatcher();
 
   final TmdbClient _client;
   final TmdbMetadataMapper _mapper;
@@ -33,7 +37,11 @@ class TmdbService {
         'include_image_language': 'zh,en,null',
       },
     );
-    return data == null ? null : _mapper.movie(data);
+    if (data == null) return null;
+    if (data['id'] != movieId || data['title'] is! String) {
+      throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+    }
+    return _mapResponse(() => _mapper.movie(data));
   }
 
   Future<TVShow?> fetchTVShow(String title, {int? year}) async {
@@ -51,7 +59,11 @@ class TmdbService {
         'include_image_language': 'zh,en,null',
       },
     );
-    return data == null ? null : _mapper.tvShow(data);
+    if (data == null) return null;
+    if (data['id'] != tvId || data['name'] is! String) {
+      throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+    }
+    return _mapResponse(() => _mapper.tvShow(data));
   }
 
   Future<TmdbSeasonResult?> fetchSeason(int tvId, int seasonNumber, {required String showTmdbId}) async {
@@ -60,7 +72,12 @@ class TmdbService {
       operation: '获取季详情',
       notFoundMessage: 'TMDB 未找到季详情: ID:$tvId S$seasonNumber',
     );
-    return data == null ? null : _mapper.season(data, showTmdbId, seasonNumber);
+    if (data == null) return null;
+    final episodes = data['episodes'];
+    if (episodes is! List || episodes.any((item) => item is! Map<String, dynamic> || item['episode_number'] is! int)) {
+      throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+    }
+    return _mapResponse(() => _mapper.season(data, showTmdbId, seasonNumber));
   }
 
   Future<List<TrendingItem>> fetchTrendingMovies({int limit = 3}) =>
@@ -79,7 +96,9 @@ class TmdbService {
     required int limit,
   }) async {
     final data = await _client.get(path, operation: operation);
-    return _results(data).take(limit).map((item) => _mapper.trending(item, forceMovie: isMovie)).toList();
+    return _mapResponse(
+      () => _results(data).take(limit).map((item) => _mapper.trending(item, forceMovie: isMovie)).toList(),
+    );
   }
 
   Future<Map<String, dynamic>?> _search(String path, String query, {int? year, String yearKey = 'year'}) async {
@@ -96,6 +115,23 @@ class TmdbService {
   }
 
   List<Map<String, dynamic>> _results(Map<String, dynamic>? data) {
-    return (data?['results'] as List? ?? const []).whereType<Map<String, dynamic>>().toList();
+    // Search and collection endpoints exist even when they contain no items.
+    // Their 404 indicates an unavailable endpoint, not an empty collection.
+    if (data == null) throw const TmdbFailure(TmdbFailureKind.invalidResponse, statusCode: 404);
+    final results = data['results'];
+    if (results is! List || results.any((item) => item is! Map<String, dynamic> || item['id'] is! int)) {
+      throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+    }
+    return results.cast<Map<String, dynamic>>();
+  }
+
+  T _mapResponse<T>(T Function() map) {
+    try {
+      return map();
+    } on TypeError {
+      throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+    } on FormatException {
+      throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+    }
   }
 }

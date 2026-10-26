@@ -274,5 +274,10 @@
   "filteredDirectorySummary": "找到 {summary}（共 {total} 个项目）",
   "scanResultWithMetadata": "{summary}；{metadata}",
   "scanResultWithError": "{summary}；{reason}",
-  "directorySelectionFailed": "无法打开目录选择器，请重试。"
+  "directorySelectionFailed": "无法打开目录选择器，请重试。",
+  "tmdbAuthenticationFailed": "TMDB 认证失败，请检查 API Key 和访问权限。",
+  "tmdbRateLimited": "TMDB 请求已限流，请稍后重试。",
+  "tmdbTimeout": "TMDB 请求超时，请检查网络或代理后重试。",
+  "tmdbNetworkFailed": "无法连接 TMDB，请检查网络、代理或证书。",
+  "tmdbResponseFailed": "TMDB 服务不可用或响应异常，请稍后重试。"
 }

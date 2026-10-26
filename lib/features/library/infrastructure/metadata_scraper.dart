@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
 import 'package:mochi_player/features/library/application/scrape_candidate.dart';
 import 'package:mochi_player/features/library/application/scrape_plan.dart';
 import 'package:mochi_player/features/library/infrastructure/metadata_importer.dart';
@@ -13,6 +14,7 @@ class ScrapeResult {
   int newTVShowCount = 0;
   int successCount = 0;
   int failCount = 0;
+  final List<TmdbFailure> requestFailures = [];
 }
 
 class ScrapeProgress {
@@ -153,6 +155,7 @@ class MetadataScraper {
       result.successCount++;
       return;
     } catch (e) {
+      if (e is TmdbFailure) result.requestFailures.add(e);
       _logger.e(
         '❌ 刮削电影出错: $e\n'
         '${_describeCandidate(candidate)}',
@@ -199,22 +202,26 @@ class MetadataScraper {
       final seasonNumbers = files.map((f) => f.parsedSeason).whereType<int>().toSet();
 
       final matchedKeys = <String>{};
+      final failedKeys = <String>{};
       for (final seasonNum in seasonNumbers) {
-        matchedKeys.addAll(
-          await _scrapeSeasonAndEpisodes(
-            tvId,
-            metadata.tmdbId,
-            seasonNum,
-            files.where((f) => f.parsedSeason == seasonNum).toList(),
-          ),
-        );
+        final seasonFiles = files.where((f) => f.parsedSeason == seasonNum).toList();
+        try {
+          matchedKeys.addAll(await _scrapeSeasonAndEpisodes(tvId, metadata.tmdbId, seasonNum, seasonFiles));
+        } on TmdbFailure catch (failure) {
+          result.requestFailures.add(failure);
+          failedKeys.addAll(seasonFiles.map((file) => file.storageKey));
+          _logger.w('获取季详情失败: $failure');
+        }
       }
 
       // A file only becomes confirmed when its exact episode has been found.
       result.successCount += matchedKeys.length;
-      final unmatchedFileCount = files.length - matchedKeys.length;
+      result.failCount += failedKeys.length;
+      final unmatchedFileCount = files.length - matchedKeys.length - failedKeys.length;
       if (unmatchedFileCount > 0) {
-        final unmatchedFiles = files.where((file) => !matchedKeys.contains(file.storageKey)).toList(growable: false);
+        final unmatchedFiles = files
+            .where((file) => !matchedKeys.contains(file.storageKey) && !failedKeys.contains(file.storageKey))
+            .toList(growable: false);
         await _importer.markUnmatched(unmatchedFiles);
         result.failCount += unmatchedFileCount;
         _logger.w(
@@ -226,6 +233,7 @@ class MetadataScraper {
       }
       return;
     } catch (e) {
+      if (e is TmdbFailure) result.requestFailures.add(e);
       _logger.e(
         '❌ 刮削剧集出错: $e\n'
         '分组标题: "$showTitle"\n'

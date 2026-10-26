@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:logger/logger.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/proxy_config.dart';
+import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
 
 class TmdbClient {
   static const String _defaultApiKey = String.fromEnvironment('TMDB_API_KEY');
@@ -50,8 +51,7 @@ class TmdbClient {
     String? notFoundMessage,
   }) async {
     if (!isConfigured) {
-      _logger.w('⚠️ 未配置 TMDB API Key，跳过: $operation');
-      return null;
+      throw const TmdbFailure(TmdbFailureKind.configuration);
     }
     try {
       final response = await _dio.get<dynamic>(
@@ -59,17 +59,30 @@ class TmdbClient {
         queryParameters: {'api_key': _apiKey, 'language': 'zh-CN', ...queryParameters},
       );
       final data = response.data;
-      return response.statusCode == 200 && data is Map<String, dynamic> ? data : null;
+      if (response.statusCode == 404) return null;
+      if (response.statusCode != 200) throw _httpFailure(response);
+      if (data is! Map<String, dynamic>) throw const TmdbFailure(TmdbFailureKind.invalidResponse);
+      return data;
     } on DioException catch (error) {
-      if (error.response?.statusCode == 404 && notFoundMessage != null) {
-        _logger.w('⚠️ $notFoundMessage');
-      } else {
-        _logger.w('⚠️ $operation失败: ${_describeError(error)}');
+      if (error.response?.statusCode == 404) {
+        if (notFoundMessage != null) _logger.w(notFoundMessage);
+        return null;
       }
-      return null;
-    } catch (error) {
-      _logger.w('⚠️ $operation失败: $error');
-      return null;
+      final failure = switch (error.type) {
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout ||
+        DioExceptionType.transformTimeout => const TmdbFailure(TmdbFailureKind.timeout),
+        DioExceptionType.connectionError ||
+        DioExceptionType.badCertificate => const TmdbFailure(TmdbFailureKind.network),
+        DioExceptionType.cancel => const TmdbFailure(TmdbFailureKind.cancelled),
+        DioExceptionType.badResponse => _httpFailure(error.response!),
+        DioExceptionType.unknown => TmdbFailure(
+          error.error is FormatException ? TmdbFailureKind.invalidResponse : TmdbFailureKind.unknown,
+        ),
+      };
+      _logger.w('$operation失败: $failure');
+      throw failure;
     }
   }
 
@@ -87,17 +100,29 @@ class TmdbClient {
     );
   }
 
-  String _describeError(DioException error) {
-    return switch (error.type) {
-      DioExceptionType.connectionTimeout => '连接超时（${_connectTimeout.inSeconds} 秒），请检查网络或代理',
-      DioExceptionType.sendTimeout => '发送请求超时（${_sendTimeout.inSeconds} 秒）',
-      DioExceptionType.receiveTimeout => '等待响应超时（${_receiveTimeout.inSeconds} 秒）',
-      DioExceptionType.transformTimeout => '处理响应超时',
-      DioExceptionType.badResponse => '服务器返回 ${error.response?.statusCode ?? '异常状态'}',
-      DioExceptionType.connectionError => '网络连接失败，请检查 DNS、代理或防火墙',
-      DioExceptionType.badCertificate => '证书校验失败',
-      DioExceptionType.cancel => '请求已取消',
-      DioExceptionType.unknown => error.message ?? '未知网络错误',
+  TmdbFailure _httpFailure(Response<dynamic> response) {
+    final status = response.statusCode;
+    final kind = switch (status ?? 0) {
+      401 || 403 => TmdbFailureKind.authentication,
+      429 => TmdbFailureKind.rateLimited,
+      >= 500 && <= 599 => TmdbFailureKind.server,
+      _ => TmdbFailureKind.unknown,
     };
+    final retryHeader = response.headers.value('retry-after');
+    Duration? retryAfter;
+    if (retryHeader != null) {
+      final seconds = int.tryParse(retryHeader);
+      if (seconds != null && seconds >= 0) {
+        retryAfter = Duration(seconds: seconds);
+      } else {
+        try {
+          final delay = HttpDate.parse(retryHeader).difference(DateTime.now().toUtc());
+          retryAfter = delay.isNegative ? Duration.zero : delay;
+        } on HttpException {
+          // An invalid optional retry hint must not hide the HTTP failure.
+        }
+      }
+    }
+    return TmdbFailure(kind, statusCode: status, retryAfter: retryAfter);
   }
 }

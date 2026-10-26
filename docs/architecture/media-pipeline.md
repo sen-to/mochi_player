@@ -1,6 +1,6 @@
 # 媒体流水线：扫描 → 解析 → 刮削 → 索引
 
-核对日期：2026-10-14。本文描述从「配置媒体源」到「首页出现海报」的完整链路。入口是
+核对日期：2026-10-26。本文描述从「配置媒体源」到「首页出现海报」的完整链路。入口是
 [LibrarySyncService.scanEnabledMediaSources()](../../lib/features/library/application/library_sync_service.dart)。
 
 ```mermaid
@@ -61,7 +61,15 @@ flowchart TD
 2. `ScrapePlanFactory` 构造查询，`MetadataMatchResolver` 匹配目标；搜索顺序、剧集分组与并发限制见 [算法说明](algorithms.md#刮削计划与有界并发)。
 3. `TmdbService` 请求详情（电影附带 `credits,release_dates,images`，剧集使用对应参数；`language=zh-CN`），`TmdbMetadataMapper` 转为领域模型。
 4. `MetadataImporter.importSeasonEpisodes` 写入季集，集 ID 形如 `show_s1e1`。任务回调报告完成数、总数、成功 / 失败与当前标题。
-5. 未匹配时标记状态并清空 ID；当前网络错误也可能进入该分支，见下方已知问题。
+5. 成功查询后无候选或详情 / 季不存在（404）时，标记未匹配并清空对应 ID。请求失败不属于未匹配，不修改受影响文件的匹配状态、原有 ID、进度或收藏。
+
+### 请求失败与未匹配
+
+`TmdbClient.get` 仅在资源不存在（404）时返回 `null`；成功的空搜索结果由 `TmdbService` 转为无匹配。搜索 / 趋势列表接口本身返回 404 时属于响应异常，不能解释为空列表；只有电影 / 剧集 / 季详情的资源 404 可以作为缺失元数据。未配置凭据、401 / 403、429、超时、连接 / 证书错误、取消、5xx 及响应结构异常通过 `TmdbFailure` 传递；其中保留错误类别、HTTP 状态与可解析的 `Retry-After`，不携带 API Key 或原始请求异常。搜索列表缺少 `results` 或列表元素类型非法时视为响应异常，不能解释为空搜索。
+
+请求失败立即中断当前匹配，不继续执行不带年份等回退查询。电影 / 剧集详情失败时保留原关联；季详情失败仅影响该季，其他季继续，失败季的文件不会进入未匹配清理。已成功导入的季保留成功计数，真正缺失的季 / 单集按未匹配处理。
+
+`ScrapeResult.requestFailures` 将请求错误保留给同步应用入口，失败文件仍计入失败数；`LibrarySyncService` 使用首个请求错误生成语义化界面提示。扫描结果与 TMDB 连接测试区分认证、限流、超时、网络及服务 / 响应异常。首页趋势调用捕获失败，保留已有内容。当前没有自动重试、退避或批次暂停；恢复网络 / 修正配置后可以重新扫描，待匹配查询仍会选出缺少元数据或显式 ID 覆盖尚未完成的文件。
 
 网络与代理：`TmdbClient` 统一处理 API Key、语言、超时与代理（`PROXY host:port`，不支持代理认证），图片走 `TmdbImageCacheManager`（30 天、1200 条上限，使用相同代理）。
 
@@ -80,7 +88,6 @@ flowchart TD
 | 问题 | 影响 |
 | --- | --- |
 | 无元数据回收 | 删除文件后电影/剧集/季/集残留 |
-| 网络错误被当作未匹配 | `TmdbClient.get` 捕获异常返回 null，调用方无法区分断网与未命中，可能清掉正确 ID |
 | 分组与标题归一化逻辑多处重复 | 修改规则需同步多个实现 |
 
 处置见 [0003 持久化](../decisions/0003-persistence-migration.md)。

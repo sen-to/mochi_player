@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
+import '../../../support/tmdb_fixture.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +9,38 @@ import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final entry in {
+    401: AppFailure.tmdbAuthentication,
+    429: AppFailure.tmdbRateLimited,
+    503: AppFailure.tmdbResponse,
+  }.entries) {
+    test('connection test reports ${entry.value} and clears it after success', () async {
+      SharedPreferences.setMockInitialValues({'tmdb_api_key': 'key'});
+      var status = entry.key;
+      final tmdb = tmdbFixture(
+        (request, handler) => handler.resolve(
+          Response<dynamic>(
+            requestOptions: request,
+            statusCode: status,
+            data: {
+              'results': [
+                {'id': 1, 'title': 'Movie'},
+              ],
+            },
+          ),
+        ),
+      );
+      final provider = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: tmdb);
+      addTearDown(provider.dispose);
+      await provider.load();
+      expect(await provider.testTmdbConnection(), isFalse);
+      expect(provider.error, entry.value);
+      status = 200;
+      expect(await provider.testTmdbConnection(), isTrue);
+      expect(provider.error, isNull);
+    });
+  }
+
   test('exit drains accepted settings saves and rejects new drafts', () async {
     SharedPreferences.setMockInitialValues({});
     final provider = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: TmdbService());

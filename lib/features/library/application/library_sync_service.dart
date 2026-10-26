@@ -248,7 +248,7 @@ class LibrarySyncService extends ChangeNotifier {
           _notify();
         },
       );
-
+      if (result.requestFailures.isNotEmpty) _error = result.requestFailures.first.userFailure;
       return result;
     } catch (error, stackTrace) {
       _logger.e('刮削失败', error: error, stackTrace: stackTrace);

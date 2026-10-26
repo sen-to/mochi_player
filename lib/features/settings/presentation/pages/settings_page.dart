@@ -1339,7 +1339,8 @@ class _SettingsPageState extends State<SettingsPage> {
     if (isConnected) {
       AppMessage.success(context, context.l10n.tmdbConnected);
     } else {
-      AppMessage.error(context, context.l10n.tmdbConnectionFailed);
+      final error = settingsProvider.error;
+      AppMessage.error(context, error == null ? context.l10n.tmdbConnectionFailed : context.l10n.failure(error));
     }
   }
 

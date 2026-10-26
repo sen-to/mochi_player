@@ -19,6 +19,9 @@ void main() {
     final zh = await AppLocalizations.delegate.load(const Locale('zh'));
     expect(en.connectionSucceeded, 'Connected');
     expect(zh.connectionSucceeded, '连接成功');
+    expect(en.failure(AppFailure.tmdbRateLimited), 'TMDB request limit reached. Try again later.');
+    expect(zh.failure(AppFailure.tmdbAuthentication), 'TMDB 认证失败，请检查 API Key 和访问权限。');
+    expect(zh.failure(AppFailure.tmdbTimeout), 'TMDB 请求超时，请检查网络或代理后重试。');
     expect(en.webdavPortRequired, 'Enter the port');
     expect(zh.webdavPortRequired, '请输入端口');
     expect(en.fileCount(0), '0 files');

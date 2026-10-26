@@ -1288,5 +1288,10 @@
   "directorySelectionFailed": "Could not open the folder picker. Please try again.",
   "@directorySelectionFailed": {
     "description": "Shown when the native directory picker fails to open."
-  }
+  },
+  "tmdbAuthenticationFailed": "TMDB authentication failed. Check the API key and access permissions.",
+  "tmdbRateLimited": "TMDB request limit reached. Try again later.",
+  "tmdbTimeout": "TMDB request timed out. Check the network or proxy and try again.",
+  "tmdbNetworkFailed": "Could not connect to TMDB. Check the network, proxy or certificate.",
+  "tmdbResponseFailed": "TMDB returned an unavailable or invalid response. Try again later."
 }
