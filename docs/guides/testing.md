@@ -42,11 +42,11 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ## 验证基线
 
-以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-27 的 Dart 回归与静态检查来自媒体库按维护流程整理、来源表单拆分、字幕职责独立及 core 归属整理后的工作区；原生冒烟仍为 2026-10-26 的记录，此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
+以下按实际执行日期记录最近验证证据，文档整理日期不作为测试执行日期。2026-10-27 的 Dart 回归与静态检查来自媒体库按维护流程整理、来源表单拆分、字幕职责独立、core 归属及来源 / 设置联动与播放入口 / 进度组件整理后的工作区；原生冒烟仍为 2026-10-26 的记录，此前 SMB 接入对应提交 `d23458b`。不同日期、平台和样片的结论不可互相替代。
 
 | 验证项 | 记录日期 / 结果 | 覆盖与限制 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 2026-10-27，360 项通过 | 包含来源表单保存 / 取消 / 迟到连接回收、列表批量查询次数 / 分页 / 刷新回归、媒体库编排互斥 / 退出、连接收尾、失败批次 / 部分结果统计、元数据事务回滚 / 并发导入去重、TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败，字幕自动 / 手动选择、轨道事件乱序、换片重置 / 迟到结果隔离与关闭；不代表真实 NAS 或大库性能 |
+| macOS 全量 Dart 回归 | 2026-10-27，379 项通过 | 包含来源表单保存 / 取消 / 迟到连接回收、列表批量查询次数 / 分页 / 刷新回归、媒体库编排互斥 / 退出、连接收尾、失败批次 / 部分结果统计、元数据事务回滚 / 并发导入去重、TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败，字幕自动 / 手动选择、轨道事件乱序、换片重置 / 迟到结果隔离与关闭；来源变更通知、设置生效后的趋势刷新及进度条交互；不代表真实 NAS 或大库性能 |
 | 格式 / 静态检查 / 文案 | 2026-10-27，格式通过；无错误 / 警告；280 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
 | macOS Release SMB HTTP 冒烟 | 2026-10-26，两个成功标记均输出 | 会话管理真实 media_kit 的打开与释放，前后及快速 seek；读取器为带延迟的替身，不连接 NAS |
 | macOS Release 多窗口冒烟 | 2026-10-26，成功标记输出 | 创建 / 替换 / 关闭重开、全屏、共享状态及最终进度持久化；不代替原生关闭按钮或长期使用 |
@@ -68,11 +68,13 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 | 存储 | `test/core/infrastructure/storage/` | 路径、凭据、浏览 / 扫描适配；SMB 假客户端不代表真实 NAS 连接通过 |
 | 同步编排 | `test/features/library/sync/library_sync_service_test.dart` | 不使用 SQLite / TMDB / 协议实例的行为测试：互斥、批次、部分扫描、失败隔离、写入失败不重试、关闭计数 / 已入库数量保留、退出等待、迟到连接与路径查询期间退出 |
 | 媒体库适配 | `test/features/library/metadata/database_metadata_repository_test.dart`、`storage_library_source_scanner_test.dart`、`tmdb_metadata_source_test.dart` | 真实 SQLite 验证原子回滚；凭据 / 来源过滤、连接幂等关闭、失败完整性标记及后端错误转换 |
-| 媒体源应用入口 | `test/features/library/sources/storage_sources_service_test.dart`、`test/features/library/sources/source_editors_test.dart`、`test/features/library/browser/file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知、表单保存与取消及迟到连接关闭 |
-| 应用组装 | `test/app/bootstrap/` | 共享 TMDB / 数据库、独立实例；窗口创建失败时释放已准备会话且不创建引擎 |
+| 媒体源应用入口 | `test/features/library/sources/storage_sources_service_test.dart`、`test/features/library/sources/source_editors_test.dart`、`test/features/library/browser/file_browser_provider_test.dart` | 临时连接释放、接受任务收尾、退出拒绝新操作、来源删除通知、表单保存与取消、保存失败不影响浏览、保存 / 删除后的浏览失效、等待凭据 / 建连期间变更来源及迟到连接关闭 |
+| 应用组装 | `test/app/bootstrap/` | 共享 TMDB / 数据库、独立实例；不挂载页面时的设置刷新与来源浏览失效；窗口创建失败时释放已准备会话且不创建引擎 |
 | 应用退出 | `test/app/application/` | 重复请求、保存 / 释放顺序、失败与超时、最终快照持久化 |
 | 播放 | `test/features/playback/` | 会话拥有引擎 / 目标；打开 / stop 失败、重复 / 竞争关闭、迟到解析回收、换片中禁止进度串写；门面、轨道 / 字幕、seek 与 mini / 全屏 |
 | 字幕交互 | `test/features/playback/presentation/controllers/player_subtitle_controller_test.dart`、`playback_engine_boundary_test.dart` | 语言优先级、手动选择保留、先选轨后到列表、外挂身份 / 去重、换片清空但保留样式、旧请求迟到成功 / 失败隔离、关闭拒绝新交互且不释放借用引擎 |
+| 设置与趋势联动 | `test/features/settings/application/app_settings_provider_test.dart`、`test/features/home/application/trending_media_provider_test.dart` | 初次加载 / 草稿 / 配置未变不重复刷新；持久化失败不应用配置，退出不启动刷新；普通加载合并，配置变化合并重刷，旧成功 / 失败结果隔离，移除配置清空，销毁后不通知 |
+| 播放进度条 | `test/features/playback/presentation/widgets/player_seek_bar_test.dart` | 初始位置 / 缓冲快照、悬浮预览复用 / 移除、拖动期间保留选择且释放时 seek、引擎替换后重绑订阅并清理预览；组件不释放借用引擎 |
 | 本地化 | `test/l10n/` | 三种偏好、保存失败重试、ICU 与格式化、语言切换不重建会话 |
 | SMB 回源 | `test/core/infrastructure/storage/smb_http_playback_proxy_test.dart`、`smb_playback_resolver_test.dart` | HEAD / Range、令牌 / Host / 路径、并发 / 取消、快速 seek 的最新请求不被 503 拒绝、读取失败与幂等关闭；不连接真实 NAS |
 | 表单布局 | `test/core/ui/components/app_form_item_test.dart` | 窄弹窗、中英文、字号放大、说明换行、连接结果与按钮对齐 |

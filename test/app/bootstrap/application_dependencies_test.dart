@@ -3,6 +3,8 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/app/bootstrap/application_dependencies.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/core/domain/storage/models.dart';
+import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:mochi_player/core/infrastructure/database/app_database.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
@@ -20,11 +22,11 @@ void main() {
     SharedPreferences.setMockInitialValues({'tmdb_api_key': 'configured-key'});
     database = DatabaseService.withDatabase(AppDatabase(NativeDatabase.memory(setup: configureSqlite)));
     await database.init();
-    tmdb = TmdbService();
+    tmdb = _TmdbService();
     dependencies = ApplicationDependencies(
       database: database,
       tmdb: tmdb,
-      storageRegistry: StorageAdapterRegistry([]),
+      storageRegistry: StorageAdapterRegistry([_StorageAdapter()]),
       settingsRepository: AppSettingsRepository(),
     );
   });
@@ -46,6 +48,40 @@ void main() {
     expect(dependencies.trending.isConfigured, isTrue);
     expect(TmdbService().isConfigured, isFalse);
   });
+  test('runtime settings refresh home collections through application wiring without a page', () async {
+    await dependencies.settings.load();
+    final service = tmdb as _TmdbService;
+    expect(service.collectionRequests, 0);
+    const defaults = AppSettings();
+    await dependencies.settings.saveSettings(
+      tmdbApiKey: 'new-key',
+      tmdbApiBaseUrl: defaults.tmdbApiBaseUrl,
+      tmdbProxyUrl: defaults.tmdbProxyUrl,
+      tmdbProxyEnabled: defaults.tmdbProxyEnabled,
+      playbackCacheSizeMb: defaults.playbackCacheSizeMb,
+      playbackReadaheadSeconds: defaults.playbackReadaheadSeconds,
+      enableHardwareAcceleration: defaults.enableHardwareAcceleration,
+      subtitleLanguagePriority: defaults.subtitleLanguagePriority,
+      subtitleFontSize: defaults.subtitleFontSize,
+      applyRuntime: true,
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(service.collectionRequests, 3);
+    expect(dependencies.trending.movies.single.title, 'Updated');
+  });
+
+  test('saving and deleting an active source clear the browser without an editor', () async {
+    const source = StorageSource(id: 'local', name: 'Local', type: StorageSourceType.local, endpoint: '/media');
+    expect(await dependencies.storageSources.save(source), false);
+    await dependencies.fileBrowser.openStorageSource(source);
+    expect(dependencies.fileBrowser.activeSource?.id, source.id);
+    expect(await dependencies.storageSources.save(source), true);
+    expect(dependencies.fileBrowser.hasSelectedStorageSource, false);
+    await dependencies.fileBrowser.openStorageSource(source);
+    expect(await dependencies.storageSources.deleteWithMedia(source.id), 0);
+    expect(dependencies.fileBrowser.hasSelectedStorageSource, false);
+  });
+
   test('playback writes and favorites refresh the application query facade on the shared connection', () async {
     final file = MediaFile(
       id: 0,
@@ -76,4 +112,38 @@ void main() {
       await updates.cancel();
     }
   });
+}
+
+class _TmdbService extends TmdbService {
+  int collectionRequests = 0;
+  Future<List<TrendingItem>> _collection() async {
+    collectionRequests++;
+    return const [TrendingItem(tmdbId: '1', title: 'Updated', isMovie: true)];
+  }
+
+  @override
+  Future<List<TrendingItem>> fetchTrendingMovies({int limit = 3}) => _collection();
+  @override
+  Future<List<TrendingItem>> fetchTrendingTV({int limit = 3}) => _collection();
+  @override
+  Future<List<TrendingItem>> fetchTopRated({int limit = 3}) => _collection();
+}
+
+class _StorageAdapter implements StorageAdapter {
+  @override
+  StorageSourceType get type => StorageSourceType.local;
+  @override
+  Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async => _Connection(source);
+}
+
+class _Connection implements StorageConnection {
+  _Connection(this.source);
+  @override
+  final StorageSource source;
+  @override
+  Future<List<StorageEntry>> readDirectory(String path) async => [];
+  @override
+  Future<bool> testConnection() async => true;
+  @override
+  Future<void> close() async {}
 }

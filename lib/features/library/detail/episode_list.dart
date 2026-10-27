@@ -6,7 +6,7 @@ import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/widgets/library_query.dart';
-import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/features/library/library_playback_launcher.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 class EpisodeList extends StatefulWidget {
@@ -138,7 +138,9 @@ class _EpisodeListState extends State<EpisodeList> {
     final showStatus = !available || completed;
 
     return AppClickableArea(
-      onTap: available ? () => PlaybackLauncher.playEpisode(context, episode, showTitle: widget.tvShow.title) : null,
+      onTap: available
+          ? () => LibraryPlaybackLauncher.playEpisode(context, episode, showTitle: widget.tvShow.title)
+          : null,
       borderRadius: BorderRadius.circular(AppRadii.control),
       backgroundColor: AppColors.subtleSurface(context),
       hoverColor: AppColors.hoverSurface(context),

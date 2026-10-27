@@ -14,6 +14,10 @@ class TrendingMediaProvider extends ChangeNotifier {
   List<TrendingItem> _tvShows = [];
   List<TrendingItem> _topRated = [];
   bool _isLoading = false;
+  bool _disposed = false;
+  bool _refreshPending = false;
+  int _configurationGeneration = 0;
+  Future<void>? _fetching;
 
   List<TrendingItem> get movies => _movies;
 
@@ -29,37 +33,62 @@ class TrendingMediaProvider extends ChangeNotifier {
 
   bool get hasContent => _movies.isNotEmpty || _tvShows.isNotEmpty || _topRated.isNotEmpty;
 
-  Future<void> fetch() async {
-    if (_isLoading) return;
+  /// Shares ordinary loads; a configuration change requests the latest data
+  /// even when the previous endpoint still has an outstanding request.
+  Future<void> fetch({bool refresh = false}) {
+    if (_disposed) return Future<void>.value();
+    if (refresh) {
+      _configurationGeneration++;
+      _refreshPending = true;
+    }
+    return _fetching ??= _fetch().whenComplete(() => _fetching = null);
+  }
 
+  Future<void> _fetch() async {
     _isLoading = true;
     notifyListeners();
-
     try {
-      if (!_tmdbService.isConfigured) {
-        _movies = [];
-        _tvShows = [];
-        _topRated = [];
-        return;
-      }
-
-      final results = await Future.wait([
-        _tmdbService.fetchTrendingMovies(limit: 3),
-        _tmdbService.fetchTrendingTV(limit: 3),
-        _tmdbService.fetchTopRated(limit: 3),
-      ]);
-      _movies = results[0];
-      _tvShows = results[1];
-      _topRated = results[2];
-      _logger.i(
-        '加载热门趋势: 电影 ${_movies.length}, 剧集 ${_tvShows.length}, '
-        '高分 ${_topRated.length}',
-      );
-    } catch (error, stackTrace) {
-      _logger.e('加载热门趋势失败', error: error, stackTrace: stackTrace);
+      do {
+        _refreshPending = false;
+        final generation = _configurationGeneration;
+        try {
+          if (!_tmdbService.isConfigured) {
+            _movies = [];
+            _tvShows = [];
+            _topRated = [];
+          } else {
+            final results = await Future.wait([
+              _tmdbService.fetchTrendingMovies(limit: 3),
+              _tmdbService.fetchTrendingTV(limit: 3),
+              _tmdbService.fetchTopRated(limit: 3),
+            ]);
+            if (_disposed) return;
+            if (generation != _configurationGeneration) continue;
+            _movies = results[0];
+            _tvShows = results[1];
+            _topRated = results[2];
+            _logger.i(
+              '加载热门趋势: 电影 ${_movies.length}, 剧集 ${_tvShows.length}, '
+              '高分 ${_topRated.length}',
+            );
+          }
+        } catch (error, stackTrace) {
+          if (!_disposed && generation == _configurationGeneration) {
+            _logger.e('加载热门趋势失败', error: error, stackTrace: stackTrace);
+          }
+        }
+      } while (_refreshPending && !_disposed);
     } finally {
       _isLoading = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _configurationGeneration++;
+    _refreshPending = false;
+    super.dispose();
   }
 }

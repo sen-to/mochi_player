@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/core/ui/components/input/form/settings_switch_item.dart';
-import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/library/sources/storage_sources_settings.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
@@ -357,15 +356,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final shouldApplyRuntime = _runtimeApplyPending;
     _runtimeApplyPending = false;
     try {
-      final settingsProvider = context.read<AppSettingsProvider>();
-      final previousRuntimeSettings = settingsProvider.appliedRuntimeSettings ?? settingsProvider.settings;
       await _persistSettings(applyRuntime: shouldApplyRuntime, syncServices: false);
-      if (mounted && settingsProvider.error == null) {
-        final currentSettings = settingsProvider.settings;
-        if (shouldApplyRuntime) {
-          unawaited(_refreshAfterRuntimeSettingsApplied(previousRuntimeSettings, currentSettings));
-        }
-      }
     } finally {
       _autoSaveInFlight = false;
       if (_autoSavePending && mounted) {
@@ -420,20 +411,6 @@ class _SettingsPageState extends State<SettingsPage> {
     if (syncServices) _syncServices(settingsProvider);
     if (mounted && syncServices) setState(() {});
     return true;
-  }
-
-  Future<void> _refreshAfterRuntimeSettingsApplied(AppSettings previousSettings, AppSettings currentSettings) async {
-    final tmdbChanged =
-        previousSettings.tmdbApiKey != currentSettings.tmdbApiKey ||
-        previousSettings.tmdbApiBaseUrl != currentSettings.tmdbApiBaseUrl ||
-        previousSettings.tmdbProxyUrl != currentSettings.tmdbProxyUrl ||
-        previousSettings.tmdbProxyEnabled != currentSettings.tmdbProxyEnabled;
-
-    if (!mounted) return;
-
-    if (tmdbChanged && mounted && (previousSettings.hasTmdbApiKey || currentSettings.hasTmdbApiKey)) {
-      await context.read<TrendingMediaProvider>().fetch();
-    }
   }
 
   void _syncServices(AppSettingsProvider settingsProvider) {

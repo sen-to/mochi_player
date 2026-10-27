@@ -7,7 +7,7 @@ import 'package:mochi_player/features/playback/application/playback_engine.dart'
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_overlay.dart';
 import 'package:mochi_player/features/playback/presentation/widgets/player_popup_menu.dart';
-import 'package:mochi_player/features/playback/presentation/widgets/player_seek_time_preview.dart';
+import 'package:mochi_player/features/playback/presentation/widgets/player_seek_bar.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 class PlayerControls extends StatefulWidget {
@@ -219,7 +219,7 @@ class _PlayerControlsState extends State<PlayerControls> {
       cacheSpeed: _cacheSpeed,
       isFullScreen: widget.isFullScreen,
     );
-    final progress = _VideoSeekBar(engine: widget.engine);
+    final progress = PlayerSeekBar(engine: widget.engine);
     final controls = Row(
       children: [
         // Keep the content aligned with the Slider track instead
@@ -603,155 +603,6 @@ class _SubtitleMenuButton extends StatelessWidget {
         ],
       ),
       child: PlayerMenuButtonSurface(child: const Icon(Icons.closed_caption_rounded, color: Colors.white, size: 18)),
-    );
-  }
-}
-
-// ================== 进度条 ==================
-class _VideoSeekBar extends StatefulWidget {
-  final PlaybackEngine engine;
-
-  const _VideoSeekBar({required this.engine});
-
-  @override
-  State<_VideoSeekBar> createState() => _VideoSeekBarState();
-}
-
-class _VideoSeekBarState extends State<_VideoSeekBar> {
-  static const double _trackHorizontalInset = AppSpacing.md;
-  static const double _previewVerticalOffset = 34;
-
-  Duration _pos = Duration.zero;
-  Duration _dur = Duration.zero;
-  Duration _buf = Duration.zero;
-  bool _dragging = false;
-  Duration? _previewPosition;
-  Offset? _previewOffset;
-  OverlayEntry? _previewOverlay;
-  late List<StreamSubscription> _subs;
-
-  @override
-  void initState() {
-    super.initState();
-    _dur = widget.engine.state.duration;
-    _subs = [
-      widget.engine.stream.position.listen((p) {
-        if (!_dragging && mounted) setState(() => _pos = p);
-      }),
-      widget.engine.stream.duration.listen((d) {
-        if (mounted) setState(() => _dur = d);
-      }),
-      widget.engine.stream.buffer.listen((b) {
-        if (mounted) setState(() => _buf = b);
-      }),
-    ];
-  }
-
-  @override
-  void dispose() {
-    _hidePreview();
-    for (var s in _subs) {
-      s.cancel();
-    }
-    super.dispose();
-  }
-
-  void _showPreview(double value) {
-    final renderBox = context.findRenderObject();
-    if (renderBox is! RenderBox || !renderBox.hasSize) return;
-
-    final usableWidth = (renderBox.size.width - _trackHorizontalInset * 2).clamp(0.0, double.infinity);
-    final fraction = _dur.inMilliseconds == 0 ? 0.0 : (value / _dur.inMilliseconds).clamp(0.0, 1.0);
-    _previewPosition = Duration(milliseconds: value.round());
-    _previewOffset = renderBox.localToGlobal(Offset(_trackHorizontalInset + usableWidth * fraction, 0));
-
-    final existingOverlay = _previewOverlay;
-    if (existingOverlay != null) {
-      existingOverlay.markNeedsBuild();
-      return;
-    }
-
-    final overlay = OverlayEntry(
-      builder: (context) => Positioned(
-        left: (_previewOffset ?? Offset.zero).dx,
-        top: (_previewOffset ?? Offset.zero).dy - _previewVerticalOffset,
-        child: IgnorePointer(
-          child: FractionalTranslation(
-            translation: const Offset(-0.5, 0),
-            child: PlayerSeekTimePreview(position: _previewPosition ?? Duration.zero),
-          ),
-        ),
-      ),
-    );
-    // OverlayEntry.mounted becomes true on a later frame. Use ownership of
-    // the entry as the synchronous insertion guard: repeated pointer events
-    // in that frame must rebuild the same entry, never insert it twice.
-    _previewOverlay = overlay;
-    Overlay.of(context, rootOverlay: true).insert(overlay);
-  }
-
-  void _hidePreview() {
-    _previewPosition = null;
-    _previewOffset = null;
-    _previewOverlay?.remove();
-    _previewOverlay = null;
-  }
-
-  void _previewAt(Offset localPosition, double width) {
-    if (_dur == Duration.zero) return;
-    final usableWidth = (width - _trackHorizontalInset * 2).clamp(0.0, double.infinity);
-    if (usableWidth == 0) return;
-    final fraction = ((localPosition.dx - _trackHorizontalInset) / usableWidth).clamp(0.0, 1.0);
-    _showPreview(_dur.inMilliseconds * fraction);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final max = _dur.inMilliseconds.toDouble();
-    final val = _pos.inMilliseconds.toDouble().clamp(0.0, max);
-    final bufVal = _buf.inMilliseconds.toDouble().clamp(0.0, max);
-
-    return LayoutBuilder(
-      builder: (context, constraints) => MouseRegion(
-        onHover: (event) => _previewAt(event.localPosition, constraints.maxWidth),
-        onExit: (_) {
-          if (!_dragging) _hidePreview();
-        },
-        child: SizedBox(
-          height: 10,
-          child: SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 2,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 9),
-              activeTrackColor: Theme.of(context).primaryColor,
-              inactiveTrackColor: Colors.white24,
-              secondaryActiveTrackColor: Colors.white38,
-              thumbColor: Colors.white,
-              trackShape: const RoundedRectSliderTrackShape(),
-            ),
-            child: Slider(
-              value: val,
-              min: 0.0,
-              max: max,
-              secondaryTrackValue: bufVal,
-              onChangeStart: (value) {
-                setState(() => _dragging = true);
-                _showPreview(value);
-              },
-              onChanged: (value) {
-                setState(() => _pos = Duration(milliseconds: value.toInt()));
-                _showPreview(value);
-              },
-              onChangeEnd: (value) {
-                setState(() => _dragging = false);
-                _hidePreview();
-                widget.engine.seek(Duration(milliseconds: value.toInt()));
-              },
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -9,7 +9,7 @@ import 'package:mochi_player/features/playback/domain/player_window_request.dart
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
-class PlaybackLauncher {
+class LibraryPlaybackLauncher {
   static void playFile(
     BuildContext context,
     MediaFile file, {

@@ -34,6 +34,12 @@ class AppSettings {
     this.subtitleFontSize = defaultSubtitleFontSize,
   });
 
+  bool hasSameTmdbConfiguration(AppSettings other) =>
+      tmdbApiKey == other.tmdbApiKey &&
+      tmdbApiBaseUrl == other.tmdbApiBaseUrl &&
+      tmdbProxyUrl == other.tmdbProxyUrl &&
+      tmdbProxyEnabled == other.tmdbProxyEnabled;
+
   bool get hasTmdbApiKey => tmdbApiKey.trim().isNotEmpty;
 
   int get playbackCacheMaxBytes => playbackCacheSizeMb * 1024 * 1024;

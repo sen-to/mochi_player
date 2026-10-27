@@ -34,7 +34,7 @@ flowchart LR
 
 | 领域 | 入口与职责 | 约束 |
 | --- | --- | --- |
-| 媒体源业务 | [StorageSourcesService](../../lib/features/library/sources/storage_sources_service.dart) 协调配置、测试、删除回调与收尾；[FileBrowserProvider](../../lib/features/library/browser/file_browser_provider.dart) 协调凭据与浏览连接 | 页面只处理输入、确认、展示；SMB 路径解析位于领域层，协议实例不进入页面 |
+| 媒体源业务 | [StorageSourcesService](../../lib/features/library/sources/storage_sources_service.dart) 协调配置、测试、变更通知与收尾；[FileBrowserProvider](../../lib/features/library/browser/file_browser_provider.dart) 协调凭据与浏览连接 | 保存 / 删除成功后通过组装入口注入的回调使浏览状态失效；表单不直接操作文件浏览 Provider；SMB 路径解析位于领域层，协议实例不进入页面 |
 | 媒体库查询 | [MediaLibraryProvider](../../lib/features/library/media_library_provider.dart) 提供查询订阅，仓库为私有字段；[LibraryQuery](../../lib/features/library/widgets/library_query.dart) 回调接收应用 Provider | 查询身份稳定，通过滚动扩展结果并订阅数据库变更 |
 | 媒体库同步 | [LibrarySyncService](../../lib/features/library/sync/library_sync_service.dart) 通过 `LibrarySourceScanner`、`LibrarySyncRepository` 协调扫描与清理，通过应用层 `MetadataScraper` 刮削 | 同步服务不读取凭据、不持有协议连接或 SQLite；完整且未中断的扫描才能清理旧索引 |
 | 元数据匹配与导入 | 应用层 `MetadataMatcher`（候选 / 搜索计划同文件） / `MetadataScraper`（结果 / 进度同文件）使用 `MetadataSource`、`MetadataRepository`；基础设施提供 TMDB 与 SQLite 实现 | 请求错误在适配器转换；元数据与关联原子导入，事务不泄漏到编排层 |
@@ -89,6 +89,7 @@ flowchart LR
 | 扫描媒体库 | `SettingsPage` → `MediaLibraryProvider.scanMediaSources()` → `LibrarySyncService.scanEnabledMediaSources()` → `LibrarySourceScanner` / `LibrarySyncRepository` → 存储扫描 / SQLite 适配器 | 应用服务负责批次、退出、错误与清理策略；扫描会话封装凭据与连接；SQL 文件写入后，库查询订阅刷新；配置了 TMDB 时后续进行刮削 |
 | 收藏标题 | `FavoriteButton` → `MediaLibraryProvider.setFavorite(LibraryItem)` → `DatabaseService.setTitleFavorite()` | 数据层按标题类型批量更新文件；页面通过应用查询入口订阅结果，不持有仓库 |
 | 查询详情 | `MediaDetailPage` → `LibraryQuery` → `MediaLibraryProvider.watchDetail()` / `watchVersions()` → 私有 `LibraryRepository` | 查询回调接收应用 Provider，内部仓库不公开；保留 drift 查询订阅与扩展 LIMIT |
+| 从媒体库播放 | `LibraryPlaybackLauncher` → 媒体库文件 / 版本 / 队列查询 → `PlayerWindowRequest` → `PlayerWindowCoordinator` | 库查询和版本选择留在媒体库功能；播放功能不导入媒体库 Provider |
 | 保存播放进度 | `PlayerPlaybackController` → `PlaybackSessionController` → `PlaybackProgressWriter` → `PlaybackMediaRepository` → `DatabasePlaybackMediaRepository` → `DatabaseService.updateProgress()` | 定时与关闭时提交；串行写入局部字段；契约在应用层，数据库适配在基础设施层 |
 | 保存普通偏好 | `SettingsPage` → `AppSettingsProvider.saveSettings()` → `AppSettingsRepository` | 保存到 SharedPreferences；媒体源编辑通过 `StorageSourcesService`，与普通偏好入口分别组织 |
 | 测试媒体源 | `SettingsPage` → `StorageSourcesService.testConnection()` → 协议注册表 / 连接 | 临时连接无论读取成功或失败均在 finally 释放；退出时拒绝新操作并等待已接受任务 |
@@ -123,6 +124,12 @@ flowchart TB
 | 播放器页面 | 展示状态、窗口模式控制器、计时器与订阅 | 页面替换或播放器关闭 |
 
 共享界面 Provider 包括媒体库、文件浏览、趋势、设置、主题与 `AppLocaleProvider`；窗口接口和消息宿主按视图注入。`AppMessage` 通过调用方 context 找到消息宿主，不通过全局变量猜测窗口。
+
+### 设置与来源变更联动
+
+- 来源保存成功或实际删除后，`StorageSourcesService` 调用注入的 `onSourceChanged`。`ApplicationDependencies` 将其连接到 `FileBrowserProvider.invalidateSource`；只有正在浏览或正在打开该来源时才清空选择。等待凭据期间的请求不再连接，迟到连接自行关闭。保存返回是否需要重新打开，表单据此展示提示；保存失败不清理浏览状态。
+- `AppSettingsProvider` 完成运行时 TMDB / 图片代理配置后，比较上次生效配置，变化时发出 `onTmdbConfigurationChanged`。应用组装入口触发趋势刷新；设置页不读取首页 Provider。初次加载沿启动流程加载趋势，仅保存草稿、网络配置未变或已开始退出时不触发此回调。
+- `TrendingMediaProvider.fetch` 合并普通并发加载；`refresh: true` 使旧配置的在途结果失效，并在当前批次完成后读取最新配置。多次配置变化合并刷新，旧请求失败不吞掉待刷新任务；销毁后的结果不更新状态或通知界面。
 
 ## 核心契约
 

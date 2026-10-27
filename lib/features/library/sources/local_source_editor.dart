@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/core/ui/components/input/form/settings_switch_item.dart';
-import 'package:mochi_player/features/library/browser/file_browser_provider.dart';
 import 'package:mochi_player/features/library/sources/source_editor_fields.dart';
 import 'package:mochi_player/features/library/sources/storage_sources_service.dart';
 import 'package:mochi_player/l10n/l10n.dart';
@@ -27,6 +26,7 @@ Future<void> showLocalSourceEditor(
   String? connectionTestResult;
   bool? connectionTestSucceeded;
   StateSetter? updateModal;
+  var requiresBrowserReopen = false;
 
   void showFormError(String message) {
     updateModal?.call(() => formError = message);
@@ -159,7 +159,7 @@ Future<void> showLocalSourceEditor(
           return false;
         }
         try {
-          await context.read<StorageSourcesService>().save(
+          requiresBrowserReopen = await context.read<StorageSourcesService>().save(
             StorageSource(
               id: source?.id ?? const Uuid().v4(),
               name: nameController.text.trim().isEmpty ? path.basename(directoryPath) : nameController.text.trim(),
@@ -180,21 +180,13 @@ Future<void> showLocalSourceEditor(
     );
     updateModal = null;
     if (saved == true && context.mounted) {
-      var clearedActiveSource = false;
-      if (source != null && context.mounted) {
-        final fileBrowser = context.read<FileBrowserProvider>();
-        if (fileBrowser.activeSource?.id == source.id) {
-          fileBrowser.clearStorageSource();
-          clearedActiveSource = true;
-        }
-      }
       await onSaved();
       if (context.mounted) {
         AppMessage.success(
           context,
           source == null
               ? context.l10n.localFolderAdded
-              : clearedActiveSource
+              : requiresBrowserReopen
               ? context.l10n.sourceSavedReopen
               : context.l10n.sourceSaved,
         );

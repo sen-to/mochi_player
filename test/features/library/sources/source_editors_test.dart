@@ -26,7 +26,7 @@ void main() {
     sources = StorageSourcesService(
       repository: repository,
       registry: StorageAdapterRegistry([adapter]),
-      onSourceRemoved: (_) {},
+      onSourceChanged: (_) => false,
     );
     strings = await AppLocalizations.delegate.load(const Locale('zh'));
     saved = 0;

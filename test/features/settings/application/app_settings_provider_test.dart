@@ -41,6 +41,60 @@ void main() {
     });
   }
 
+  test('runtime network changes notify the application without a settings page', () async {
+    SharedPreferences.setMockInitialValues({});
+    var changes = 0;
+    final provider = AppSettingsProvider(
+      settingsRepository: AppSettingsRepository(),
+      tmdbService: TmdbService(),
+      onTmdbConfigurationChanged: () => changes++,
+    );
+    addTearDown(provider.dispose);
+    await provider.load();
+    expect(changes, 0);
+    await _save(provider, tmdbApiKey: 'draft');
+    expect(changes, 0);
+    await _save(provider, tmdbApiKey: 'applied', applyRuntime: true);
+    expect(changes, 1);
+    await _save(provider, tmdbApiKey: 'applied', applyRuntime: true);
+    expect(changes, 1);
+    await _save(provider, tmdbApiKey: '', applyRuntime: true);
+    expect(changes, 2);
+  });
+
+  test('failed persistence does not apply runtime configuration or notify the home owner', () async {
+    SharedPreferences.setMockInitialValues({});
+    var changes = 0;
+    final provider = AppSettingsProvider(
+      settingsRepository: _FailingSettingsRepository(),
+      tmdbService: TmdbService(),
+      onTmdbConfigurationChanged: () => changes++,
+    );
+    addTearDown(provider.dispose);
+    await provider.load();
+    await _save(provider, tmdbApiKey: 'rejected', applyRuntime: true);
+    expect(provider.error, AppFailure.settingsSave);
+    expect(provider.appliedRuntimeSettings?.tmdbApiKey, isEmpty);
+    expect(changes, 0);
+  });
+
+  test('exit does not start a home refresh for an accepted save', () async {
+    SharedPreferences.setMockInitialValues({});
+    var changes = 0;
+    final provider = AppSettingsProvider(
+      settingsRepository: AppSettingsRepository(),
+      tmdbService: TmdbService(),
+      onTmdbConfigurationChanged: () => changes++,
+    );
+    addTearDown(provider.dispose);
+    await provider.load();
+    final saving = _save(provider, tmdbApiKey: 'accepted', applyRuntime: true);
+    provider.beginShutdown();
+    await saving;
+    expect(provider.tmdbApiKey, 'accepted');
+    expect(changes, 0);
+  });
+
   test('exit drains accepted settings saves and rejects new drafts', () async {
     SharedPreferences.setMockInitialValues({});
     final provider = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: TmdbService());
@@ -85,4 +139,9 @@ Future<void> _save(AppSettingsProvider provider, {required String tmdbApiKey, bo
     subtitleFontSize: AppSettings.defaultSubtitleFontSize,
     applyRuntime: applyRuntime,
   );
+}
+
+class _FailingSettingsRepository extends AppSettingsRepository {
+  @override
+  Future<AppSettings> save(AppSettings settings) async => throw StateError('settings write failed');
 }

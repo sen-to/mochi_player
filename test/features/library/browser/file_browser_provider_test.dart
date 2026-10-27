@@ -83,6 +83,54 @@ void main() {
     expect(firstConnection.isClosed, isTrue);
     expect(storageAdapter.connections, hasLength(2));
   });
+  test('a saved source invalidates its active browser while unrelated changes leave it open', () async {
+    final adapter = _TrackingStorageAdapter();
+    final provider = FileBrowserProvider(
+      readCredentials: (_) async => null,
+      storageAdapterRegistry: StorageAdapterRegistry([adapter]),
+    );
+    addTearDown(provider.dispose);
+    await provider.openStorageSource(_source);
+    expect(provider.invalidateSource('another-source'), false);
+    expect(provider.activeSource, _source);
+    expect(provider.invalidateSource(_source.id), true);
+    expect(provider.hasSelectedStorageSource, false);
+    expect(adapter.connections.single.isClosed, true);
+  });
+
+  test('a source changed while reading credentials never creates a connection', () async {
+    final credentials = Completer<StorageCredentials?>();
+    final adapter = _TrackingStorageAdapter();
+    final provider = FileBrowserProvider(
+      readCredentials: (_) => credentials.future,
+      storageAdapterRegistry: StorageAdapterRegistry([adapter]),
+    );
+    addTearDown(provider.dispose);
+    final opening = provider.openStorageSource(_source);
+    expect(provider.invalidateSource(_source.id), true);
+    credentials.complete(null);
+    await opening;
+    expect(adapter.connections, isEmpty);
+    expect(provider.hasSelectedStorageSource, false);
+  });
+
+  test('a source changed during connection creation closes the stale connection', () async {
+    final pending = Completer<StorageConnection>();
+    final connection = _TrackingStorageConnection(_source);
+    final provider = FileBrowserProvider(
+      readCredentials: (_) async => null,
+      storageAdapterRegistry: StorageAdapterRegistry([_DelayedProvider(pending.future)]),
+    );
+    addTearDown(provider.dispose);
+    final opening = provider.openStorageSource(_source);
+    await Future<void>.delayed(Duration.zero);
+    expect(provider.invalidateSource(_source.id), true);
+    pending.complete(connection);
+    await opening;
+    expect(connection.isClosed, true);
+    expect(provider.hasSelectedStorageSource, false);
+  });
+
   test('an opening connection that finishes after shutdown is closed and never selected', () async {
     final pending = Completer<StorageConnection>();
     final connection = _TrackingStorageConnection(_source);

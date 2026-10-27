@@ -8,7 +8,7 @@ import 'package:mochi_player/features/library/detail/episode_list.dart';
 import 'package:mochi_player/features/library/detail/media_detail_header.dart';
 import 'package:mochi_player/features/library/detail/media_detail_view_model.dart';
 import 'package:mochi_player/features/library/widgets/library_query.dart';
-import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/features/library/library_playback_launcher.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 void openMediaDetailPage(BuildContext context, LibraryItem item) {
@@ -134,7 +134,7 @@ class _MovieMediaInfoSection extends StatelessWidget {
                 _VersionRow(
                   file: files[index],
                   theme: theme,
-                  onTap: () => PlaybackLauncher.playFile(context, files[index]),
+                  onTap: () => LibraryPlaybackLauncher.playFile(context, files[index]),
                 ),
                 if (index != files.length - 1) const SizedBox(height: 10),
               ],

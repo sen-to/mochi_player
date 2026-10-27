@@ -5,7 +5,7 @@ import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.d
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/library/detail/media_detail_page.dart';
 import 'package:mochi_player/features/library/widgets/media_rating_tag.dart';
-import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/features/library/library_playback_launcher.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 /// 首页 Hero Section
@@ -174,7 +174,7 @@ class HeroSection extends StatelessWidget {
   }
 
   void _handlePlay(BuildContext context) {
-    PlaybackLauncher.playLibraryItem(context, heroItem!);
+    LibraryPlaybackLauncher.playLibraryItem(context, heroItem!);
   }
 
   void _handleMoreInfo(BuildContext context) {

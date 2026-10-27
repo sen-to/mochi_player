@@ -8,14 +8,14 @@ class StorageSourcesService {
   StorageSourcesService({
     required StorageSourceRepository repository,
     required StorageAdapterRegistry registry,
-    required void Function(String) onSourceRemoved,
+    required bool Function(String) onSourceChanged,
   }) : _repository = repository,
        _registry = registry,
-       _onSourceRemoved = onSourceRemoved;
+       _onSourceChanged = onSourceChanged;
 
   final StorageSourceRepository _repository;
   final StorageAdapterRegistry _registry;
-  final void Function(String) _onSourceRemoved;
+  final bool Function(String) _onSourceChanged;
 
   bool _shuttingDown = false;
   final Set<Future<Object?>> _pending = {};
@@ -42,13 +42,18 @@ class StorageSourcesService {
   }
 
   Future<List<StorageSource>> getAll() => _run(_repository.getAll);
-  Future<void> save(StorageSource source, {StorageCredentials? credentials}) =>
-      _run(() => _repository.save(source, credentials: credentials));
+
+  /// Persists configuration, then invalidates any browser using that source.
+  /// Returns whether the browser must reopen it with the saved configuration.
+  Future<bool> save(StorageSource source, {StorageCredentials? credentials}) => _run(() async {
+    await _repository.save(source, credentials: credentials);
+    return _onSourceChanged(source.id);
+  });
   Future<StorageCredentials?> readCredentials(String id) => _run(() => _repository.readCredentials(id));
 
   Future<int?> deleteWithMedia(String id) => _run(() async {
     final count = await _repository.deleteWithMedia(id);
-    if (count != null) _onSourceRemoved(id);
+    if (count != null) _onSourceChanged(id);
     return count;
   });
 

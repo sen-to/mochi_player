@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mochi_player/features/library/catalog/media_card_view_data.dart';
 import 'package:mochi_player/features/library/widgets/media_card.dart';
-import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/features/library/library_playback_launcher.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 class ContinueWatchingCard extends StatelessWidget {
@@ -20,7 +20,7 @@ class ContinueWatchingCard extends StatelessWidget {
       rating: item.rating,
       artworkType: MediaArtworkType.backdrop,
       progress: item.file.progress,
-      onTap: () => PlaybackLauncher.playFile(context, item.file, contextTitle: item.playbackContextTitle),
+      onTap: () => LibraryPlaybackLauncher.playFile(context, item.file, contextTitle: item.playbackContextTitle),
     );
   }
 }

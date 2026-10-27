@@ -9,6 +9,7 @@
 | 电影 / 剧集列表、收藏、续播、分页 | [catalog/library_repository.dart](catalog/library_repository.dart) | `catalog/library_page.dart`；共享查询组件在 `widgets/library_query.dart` |
 | 列表海报、评分和进度样式 | [widgets/media_card.dart](widgets/media_card.dart) | `catalog/media_card_view_data.dart`；下载 / 缓存实现在共享的 `core/infrastructure/tmdb/` |
 | 媒体详情、季集、演员 | [detail/media_detail_page.dart](detail/media_detail_page.dart) | 同目录的 `media_detail_header.dart`、`episode_list.dart`、`cast_list.dart` |
+| 点击播放、选择版本、准备剧集与播放队列 | [library_playback_launcher.dart](library_playback_launcher.dart) | 查询媒体库后创建播放请求，交给播放功能的 `PlayerWindowCoordinator`；播放功能不依赖媒体库 Provider |
 | 文件浏览、排序和搜索 | [browser/file_browser_provider.dart](browser/file_browser_provider.dart) | 同目录的 `file_browser_page.dart`、`file_browser_entry.dart` 和列表 / 网格组件 |
 | 添加 / 编辑 / 删除来源 | [sources/storage_sources_settings.dart](sources/storage_sources_settings.dart) | 对应的 `local_source_editor.dart`、`smb_source_editor.dart`、`webdav_source_editor.dart`；保存 / 测试入口是 `storage_sources_service.dart` |
 | 扫描顺序、分批入库、失效文件清理、退出收尾 | [sync/library_sync_service.dart](sync/library_sync_service.dart) | 同目录的 `library_source_scanner.dart`、`library_sync_repository.dart`；读写实现是 `database_library_sync_repository.dart` |
@@ -24,6 +25,7 @@
 
 - 先打开对应流程目录里的入口，再按实际需要阅读同目录的规则、契约或适配器。目录靠近不表示页面可以直接调用数据库或创建协议连接。
 - `sync` 编排通过扫描与持久化契约工作；`metadata` 的匹配、刮削通过元数据获取 / 持久化契约工作。事务、凭据和协议实例留在具体适配器。
+- 来源保存 / 删除后的浏览失效统一由 `StorageSourcesService` 发出变更通知，组装入口连接到 `FileBrowserProvider.invalidateSource`。表单只保存、刷新列表并依据返回值提示重新打开，不直接清理浏览状态。
 - `widgets` 仅放多个媒体库流程共用的 UI；仅用于详情或浏览的组件留在各自流程目录。
 - 输入、进度、结果等仅伴随一个流程的类型与其放在同文件。不创建旧路径转发文件或一层层的 barrel 导出。
 - 应用组装统一在 [`ApplicationDependencies`](../../app/bootstrap/application_dependencies.dart)，共享数据模型、协议和数据库仍保留在 `core`。

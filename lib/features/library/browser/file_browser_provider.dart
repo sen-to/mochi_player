@@ -20,6 +20,7 @@ class FileBrowserProvider extends ChangeNotifier {
   final StorageAdapterRegistry _storageAdapterRegistry;
   final Future<StorageCredentials?> Function(String) _readCredentials;
   StorageConnection? _storageConnection;
+  ({String id, int generation})? _openingSource;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
   FileBrowserProvider({
@@ -138,26 +139,41 @@ class FileBrowserProvider extends ChangeNotifier {
   Future<void> openStorageSource(StorageSource source) async {
     if (_shuttingDown) return;
     final generation = ++_requestGeneration;
-    final credentials = await _readCredentials(source.id);
-    if (_shuttingDown || generation != _requestGeneration) return;
-    final connection = await _storageAdapterRegistry.connect(source, credentials);
-    if (_shuttingDown || generation != _requestGeneration) {
-      await connection.close();
-      return;
+    final opening = (id: source.id, generation: generation);
+    _openingSource = opening;
+    try {
+      final credentials = await _readCredentials(source.id);
+      if (_shuttingDown || generation != _requestGeneration) return;
+      final connection = await _storageAdapterRegistry.connect(source, credentials);
+      if (_shuttingDown || generation != _requestGeneration) {
+        await connection.close();
+        return;
+      }
+      _openingSource = null;
+      final previousConnection = _storageConnection;
+      _storageConnection = connection;
+      if (previousConnection != null) unawaited(previousConnection.close());
+      _items = [];
+      _currentPath = '/';
+      _searchQuery = '';
+      _error = null;
+      _hasLoaded = false;
+      await fetchFiles('/');
+    } finally {
+      if (_openingSource == opening) _openingSource = null;
     }
-    final previousConnection = _storageConnection;
-    _storageConnection = connection;
-    if (previousConnection != null) unawaited(previousConnection.close());
-    _items = [];
-    _currentPath = '/';
-    _searchQuery = '';
-    _error = null;
-    _hasLoaded = false;
-    await fetchFiles('/');
+  }
+
+  /// Invalidates saved configuration even while credentials or a connection are pending.
+  bool invalidateSource(String id) {
+    if (_shuttingDown || (activeSource?.id != id && _openingSource?.id != id)) return false;
+    clearStorageSource();
+    return true;
   }
 
   /// Returns the browser to its source-selection state.
   void clearStorageSource() {
+    _openingSource = null;
     _requestGeneration++;
     final previousConnection = _storageConnection;
     _storageConnection = null;

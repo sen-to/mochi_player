@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_source_playback_resolver.dart';
@@ -35,9 +37,7 @@ class ApplicationDependencies {
     storageSources = StorageSourcesService(
       repository: sourceRepository,
       registry: storageRegistry,
-      onSourceRemoved: (id) {
-        if (fileBrowser.activeSource?.id == id) fileBrowser.clearStorageSource();
-      },
+      onSourceChanged: fileBrowser.invalidateSource,
     );
     final repository = LibraryRepository(database);
     final metadataRepository = DatabaseMetadataRepository(database: database);
@@ -54,8 +54,12 @@ class ApplicationDependencies {
       metadataScraper: scraper,
     );
     mediaLibrary = MediaLibraryProvider(database: database, repository: repository, syncService: sync);
-    settings = AppSettingsProvider(settingsRepository: settingsRepository, tmdbService: tmdb);
     trending = TrendingMediaProvider(tmdbService: tmdb);
+    settings = AppSettingsProvider(
+      settingsRepository: settingsRepository,
+      tmdbService: tmdb,
+      onTmdbConfigurationChanged: () => unawaited(trending.fetch(refresh: true)),
+    );
     playbackRepository = DatabasePlaybackMediaRepository(database: database);
     playbackResolver = StorageSourcePlaybackResolver(repository: sourceRepository);
   }

@@ -11,7 +11,7 @@ void main() {
     final service = StorageSourcesService(
       repository: repository,
       registry: StorageAdapterRegistry([]),
-      onSourceRemoved: (_) {},
+      onSourceChanged: (_) => false,
     );
     const source = StorageSource(
       id: 'home-nas',
@@ -27,12 +27,42 @@ void main() {
     expect(await service.readCredentials(source.id), sourceCredentials);
   });
 
+  test('successful saves invalidate their owner after persistence and return the reopen requirement', () async {
+    final repository = _MemorySourceRepository();
+    final service = StorageSourcesService(
+      repository: repository,
+      registry: StorageAdapterRegistry([]),
+      onSourceChanged: (id) {
+        expect(repository._sources[id]?.endpoint, '/updated');
+        return true;
+      },
+    );
+    const source = StorageSource(id: 'local', name: 'Local', type: StorageSourceType.local, endpoint: '/updated');
+    expect(await service.save(source), true);
+  });
+
+  test('a failed save leaves the selection owner untouched', () async {
+    final repository = _MemorySourceRepository()..failSave = true;
+    var invalidations = 0;
+    final service = StorageSourcesService(
+      repository: repository,
+      registry: StorageAdapterRegistry([]),
+      onSourceChanged: (_) {
+        invalidations++;
+        return true;
+      },
+    );
+    const source = StorageSource(id: 'local', name: 'Local', type: StorageSourceType.local, endpoint: '/updated');
+    await expectLater(service.save(source), throwsStateError);
+    expect(invalidations, 0);
+  });
+
   test('deletes source credentials with its source', () async {
     final repository = _MemorySourceRepository();
     final service = StorageSourcesService(
       repository: repository,
       registry: StorageAdapterRegistry([]),
-      onSourceRemoved: (_) {},
+      onSourceChanged: (_) => false,
     );
     const source = StorageSource(
       id: 'home-nas',
@@ -57,7 +87,7 @@ void main() {
       final service = StorageSourcesService(
         repository: _MemorySourceRepository(),
         registry: StorageAdapterRegistry([_Provider(connection)]),
-        onSourceRemoved: (_) {},
+        onSourceChanged: (_) => false,
       );
       if (fails) {
         await expectLater(service.testConnection(connection.source, null), throwsStateError);
@@ -73,7 +103,7 @@ void main() {
     final service = StorageSourcesService(
       repository: _MemorySourceRepository(),
       registry: StorageAdapterRegistry([_Provider(connection)]),
-      onSourceRemoved: (_) {},
+      onSourceChanged: (_) => false,
     );
     final operation = service.testConnection(connection.source, null);
     await Future<void>.delayed(Duration.zero);
@@ -94,10 +124,14 @@ void main() {
     final service = StorageSourcesService(
       repository: repository,
       registry: StorageAdapterRegistry([]),
-      onSourceRemoved: removed.add,
+      onSourceChanged: (id) {
+        removed.add(id);
+        return false;
+      },
     );
     const source = StorageSource(id: 'nas', name: 'NAS', type: StorageSourceType.local, endpoint: '/media');
     await service.save(source);
+    removed.clear();
     expect(await service.deleteWithMedia('nas'), 0);
     expect(await service.deleteWithMedia('missing'), isNull);
     expect(removed, ['nas']);
@@ -105,6 +139,7 @@ void main() {
 }
 
 class _MemorySourceRepository implements StorageSourceRepository {
+  bool failSave = false;
   final Map<String, StorageSource> _sources = {};
   final Map<String, StorageCredentials> _credentials = {};
 
@@ -131,6 +166,7 @@ class _MemorySourceRepository implements StorageSourceRepository {
 
   @override
   Future<void> save(StorageSource source, {StorageCredentials? credentials}) async {
+    if (failSave) throw StateError('save failed');
     _sources[source.id] = source;
     if (credentials != null) _credentials[source.id] = credentials;
   }

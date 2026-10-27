@@ -20,6 +20,7 @@
 ```text
 features/library/
 ├── media_library_provider.dart   # 页面与其他功能使用的媒体库入口
+├── library_playback_launcher.dart # 版本 / 队列查询后向播放功能提交请求
 ├── catalog/                      # 电影 / 剧集 / 收藏 / 续播查询及列表页面
 ├── detail/                       # 详情页面、展示模型与季集 / 演员组件
 ├── browser/                      # 文件浏览入口、条目模型与浏览界面

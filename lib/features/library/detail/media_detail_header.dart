@@ -9,7 +9,7 @@ import 'package:mochi_player/features/library/detail/favorite_button.dart';
 import 'package:mochi_player/features/library/detail/media_detail_view_model.dart';
 import 'package:mochi_player/features/library/widgets/library_query.dart';
 import 'package:mochi_player/features/library/widgets/media_rating_tag.dart';
-import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/features/library/library_playback_launcher.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 const double _detailReadableWidth = 820;
@@ -211,7 +211,7 @@ class _PrimaryActionArea extends StatelessWidget {
         detail: target.resumesCurrentEpisode
             ? _resumeDetail(context, target.file)
             : _episodeCountDetail(context, files),
-        onPressed: () => PlaybackLauncher.playFile(context, target.file, contextTitle: viewModel.title),
+        onPressed: () => LibraryPlaybackLauncher.playFile(context, target.file, contextTitle: viewModel.title),
       );
     }
 
@@ -221,7 +221,7 @@ class _PrimaryActionArea extends StatelessWidget {
       return _PrimaryPlayAction(
         label: context.l10n.resumePlayback,
         detail: _resumeDetail(context, resumeFile),
-        onPressed: () => PlaybackLauncher.playFile(context, resumeFile),
+        onPressed: () => LibraryPlaybackLauncher.playFile(context, resumeFile),
       );
     }
 
@@ -230,7 +230,7 @@ class _PrimaryActionArea extends StatelessWidget {
       return _PrimaryPlayAction(
         label: context.l10n.play,
         enabled: files.isNotEmpty,
-        onPressed: files.isEmpty ? null : () => PlaybackLauncher.playMovie(context, movie),
+        onPressed: files.isEmpty ? null : () => LibraryPlaybackLauncher.playMovie(context, movie),
       );
     }
 

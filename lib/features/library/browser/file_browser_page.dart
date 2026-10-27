@@ -8,7 +8,7 @@ import 'package:mochi_player/features/library/browser/file_browser_list.dart';
 import 'package:mochi_player/features/library/browser/file_browser_provider.dart';
 import 'package:mochi_player/features/library/browser/file_browser_toolbar.dart';
 import 'package:mochi_player/features/library/sources/storage_sources_service.dart';
-import 'package:mochi_player/features/playback/presentation/playback_launcher.dart';
+import 'package:mochi_player/features/library/library_playback_launcher.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -167,7 +167,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
       return;
     }
     if (!item.isPlayable) return;
-    PlaybackLauncher.playFile(
+    LibraryPlaybackLauncher.playFile(
       context,
       provider.createPlaybackFile(item),
       loadingMessage: context.l10n.fetchingPlaybackLink(item.name),

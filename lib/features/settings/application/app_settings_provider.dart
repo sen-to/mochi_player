@@ -9,11 +9,16 @@ import 'package:mochi_player/features/settings/infrastructure/app_settings_repos
 class AppSettingsProvider extends ChangeNotifier {
   final AppSettingsRepository _settingsRepository;
 
-  AppSettingsProvider({required AppSettingsRepository settingsRepository, required TmdbService tmdbService})
-    : _settingsRepository = settingsRepository,
-      _tmdbService = tmdbService;
+  AppSettingsProvider({
+    required AppSettingsRepository settingsRepository,
+    required TmdbService tmdbService,
+    VoidCallback? onTmdbConfigurationChanged,
+  }) : _settingsRepository = settingsRepository,
+       _tmdbService = tmdbService,
+       _onTmdbConfigurationChanged = onTmdbConfigurationChanged;
 
   final TmdbService _tmdbService;
+  final VoidCallback? _onTmdbConfigurationChanged;
 
   AppSettings _settings = const AppSettings();
   AppSettings? _appliedRuntimeSettings;
@@ -155,6 +160,7 @@ class AppSettingsProvider extends ChangeNotifier {
   }
 
   Future<void> _applyRuntimeSettings() async {
+    final previous = _appliedRuntimeSettings;
     _tmdbService.configure(
       apiKey: _settings.tmdbApiKey,
       apiBaseUrl: _settings.tmdbApiBaseUrl,
@@ -164,5 +170,10 @@ class AppSettingsProvider extends ChangeNotifier {
     TmdbImageCacheManager.configure(proxyUrl: _settings.tmdbProxyUrl, proxyEnabled: _settings.tmdbProxyEnabled);
 
     _appliedRuntimeSettings = _settings;
+    // Initial loading is followed by the normal home-page load. Draft-only and
+    // playback-only saves do not require invalidating the home collections.
+    if (!_shuttingDown && previous != null && !previous.hasSameTmdbConfiguration(_settings)) {
+      _onTmdbConfigurationChanged?.call();
+    }
   }
 }
