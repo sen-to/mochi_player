@@ -9,7 +9,7 @@ import 'package:mochi_player/core/infrastructure/database/app_database.dart';
 import 'package:mochi_player/core/infrastructure/database/database_service.dart';
 import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
-import 'package:mochi_player/features/library/infrastructure/database_metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/database_metadata_repository.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 
 MediaFile file(String path, {String source = 'nas'}) => MediaFile(

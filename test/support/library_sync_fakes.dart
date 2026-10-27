@@ -2,10 +2,10 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/core/domain/storage/storage_source.dart';
 import 'package:mochi_player/core/domain/storage/storage_source_type.dart';
-import 'package:mochi_player/features/library/application/library_source_scanner.dart';
-import 'package:mochi_player/features/library/application/library_sync_repository.dart';
-import 'package:mochi_player/features/library/application/metadata_repository.dart';
-import 'package:mochi_player/features/library/application/metadata_source.dart';
+import 'package:mochi_player/features/library/sync/library_source_scanner.dart';
+import 'package:mochi_player/features/library/sync/library_sync_repository.dart';
+import 'package:mochi_player/features/library/metadata/metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/metadata_source.dart';
 
 StorageSource librarySource(String id) =>
     StorageSource(id: id, name: id, type: StorageSourceType.local, endpoint: '/$id');

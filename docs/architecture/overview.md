@@ -1,6 +1,6 @@
 # 架构总览
 
-本文描述当前实现（核对日期：2026-10-26）。功能完成度见 [实施状态](../status.md)，技术取舍见 [ADR](../decisions/)，验证证据见 [测试指南](../guides/testing.md)。
+本文描述当前实现（核对日期：2026-10-27）。功能完成度见 [实施状态](../status.md)，技术取舍见 [ADR](../decisions/)，验证证据见 [测试指南](../guides/testing.md)。
 
 ## 系统边界
 
@@ -24,18 +24,20 @@ flowchart LR
 
 ## 结构与依赖
 
-项目采用按功能组织的分层模块化单体。`app` 负责组装与外壳，`features` 承载首页、媒体库、播放和设置，`core` 提供共享模型、基础设施、平台与 UI，`l10n` 管理语言资源。具体目录模板和新增代码落位见 [编码指南](../guides/code-organization.md#目录骨架)。
+项目采用按功能组织的分层模块化单体。`app` 负责组装与外壳，`features` 承载首页、媒体库、播放和设置，`core` 提供共享模型、基础设施、平台与 UI，`l10n` 管理语言资源。媒体库按 `catalog / detail / browser / sources / sync / metadata / widgets` 工作流程组织，其他功能保留各自既有布局。具体维护入口见 [媒体库维护地图](../../lib/features/library/README.md)，目录模板和新增代码落位见 [编码指南](../guides/code-organization.md#目录骨架)。
 
 业务调用通常沿“展示交互 → 应用用例 → 仓库 / 外部能力”流动。`core` 不导入 `features` 或 `app`；入口可以选择具体实现，页面通过应用入口操作业务，视图窗口接口与图片资源加载属于展示交互。
+
+`core` 的归属按实际调用判断：媒体记录、观看进度和剧集播放目标由媒体库、播放或共享持久化共同使用；趋势响应模型由共享 TMDB 映射 / 服务返回。仅供媒体库浏览与扫描使用的 `MediaFileKindResolver` 位于 `features/library/media_file_kind.dart`，仅供 SQL 回归比较的续播参考实现位于 `test/support/`，不随应用发布。
 
 ### 职责边界
 
 | 领域 | 入口与职责 | 约束 |
 | --- | --- | --- |
-| 媒体源业务 | [StorageSourcesService](../../lib/features/library/application/storage_sources_service.dart) 协调配置、测试、删除回调与收尾；[FileBrowserProvider](../../lib/features/library/application/file_browser_provider.dart) 协调凭据与浏览连接 | 页面只处理输入、确认、展示；SMB 路径解析位于领域层，协议实例不进入页面 |
-| 媒体库查询 | [MediaLibraryProvider](../../lib/features/library/application/media_library_provider.dart) 提供查询订阅，仓库为私有字段；[LibraryQuery](../../lib/features/library/presentation/widgets/library_query.dart) 回调接收应用 Provider | 查询身份稳定，通过滚动扩展结果并订阅数据库变更 |
-| 媒体库同步 | [LibrarySyncService](../../lib/features/library/application/library_sync_service.dart) 通过 `LibrarySourceScanner`、`LibrarySyncRepository` 协调扫描与清理，通过应用层 `MetadataScraper` 刮削 | 同步服务不读取凭据、不持有协议连接或 SQLite；完整且未中断的扫描才能清理旧索引 |
-| 元数据匹配与导入 | 应用层 `MetadataMatchResolver` / `MetadataScraper` 使用 `MetadataSource`、`MetadataRepository`；基础设施提供 TMDB 与 SQLite 实现 | 请求错误在适配器转换；元数据与关联原子导入，事务不泄漏到编排层 |
+| 媒体源业务 | [StorageSourcesService](../../lib/features/library/sources/storage_sources_service.dart) 协调配置、测试、删除回调与收尾；[FileBrowserProvider](../../lib/features/library/browser/file_browser_provider.dart) 协调凭据与浏览连接 | 页面只处理输入、确认、展示；SMB 路径解析位于领域层，协议实例不进入页面 |
+| 媒体库查询 | [MediaLibraryProvider](../../lib/features/library/media_library_provider.dart) 提供查询订阅，仓库为私有字段；[LibraryQuery](../../lib/features/library/widgets/library_query.dart) 回调接收应用 Provider | 查询身份稳定，通过滚动扩展结果并订阅数据库变更 |
+| 媒体库同步 | [LibrarySyncService](../../lib/features/library/sync/library_sync_service.dart) 通过 `LibrarySourceScanner`、`LibrarySyncRepository` 协调扫描与清理，通过应用层 `MetadataScraper` 刮削 | 同步服务不读取凭据、不持有协议连接或 SQLite；完整且未中断的扫描才能清理旧索引 |
+| 元数据匹配与导入 | 应用层 `MetadataMatcher`（候选 / 搜索计划同文件） / `MetadataScraper`（结果 / 进度同文件）使用 `MetadataSource`、`MetadataRepository`；基础设施提供 TMDB 与 SQLite 实现 | 请求错误在适配器转换；元数据与关联原子导入，事务不泄漏到编排层 |
 | 播放持久化 | [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 只定义契约；[DatabasePlaybackMediaRepository](../../lib/features/playback/infrastructure/database_playback_media_repository.dart) 独立实现 | 播放会话不导入数据库实现，不使用默认数据库获取路径 |
 | 播放器组装与界面 | [player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 保存启动数据并维护窗口展示状态；[PlayerWindowApp](../../lib/features/playback/presentation/player_window_app.dart) 组装界面并将引擎工厂交给播放会话 | 负责创建、激活、换片、保存进度、释放资源与关闭顺序；创建后初始化失败也会退役视图 |
 | 共享依赖 | [ApplicationDependencies](../../lib/app/bootstrap/application_dependencies.dart) 集中组装；数据库、TMDB、设置服务使用普通实例，关键应用 / 适配器构造参数必传 | 主视图和播放器共享数据库；设置运行配置可被趋势和刮削立即使用；测试可独立构造服务 |
@@ -56,7 +58,7 @@ flowchart LR
     LibraryPage["媒体库页面"] --> LibraryApp["MediaLibraryProvider / LibrarySyncService"]
     LibraryApp --> Queries["LibraryRepository：展示查询"]
     LibraryApp --> Sync["LibrarySyncRepository / LibrarySourceScanner"]
-    LibraryApp --> Scraper["MetadataScraper / MetadataMatchResolver"]
+    LibraryApp --> Scraper["MetadataScraper / MetadataMatcher"]
     Scraper --> Metadata["MetadataSource / MetadataRepository"]
     Queries --> Database["DatabaseService / SQLite"]
     Sync --> Adapters["存储扫描 / SQLite 适配器"]
@@ -78,7 +80,7 @@ flowchart LR
   end
 ```
 
-播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。`PlaybackSessionController` 负责目标解析、引擎打开 / 停止 / 释放与进度保存；展示目录中的 `PlayerPlaybackController` 订阅状态、处理界面控制并向会话发出换片 / 关闭请求。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
+播放路径中“契约 → 运行时实现”表示方法调用最终落到适配器，不表示接口文件导入实现。`PlaybackSessionController` 负责目标解析、引擎打开 / 停止 / 释放与进度保存；展示目录中的 `PlayerPlaybackController` 订阅状态、处理界面控制并向会话发出换片 / 关闭请求，其 `subtitles` 入口统一管理字幕选择、外挂文件与样式。具体维护入口见 [播放维护地图](../../lib/features/playback/README.md)。模型和接口被各层使用，省略这些普遍依赖，避免把领域层画成所有箭头的终点。
 
 ### 代表调用链
 
@@ -130,11 +132,11 @@ flowchart TB
 | [PlaybackTargetResolver](../../lib/core/domain/playback/playback_target_resolver.dart) | 根据媒体源解析 URL 与请求头，不负责媒体服务器的会话上报 |
 | [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) | 播放、seek、轨道、选项、状态流及视频表面；不暴露任意 mpv 属性 API |
 | [DatabaseService](../../lib/core/infrastructure/database/database_service.dart) | 共享连接、事务与字段级写入 |
-| [LibraryRepository](../../lib/features/library/infrastructure/library_repository.dart) | SQL 筛选、聚合、有限结果投影与 drift 订阅 |
-| [LibrarySourceScanner](../../lib/features/library/application/library_source_scanner.dart) | 启用来源与扫描会话；`StorageLibrarySourceScanner` 内部解析凭据和连接，调用方在 finally 关闭返回的会话 |
-| [LibrarySyncRepository](../../lib/features/library/application/library_sync_repository.dart) | 同步路径、批量文件写入、失效清理与待匹配候选；`DatabaseLibrarySyncRepository` 实现 |
-| [MetadataSource](../../lib/features/library/application/metadata_source.dart) | 按 ID / 标题获取元数据与季集，失败通过 `MetadataRequestFailure` 报告；`TmdbMetadataSource` 实现 |
-| [MetadataRepository](../../lib/features/library/application/metadata_repository.dart) | 本地元数据读取与原子关联导入；`DatabaseMetadataRepository` 实现，应用层不传事务回调 |
+| [LibraryRepository](../../lib/features/library/catalog/library_repository.dart) | SQL 筛选、聚合、有限结果投影与 drift 订阅 |
+| [LibrarySourceScanner](../../lib/features/library/sync/library_source_scanner.dart) | 启用来源与扫描会话；`StorageLibrarySourceScanner` 内部解析凭据和连接，调用方在 finally 关闭返回的会话 |
+| [LibrarySyncRepository](../../lib/features/library/sync/library_sync_repository.dart) | 同步路径、批量文件写入、失效清理与待匹配候选；`DatabaseLibrarySyncRepository` 实现 |
+| [MetadataSource](../../lib/features/library/metadata/metadata_source.dart) | 按 ID / 标题获取元数据与季集，失败通过 `MetadataRequestFailure` 报告；`TmdbMetadataSource` 实现 |
+| [MetadataRepository](../../lib/features/library/metadata/metadata_repository.dart) | 本地元数据读取与原子关联导入；`DatabaseMetadataRepository` 实现，应用层不传事务回调 |
 | [WindowService](../../lib/core/platform/window_service.dart) | 所属视图的窗口操作；原生桥每次带 `viewId` |
 
 ## 生命周期与同步

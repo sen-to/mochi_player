@@ -6,6 +6,8 @@
 
 | 任务 | 阅读入口 |
 | --- | --- |
+| 修改媒体库具体功能 | [媒体库维护地图](../lib/features/library/README.md)：按查询、详情、来源、浏览、扫描、匹配定位文件 |
+| 修改播放具体功能 | [播放维护地图](../lib/features/playback/README.md)：按入口、会话、字幕、控制栏和窗口定位文件 |
 | 了解系统与调用链 | [架构总览](architecture/overview.md) |
 | 新增或修改代码 | [代码组织与新增功能](guides/code-organization.md)：目录、命名、依赖与评审规则 |
 | 修改数据库 | [数据模型](architecture/data-model.md)：完整字段、主外键、约束、索引与迁移 |

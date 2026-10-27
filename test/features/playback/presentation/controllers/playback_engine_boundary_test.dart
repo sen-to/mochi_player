@@ -171,21 +171,38 @@ void main() {
     engine.tracks.add(engine.state.tracks);
     await Future<void>.delayed(Duration.zero);
     expect(controller.audioTracks.single.channels, '5.1');
-    expect(controller.selectedSubtitleTrack, subtitle);
+    expect(controller.subtitles.selectedSubtitleTrack, subtitle);
     await controller.setAudioTrack(audio);
     expect(engine.lastAudio, audio);
-    expect(await controller.loadExternalSubtitle('/movie.zh.srt'), true);
+    expect(await controller.subtitles.loadExternalSubtitle('/movie.zh.srt'), true);
     expect(engine.lastSubtitle!.origin, PlaybackTrackOrigin.externalFile);
     const loaded = PlaybackSubtitleTrack('3', 'movie.zh', null);
     engine.tracks.add(const PlaybackTracks(audio: [audio], subtitle: [subtitle, loaded]));
-    expect(controller.selectedSubtitleTrack, loaded);
-    await controller.loadExternalSubtitle('/movie.zh.srt');
+    expect(controller.subtitles.selectedSubtitleTrack, loaded);
+    await controller.subtitles.loadExternalSubtitle('/movie.zh.srt');
     expect(engine.lastSubtitle, loaded);
-    await controller.setSubtitleTrack(const PlaybackSubtitleTrack.disabled());
+    await controller.subtitles.setSubtitleTrack(const PlaybackSubtitleTrack.disabled());
     expect(engine.lastSubtitle!.isDisabled, true);
-    controller.setSubtitleStyleOverride(true);
+    controller.subtitles.setSubtitleStyleOverride(true);
     await Future<void>.delayed(Duration.zero);
     expect(engine.overrideStyle, true);
+  });
+
+  test('queue replacement resets subtitle identity while retaining the style preference', () async {
+    await controller.initialize();
+    await controller.subtitles.loadExternalSubtitle('/movie.zh.srt');
+    const loaded = PlaybackSubtitleTrack('3', 'movie.zh', null);
+    engine.tracks.add(const PlaybackTracks(subtitle: [loaded]));
+    engine.subtitles.add(['old media subtitle']);
+    controller.subtitles.setSubtitleStyleOverride(true);
+
+    await controller.playQueueOffset(0);
+
+    expect(controller.subtitles.subtitle, isEmpty);
+    expect(controller.subtitles.subtitleTracks, isEmpty);
+    expect(controller.subtitles.overrideEmbeddedSubtitleStyle, true);
+    await controller.subtitles.loadExternalSubtitle('/movie.zh.srt');
+    expect(engine.lastSubtitle!.origin, PlaybackTrackOrigin.externalFile);
   });
 
   test('shutdown pauses before final snapshot and disposes the injected engine once', () async {

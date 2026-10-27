@@ -4,7 +4,7 @@ import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
 import 'package:mochi_player/app/presentation/widgets/sidebar.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
-import 'package:mochi_player/features/library/application/media_library_provider.dart';
+import 'package:mochi_player/features/library/media_library_provider.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';

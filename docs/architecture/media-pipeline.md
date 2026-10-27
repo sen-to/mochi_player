@@ -1,7 +1,7 @@
 # 媒体流水线：扫描 → 解析 → 刮削 → 索引
 
 核对日期：2026-10-26。本文描述从「配置媒体源」到「首页出现海报」的完整链路。入口是
-[LibrarySyncService.scanEnabledMediaSources()](../../lib/features/library/application/library_sync_service.dart)。
+[LibrarySyncService.scanEnabledMediaSources()](../../lib/features/library/sync/library_sync_service.dart)。
 
 ```mermaid
 flowchart TD
@@ -28,14 +28,14 @@ flowchart TD
 - `StorageLibrarySourceScanner.enabledSources()` 返回 `enabled == true` 且注册表支持其类型的媒体源；同步编排仅依赖 `LibrarySourceScanner` 契约。
 - `StorageLibrarySourceScanner.open()` 在内部读取凭据，经注册表建立本地 / WebDAV / SMB 连接并返回 `LibrarySourceScan`。同步服务在 finally 关闭会话；会话关闭幂等。退出期间迟到的会话直接关闭，不启动扫描；已知路径查询返回后也会复查退出状态，禁止启动目录读取；退出等待已接受任务收尾。
 - `StorageMediaScanner.scan()` 递归列目录，过程中任何一次目录读取失败都会置位「读错误」，从而**跳过失效文件清理**——宁可留下失效记录，也不误删整个来源（网络抖动场景）。
-- 视频判定依赖扩展名白名单（[media_file_kind.dart](../../lib/core/domain/media/media_file_kind.dart)）：`mp4 mkv avi mov wmv flv webm ts m2ts mpg mpeg m4v`。
+- 视频判定依赖扩展名白名单（[media_file_kind.dart](../../lib/features/library/media_file_kind.dart)）：`mp4 mkv avi mov wmv flv webm ts m2ts mpg mpeg m4v`。
 - **幂等键**：数据库使用 `(sourceId, path)` 组合唯一约束；派生 `storageKey` 仅用于任务集合。新路径插入，已有路径仅更新大小与解析属性，保留匹配、进度、收藏与添加时间。
 - 清理：扫描成功时，删除属于该来源但本次未出现的记录。
 - `LibrarySyncRepository` 由 `DatabaseLibrarySyncRepository` 实现，负责已知路径、扫描文件写入、失效清理和候选查询，与展示查询仓库分开。扫描过程中按 128 个文件分批写入；扫描结束后，若配置了 TMDB，SQL 筛选缺少元数据或显式数字 ID 覆盖原匹配的文件，再进入刮削。写入失败中止该来源，不在收尾阶段隐式重试；来源完整扫描和关闭均成功才计入成功，避免重复计数；关闭失败不丢弃已完成入库 / 清理的文件数量。运行中的任务不允许通过状态重置绕过互斥。
 
 ## 阶段 2：文件名解析
 
-[FilenameParser.parse()](../../lib/features/library/infrastructure/filename_parser.dart) 从文件名（必要时回退到路径）提取：
+[FilenameParser.parse()](../../lib/features/library/sync/filename_parser.dart) 从文件名（必要时回退到路径）提取：
 
 | 类别 | 规则示例 |
 | --- | --- |
@@ -54,11 +54,11 @@ flowchart TD
 
 ## 阶段 3：TMDB 刮削
 
-[MetadataScraper](../../lib/features/library/application/metadata_scraper.dart) 与
-[MetadataMatchResolver](../../lib/features/library/application/metadata_match_resolver.dart)：
+[MetadataScraper](../../lib/features/library/metadata/metadata_scraper.dart) 与
+[MetadataMatcher](../../lib/features/library/metadata/metadata_matcher.dart)：
 
 1. 用 SQL EXISTS 筛选缺少元数据或显式 ID 发生变化的文件；没有候选时不发请求。
-2. `ScrapePlanFactory` 构造查询，`MetadataMatchResolver` 匹配目标；搜索顺序、剧集分组与并发限制见 [算法说明](algorithms.md#刮削计划与有界并发)。
+2. `ScrapePlanFactory` 构造查询，`MetadataMatcher` 匹配目标；搜索顺序、剧集分组与并发限制见 [算法说明](algorithms.md#刮削计划与有界并发)。
 3. 编排通过 `MetadataSource` 获取元数据；`TmdbMetadataSource` 使用共享 `TmdbService` 请求详情（电影附带 `credits,release_dates,images`，剧集使用对应参数；`language=zh-CN`），`TmdbMetadataMapper` 转为领域模型。
 4. `MetadataRepository` 由 `DatabaseMetadataRepository` 实现，原子写入元数据与文件关联；季集通过共享领域值 `SeasonMetadata` 传递，集 ID 形如 `show_s1e1`。任务回调报告完成数、总数、成功 / 失败与当前标题。部分季已提交后其他持久化步骤失败时，已确认文件仍计为成功，每个文件仅统计一次。
 5. 成功查询后无候选或详情 / 季不存在（404）时，标记未匹配并清空对应 ID。请求失败不属于未匹配，不修改受影响文件的匹配状态、原有 ID、进度或收藏。
@@ -77,11 +77,11 @@ flowchart TD
 
 | 能力 | 实现位置 | 说明 |
 | --- | --- | --- |
-| 查询投影 | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
-| 订阅与分页 | [library_query.dart](../../lib/features/library/presentation/widgets/library_query.dart) | 页面维持稳定查询订阅，网格按需扩展 LIMIT |
-| 继续观看 | [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
+| 查询投影 | [library_repository.dart](../../lib/features/library/catalog/library_repository.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
+| 订阅与分页 | [library_query.dart](../../lib/features/library/widgets/library_query.dart) | 页面维持稳定查询订阅，网格按需扩展 LIMIT |
+| 继续观看 | [library_repository.dart](../../lib/features/library/catalog/library_repository.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
 | 搜索 | [library_search_text.dart](../../lib/core/domain/media/library_search_text.dart) | 小写并移除指定空格 / 分隔符；评分与排序见 [算法说明](algorithms.md#本地搜索评分) |
-| 收藏 | [media_library_provider.dart](../../lib/features/library/application/media_library_provider.dart) | 标题级批量切换，作用于该标题下全部版本 |
+| 收藏 | [media_library_provider.dart](../../lib/features/library/media_library_provider.dart) | 标题级批量切换，作用于该标题下全部版本 |
 
 ## 已知问题
 

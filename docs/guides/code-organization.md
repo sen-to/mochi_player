@@ -2,9 +2,34 @@
 
 本文规定后续新增和修改代码的目录骨架与职责边界。当前实现及资源所有权见 [架构总览](../architecture/overview.md)；运行与检查命令见 [测试指南](testing.md)。这里的规则指导增量开发，不代表现有代码已满足严格 Clean Architecture，也不要求为统一目录而重写已有实现。
 
+## 可维护性四原则
+
+1. **一个功能有明确入口。** 查询媒体库、启动扫描、修改匹配、编辑来源各有明确入口；优先从现有入口扩展，避免重复入口和仅转发方法的中间层。
+2. **同一流程的代码靠近。** 按维护时会一起阅读、一起修改的业务流程组织代码，不为了技术分层把同一流程散放在多个目录。
+3. **减少没有独立价值的拆分。** 仅服务一个流程的输入、结果、进度等伴随类型与该流程放在同一文件；保留数据库、协议、播放后端等实际替换或测试边界，不按类型数量机械拆文件。
+4. **职责和名字直接对应。** 从目录与文件名就能找到要改的功能。命名应区分界面状态、任务编排、业务规则和外部适配，避免需要通读实现才能分清几个相似的 Service / Resolver。
+
+评审时用具体维护任务检查结构：修改匹配规则要读哪些文件，修改收藏查询会影响哪里，增加存储协议从哪个入口接入。仅减少构造参数或通过测试，不足以证明代码易于维护。
+
 ## 目录骨架
 
-项目按功能组织，功能内部按职责分层。下图是新增代码的落位模板；只创建有实际内容的目录，不要求每个功能凑齐四层。
+项目保留 `app / features / core / l10n` 骨架。复杂功能优先按业务流程分组，通过类型职责和依赖方向保持边界；目录名不必再次重复技术层。现有播放、设置等功能沿用各自分层布局，不为了统一目录做无关迁移。
+
+媒体库采用流程目录，维护入口见 [媒体库维护地图](../../lib/features/library/README.md)：
+
+```text
+features/library/
+├── media_library_provider.dart   # 页面与其他功能使用的媒体库入口
+├── catalog/                      # 电影 / 剧集 / 收藏 / 续播查询及列表页面
+├── detail/                       # 详情页面、展示模型与季集 / 演员组件
+├── browser/                      # 文件浏览入口、条目模型与浏览界面
+├── sources/                      # 来源管理、列表与本地 / SMB / WebDAV 编辑表单
+├── sync/                         # 扫描任务、路径索引、文件名解析与存储扫描适配
+├── metadata/                     # 匹配规则、刮削任务、元数据契约与数据库 / TMDB 适配
+└── widgets/                      # 多个媒体库流程使用的卡片、网格和查询组件
+```
+
+其他功能的既有分层目录如下；只创建有实际内容的目录，不要求每个功能凑齐四层。
 
 ```text
 lib/
@@ -65,12 +90,12 @@ Provider 包的 `Provider`、`ChangeNotifierProvider`、`MultiProvider` 是注�
 
 | 新增内容 | 放置位置与边界 |
 | --- | --- |
-| 单个功能的页面、对话框、组件 | `features/<feature>/presentation/`；只处理输入、展示及界面交互 |
-| 面向界面的共享状态与操作入口 | 所属功能 `application/` 的 Provider；组件内部短暂状态可以留在组件中 |
-| 扫描、刮削、连接测试等业务编排 | 所属功能 `application/` 的 Service；管理任务顺序、取消、错误和清理 |
-| 播放队列、续播规则等功能模型与规则 | 所属功能 `domain/`；跨功能确实共享时才放 `core/domain/` |
-| 功能专属数据库查询或后端适配 | 所属功能 `infrastructure/`；通过应用入口供页面使用 |
-| 应用用例需要的持久化 / 后端契约 | 放在调用方所属的 `application/`，如 `PlaybackMediaRepository`、`PlaybackEngine`；领域本身需要的契约放 `domain/` |
+| 单个功能的页面、对话框、组件 | 所属流程目录（媒体库如 `catalog / detail / browser / sources`）或既有 `presentation/`；只处理输入、展示及界面交互 |
+| 面向界面的共享状态与操作入口 | 所属功能入口或流程目录中的 Provider；组件内部短暂状态可以留在组件中 |
+| 扫描、刮削、连接测试等业务编排 | 所属流程目录（媒体库 `sync / metadata / sources`）或既有 `application/` 的 Service；管理任务顺序、退出、错误和清理 |
+| 播放队列、续播规则等功能模型与规则 | 所属流程目录或既有 `domain/`；流程专用伴随类型与使用处同文件，跨功能确实共享时才放 `core/domain/` |
+| 功能专属数据库查询或后端适配 | 所属流程目录或既有 `infrastructure/`，通过名称明确 Database / Tmdb 等适配角色；通过应用入口供页面使用 |
+| 应用用例需要的持久化 / 后端契约 | 与调用方放在同一流程目录，或使用既有 `application/`，如 `PlaybackMediaRepository`、`PlaybackEngine`；领域本身需要的契约放 `domain/` |
 | 跨功能共享的协议连接、数据库或外部能力 | `core/infrastructure/`；业务任务编排仍留在所属功能 |
 | 通用窗口操作与原生能力适配 | Dart 接口与适配放 `core/platform/`，原生实现放对应平台 runner；播放器模式控制仍属 `playback` |
 | 跨功能 UI、主题与格式化 | `core/ui/`；已有媒体格式工具继续复用 `core/formatters/` |
@@ -97,10 +122,10 @@ Provider 包的 `Provider`、`ChangeNotifierProvider`、`MultiProvider` 是注�
 
 | 内容 | 建议归属 |
 | --- | --- |
-| 搜索与确认匹配的对话框 | `features/library/presentation/` |
+| 搜索与确认匹配的对话框 | `features/library/metadata/` 的匹配对话框 |
 | 展示候选项、加载状态与用户操作入口 | 复用媒体库 Provider，或在状态确需独立时新增功能 Provider |
-| 查询候选、应用选择、协调保存 | `features/library/application/` 的用例 Service |
-| 匹配选择及校验规则 | `features/library/domain/` |
+| 查询候选、应用选择、协调保存 | `features/library/metadata/` 的用例 Service |
+| 匹配选择及校验规则 | `features/library/metadata/metadata_matcher.dart` 中的匹配规则 |
 | TMDB 请求 | 复用注入的共享 TMDB 能力 |
 | 元数据和媒体关联写入 | 复用既有持久化边界；新增查询 / 写入放对应仓库或数据库实现 |
 | 构造与注入新增对象 | `app/bootstrap/application_dependencies.dart` |
@@ -134,4 +159,4 @@ Provider 包的 `Provider`、`ChangeNotifierProvider`、`MultiProvider` 是注�
 - 测试围绕业务行为和边界组织，按 [测试指南](testing.md) 选择单元、Widget 或原生集成验证；不为低影响的目录调整添加只复述实现的测试。
 - 完成后检查是否出现页面访问基础设施、模块循环、隐藏依赖创建、重复实现或资源未释放；执行受影响的检查，并同步架构文档。技术方向变化更新 ADR，交付阶段变化更新 `status.md`。
 
-本骨架的变更应有明确的职责或依赖问题作为依据。外部 Flutter 项目的目录可用于研究取舍，不作为改变本项目规则的直接理由。
+本骨架的变更应有明确的职责、依赖或实际维护路径问题作为依据。外部 Flutter 项目的目录可用于研究取舍，不作为改变本项目规则的直接理由。

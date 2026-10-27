@@ -28,7 +28,7 @@
 
 业务文案通过 `context.l10n` 在展示时解析。后台任务返回 `AppFailure`、`LibraryActivity` 等类型，避免把 BuildContext、已翻译字符串或原始网络异常传入纯 Dart 服务；挂起任务完成后使用展示时的语言。
 
-季集、数量和组合提示使用 ARB 参数及 ICU 复数；日期 / 数字通过 intl 显式指定当前 locale。[FileBrowserEntryDisplay](../../lib/features/library/presentation/widgets/file_browser_entry_display.dart) 在展示层格式化，不向领域模型注入 Flutter 依赖。
+季集、数量和组合提示使用 ARB 参数及 ICU 复数；日期 / 数字通过 intl 显式指定当前 locale。[FileBrowserEntryDisplay](../../lib/features/library/browser/file_browser_entry_display.dart) 在展示层格式化，不向领域模型注入 Flutter 依赖。
 
 标准剪切 / 复制 / 粘贴菜单使用 Flutter 本地化资源，自定义操作走 ARB，菜单样式、操作与启用条件由项目组件控制。日志、文件解析规则和字幕语言匹配中的中文不是界面翻译资源。
 

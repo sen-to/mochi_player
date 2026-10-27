@@ -178,7 +178,7 @@ class _PlayerPageState extends State<PlayerPage> {
     } else if (key == LogicalKeyboardKey.keyF) {
       _windowModeController.toggleFullScreen();
     } else if (key == LogicalKeyboardKey.keyC) {
-      _playbackController.cycleSubtitleTrack();
+      _playbackController.subtitles.cycleSubtitleTrack();
     } else if (key == LogicalKeyboardKey.keyA) {
       _playbackController.cycleAudioTrack();
     } else if (key == LogicalKeyboardKey.escape && _windowModeController.isFullScreen) {
@@ -264,7 +264,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     ),
                   ),
                 ),
-              if (_playbackController.overrideEmbeddedSubtitleStyle)
+              if (_playbackController.subtitles.overrideEmbeddedSubtitleStyle)
                 Positioned.fill(
                   child: PlayerSubtitleAvoidingControls(
                     controlsVisible: _isControlsVisible,
@@ -274,7 +274,7 @@ class _PlayerPageState extends State<PlayerPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          for (final line in _playbackController.subtitle)
+                          for (final line in _playbackController.subtitles.subtitle)
                             Text(
                               line,
                               textAlign: TextAlign.center,
@@ -317,14 +317,14 @@ class _PlayerPageState extends State<PlayerPage> {
                   onAudioSelected: (track) {
                     unawaited(_playbackController.setAudioTrack(track));
                   },
-                  subtitleTracks: _playbackController.subtitleTracks,
-                  selectedSubtitleTrack: _playbackController.selectedSubtitleTrack,
+                  subtitleTracks: _playbackController.subtitles.subtitleTracks,
+                  selectedSubtitleTrack: _playbackController.subtitles.selectedSubtitleTrack,
                   onExternalSubtitleRequested: () => unawaited(_loadExternalSubtitle()),
-                  overrideEmbeddedSubtitleStyle: _playbackController.overrideEmbeddedSubtitleStyle,
-                  onSubtitleStyleOverrideChanged: _playbackController.setSubtitleStyleOverride,
+                  overrideEmbeddedSubtitleStyle: _playbackController.subtitles.overrideEmbeddedSubtitleStyle,
+                  onSubtitleStyleOverrideChanged: _playbackController.subtitles.setSubtitleStyleOverride,
                   onMenuVisibilityChanged: _setPlayerMenuVisibility,
                   onSubtitleSelected: (track) {
-                    unawaited(_playbackController.setSubtitleTrack(track));
+                    unawaited(_playbackController.subtitles.setSubtitleTrack(track));
                   },
                   onControlPointerDown: _pauseHideControlsTimer,
                   onInteraction: _startHideControlsTimer,
@@ -345,7 +345,7 @@ class _PlayerPageState extends State<PlayerPage> {
       );
       if (selectedFile == null || !mounted) return;
 
-      final loaded = await _playbackController.loadExternalSubtitle(selectedFile);
+      final loaded = await _playbackController.subtitles.loadExternalSubtitle(selectedFile);
       if (!loaded && mounted) {
         AppMessage.error(context, context.l10n.subtitleLoadFailed);
       }

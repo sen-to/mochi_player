@@ -326,7 +326,7 @@ erDiagram
 | [media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift) | 文件与单集表、组合外键、CHECK、索引及 SQL 行模型映射 |
 | [app_database.g.dart](../../lib/core/infrastructure/database/app_database.g.dart) | drift 生成的列、映射、Companion 与数据库实现，不手工修改 |
 | [database_service.dart](../../lib/core/infrastructure/database/database_service.dart) | 连接、字段级写入、事务与简单类型化查询 |
-| [library_repository.dart](../../lib/features/library/infrastructure/library_repository.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
+| [library_repository.dart](../../lib/features/library/catalog/library_repository.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
 | [json_converters.dart](../../lib/core/infrastructure/database/json_converters.dart) | JSON 列与领域列表互转 |
 
 ## 写入边界

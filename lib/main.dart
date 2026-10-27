@@ -18,7 +18,7 @@ import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
 import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
-import 'package:mochi_player/features/library/application/storage_sources_service.dart';
+import 'package:mochi_player/features/library/sources/storage_sources_service.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:mochi_player/l10n/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';

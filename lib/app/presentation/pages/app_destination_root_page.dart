@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/features/home/presentation/widgets/home_content.dart';
-import 'package:mochi_player/features/library/presentation/pages/file_browser_page.dart';
-import 'package:mochi_player/features/library/presentation/pages/library_page.dart';
+import 'package:mochi_player/features/library/browser/file_browser_page.dart';
+import 'package:mochi_player/features/library/catalog/library_page.dart';
 import 'package:mochi_player/features/settings/presentation/pages/settings_page.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 

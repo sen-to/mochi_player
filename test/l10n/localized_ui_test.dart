@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
-import 'package:mochi_player/core/domain/media/media_file_kind.dart';
+import 'package:mochi_player/features/library/media_file_kind.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/domain/file_browser_entry.dart';
-import 'package:mochi_player/features/library/presentation/widgets/file_browser_entry_display.dart';
+import 'package:mochi_player/features/library/browser/file_browser_entry.dart';
+import 'package:mochi_player/features/library/browser/file_browser_entry_display.dart';
 import 'package:mochi_player/features/settings/presentation/widgets/language_preference_control.dart';
 import 'package:mochi_player/l10n/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';

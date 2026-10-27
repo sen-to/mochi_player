@@ -5,8 +5,8 @@ import 'package:mochi_player/app/presentation/pages/app_destination_root_page.da
 import 'package:mochi_player/app/presentation/pages/app_shell_page.dart';
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/presentation/pages/library_section_page.dart';
-import 'package:mochi_player/features/library/presentation/pages/media_detail_page.dart';
+import 'package:mochi_player/features/library/catalog/library_section_page.dart';
+import 'package:mochi_player/features/library/detail/media_detail_page.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 GoRouter createAppRouter() {
