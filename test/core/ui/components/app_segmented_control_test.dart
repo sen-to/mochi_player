@@ -1,3 +1,6 @@
+// 【行为测试】验证展示一组互斥选项并反馈选择。
+// 测试对象的职责边界：选中值受调用方控制，不包含功能专属状态。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

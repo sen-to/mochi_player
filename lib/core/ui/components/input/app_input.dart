@@ -1,3 +1,6 @@
+// 【通用界面】统一文本输入框、焦点与文本编辑菜单。
+// 组件管理编辑交互；校验规则和保存动作由表单负责。
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +13,7 @@ import 'package:mochi_player/core/ui/theme/app_typography.dart';
 
 enum _AppInputVariant { standard, search }
 
-/// The shared text input used by application forms and composed inputs.
+/// 应用表单及组合输入共同使用的文本输入框。
 class AppInput extends StatefulWidget {
   const AppInput({
     super.key,
@@ -189,13 +192,9 @@ class _AppInputState extends State<AppInput> {
                 cursorHeight: 14,
                 textAlign: widget.textAlign,
                 textAlignVertical: TextAlignVertical.center,
-                // The top-only padding shifts the visual center of CJK glyphs
-                // down by 2 px while keeping the field's line box centered.
-                // It also moves the cursor by the same amount.
+                // 顶部内边距使中日韩字符的视觉中心下移 2 像素，同时保持行框居中；光标随文字一同移动。
                 padding: EdgeInsets.only(top: isSearch ? _searchTextTopPadding : 0),
-                // Keep the line box compact and deterministic. Without a
-                // strut, the fallback font used for CJK placeholder text can
-                // introduce asymmetric leading that looks vertically offset.
+                // 使用稳定且紧凑的行框；缺少行高约束时，中日韩占位文字的后备字体可能引入不对称行距。
                 strutStyle: isSearch ? _searchStrutStyle : null,
                 placeholder: widget.placeholder,
                 placeholderStyle: isSearch
@@ -204,9 +203,7 @@ class _AppInputState extends State<AppInput> {
                 style: isSearch
                     ? _searchTextStyle.copyWith(color: textColor)
                     : AppTypography.formValue.copyWith(color: textColor),
-                // CupertinoTextField paints its own disabled background when
-                // decoration is null. AppInput owns the complete surface, so
-                // keep the inner field transparent in every state.
+                // CupertinoTextField 在 decoration 为空时会绘制禁用背景；完整表面由 AppInput 管理，因此内部输入框始终保持透明。
                 decoration: const BoxDecoration(color: Colors.transparent),
               ),
             ),

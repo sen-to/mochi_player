@@ -1,8 +1,11 @@
+// 【诊断数据】保留有限条已脱敏的播放日志快照。
+// 不保存媒体凭据，不参与播放状态决策。
+
 import 'dart:collection';
 
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 
-/// Keeps a bounded, sanitized snapshot of recent playback diagnostics.
+/// 保留有限条、已脱敏的近期播放诊断日志。
 class PlaybackLogBuffer {
   static const defaultCapacity = 120;
 

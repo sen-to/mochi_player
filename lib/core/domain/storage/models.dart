@@ -1,3 +1,6 @@
+// 【模型入口】集中导出共享存储模型与相关契约。
+// 只提供类型入口，不创建实例或执行数据操作。
+
 library;
 
 export 'storage_connection.dart';

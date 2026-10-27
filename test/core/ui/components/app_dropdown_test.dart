@@ -1,3 +1,6 @@
+// 【行为测试】验证提供锚定触发控件的选项菜单。
+// 测试对象的职责边界：候选项和动作由调用方定义，菜单负责浮层交互。
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -1,3 +1,6 @@
+// 【行为测试】验证组合颜色、排版和控件主题，生成明暗主题。
+// 测试对象的职责边界：主题偏好的持久化由 ThemeProvider 负责。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';

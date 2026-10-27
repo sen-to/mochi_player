@@ -1,0 +1,71 @@
+// 【业务入口】统一来源保存、删除、凭据读取及临时连接测试。
+// 成功持久化后通知浏览失效；退出等待已接受任务，测试连接必须关闭。
+
+import 'dart:async';
+
+import 'package:mochi_player/core/domain/storage/models.dart';
+import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
+import 'package:mochi_player/core/domain/storage/storage_source_repository.dart';
+
+/// 媒体源配置及临时连接测试的业务入口。
+class StorageSourcesService {
+  StorageSourcesService({
+    required StorageSourceRepository repository,
+    required StorageAdapterRegistry registry,
+    required bool Function(String) onSourceChanged,
+  }) : _repository = repository,
+       _registry = registry,
+       _onSourceChanged = onSourceChanged;
+
+  final StorageSourceRepository _repository;
+  final StorageAdapterRegistry _registry;
+  final bool Function(String) _onSourceChanged;
+
+  bool _shuttingDown = false;
+  final Set<Future<Object?>> _pending = {};
+
+  void beginShutdown() => _shuttingDown = true;
+
+  Future<void> drain() async {
+    await Future.wait(_pending.map((operation) => operation.then<void>((_) {}, onError: (Object _, StackTrace _) {})));
+  }
+
+  Future<T> _run<T>(Future<T> Function() action) {
+    if (_shuttingDown) return Future.error(StateError('Storage source operations are shutting down'));
+    final operation = Future<T>.sync(action);
+    _pending.add(operation);
+    unawaited(
+      operation.then<void>(
+        (_) => _pending.remove(operation),
+        onError: (Object _, StackTrace _) {
+          _pending.remove(operation);
+        },
+      ),
+    );
+    return operation;
+  }
+
+  Future<List<StorageSource>> getAll() => _run(_repository.getAll);
+
+  /// 先保存来源，再使使用该来源的浏览状态失效；返回是否需要用新配置重新打开。
+  Future<bool> save(StorageSource source, {StorageCredentials? credentials}) => _run(() async {
+    await _repository.save(source, credentials: credentials);
+    return _onSourceChanged(source.id);
+  });
+  Future<StorageCredentials?> readCredentials(String id) => _run(() => _repository.readCredentials(id));
+
+  Future<int?> deleteWithMedia(String id) => _run(() async {
+    final count = await _repository.deleteWithMedia(id);
+    if (count != null) _onSourceChanged(id);
+    return count;
+  });
+
+  Future<int> testConnection(StorageSource source, StorageCredentials? credentials) => _run(() async {
+    final connection = await _registry.connect(source, credentials);
+    try {
+      return (await connection.readDirectory('/')).length;
+    } finally {
+      await connection.close();
+    }
+  });
+}

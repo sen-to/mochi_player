@@ -9,6 +9,8 @@
 | 修改媒体库具体功能 | [媒体库维护地图](../lib/features/library/README.md)：按查询、详情、来源、浏览、扫描、匹配定位文件 |
 | 修改播放具体功能 | [播放维护地图](../lib/features/playback/README.md)：按入口、会话、字幕、控制栏和窗口定位文件 |
 | 了解系统与调用链 | [架构总览](architecture/overview.md) |
+| 本轮维护性审查 | [全仓维护审查记录](history/maintainability-2026-10-27.md)：检查范围、合并依据与验证限制 |
+| 分清界面、状态与业务 | [编码指南](guides/code-organization.md#目录骨架)：ui、application（Provider / 用例 / 契约）、domain、data；手写文件开头有中文职责说明 |
 | 新增或修改代码 | [代码组织与新增功能](guides/code-organization.md)：目录、命名、依赖与评审规则 |
 | 修改数据库 | [数据模型](architecture/data-model.md)：完整字段、主外键、约束、索引与迁移 |
 | 修改扫描 / 刮削 | [媒体流水线](architecture/media-pipeline.md)、[算法说明](architecture/algorithms.md) |
@@ -44,6 +46,7 @@
 | [0004](decisions/0004-i18n-l10n.md) | gen-l10n / ARB 与应用内语言切换 |
 | [0005](decisions/0005-smb-playback-path.md) | SMB 本地 HTTP 回源 |
 | [0006](decisions/0006-media-server-integration.md) | 独立媒体服务器层，Emby 优先 |
+| [0007](decisions/0007-unified-module-boundaries.md) | 统一职责目录、模型边界与依赖方向 |
 
 `Accepted` 表示已接受，不代表已经实现或验收；`Proposed` 表示待确认；`Superseded by NNNN` 表示已被替代。新决策使用 [模板](decisions/0000-template.md)。尚未实现的方案仅保留在决策 / 计划中，不画成当前架构。
 

@@ -1,13 +1,15 @@
-import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/core/infrastructure/database/app_database.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
+// 【测试数据】创建真实 SQLite 测试所需的来源与媒体文件。
+// 测试数据保持隔离，不使用用户媒体库。
 
-/// Persists real parent rows for query fixtures; never disables FK enforcement.
-Future<void> saveMediaFixture(DatabaseService database, List<MediaFile> files) async {
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
+
+/// 为查询测试写入真实父记录，不关闭外键约束。
+Future<void> saveMediaFixture(AppDatabase database, List<MediaFile> files) async {
   for (final file in files) {
     if (await database.getStorageSource(file.sourceId) == null) {
       await database.saveStorageSource(
-        StorageSourceRow(
+        StorageSourceDO(
           sourceId: file.sourceId,
           name: file.sourceId,
           type: 'local',

@@ -1,3 +1,6 @@
+// 【宿主工具】处理控制台、UTF 编码和启动参数转换。
+// 只服务 Windows 启动入口，不持有播放器或业务状态。
+
 #include "utils.h"
 
 #include <flutter_windows.h>
@@ -22,7 +25,7 @@ void CreateAndAttachConsole() {
 }
 
 std::vector<std::string> GetCommandLineArguments() {
-  // Convert the UTF-16 command line arguments to UTF-8 for the Engine to use.
+  // 将 UTF-16 启动参数转换为引擎使用的 UTF-8。
   int argc;
   wchar_t** argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
   if (argv == nullptr) {
@@ -31,7 +34,7 @@ std::vector<std::string> GetCommandLineArguments() {
 
   std::vector<std::string> command_line_arguments;
 
-  // Skip the first argument as it's the binary name.
+  // 首项是可执行文件名，不作为 Dart 启动参数。
   for (int i = 1; i < argc; i++) {
     command_line_arguments.push_back(Utf8FromUtf16(argv[i]));
   }

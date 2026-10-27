@@ -1,3 +1,6 @@
+// 【通用界面】展示可横向滚动的同级内容标签。
+// 当前选项由调用方控制，不直接操作路由。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/basic/app_clickable_area.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
@@ -5,7 +8,7 @@ import 'package:mochi_player/core/ui/theme/app_control_metrics.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 
-/// A selectable tab destination used to describe an [AppTabs] item.
+/// 描述 [AppTabs] 中一个可选择的同级目的地。
 class AppTab<T> {
   const AppTab({required this.value, required this.label, this.icon});
 
@@ -14,7 +17,7 @@ class AppTab<T> {
   final IconData? icon;
 }
 
-/// A horizontally scrollable, controlled tab bar for peer content sections.
+/// 可横向滚动、由父级控制选中值的同级内容标签栏。
 class AppTabs<T> extends StatelessWidget {
   static const double _height = 46;
 

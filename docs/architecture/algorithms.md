@@ -10,11 +10,11 @@
 
 ## 文件名解析
 
-[FilenameParser](../../lib/features/library/sync/filename_parser.dart) 按优先级提取季集、显式 ID 和技术信息，并清洗标题；完整规则与示例集中在 [媒体流水线](media-pipeline.md#阶段-2文件名解析)。解析属性不等于成功匹配 TMDB。
+[MediaFilenameParser](../../lib/features/library/sync/domain/media_filename_parser.dart) 按优先级提取季集、显式 ID 和技术信息，并清洗标题；完整规则与示例集中在 [媒体流水线](media-pipeline.md#阶段-2文件名解析)。解析属性不等于成功匹配 TMDB。
 
 ## 刮削计划与有界并发
 
-[ScrapePlanFactory](../../lib/features/library/metadata/metadata_matcher.dart) 最多构造两次标题搜索：完整清洗标题 + 年份，然后相同标题不带年份；无年份时不重复请求。`MetadataMatcher` 优先处理显式 / 已确认 ID，查询结果采用 TMDB 返回的第一个有效对象，项目没有编辑距离或自研模糊评分。
+[ScrapeSearchPlan.forCandidate](../../lib/features/library/metadata/domain/scrape_search_plan.dart) 最多构造两次标题搜索：完整清洗标题 + 年份，然后相同标题不带年份；无年份时不重复请求。`MetadataMatcher` 优先处理显式 / 已确认 ID，查询结果采用 TMDB 返回的第一个有效对象，项目没有编辑距离或自研模糊评分。
 
 剧集按显式 / 确认 ID 或规范化标题分组，复用剧集 / 季详情请求；不同文件版本仍保留为独立文件。`MetadataScraper` 分电影阶段与剧集分组阶段执行，每阶段最多 5 个异步 worker，领取下一项后等待请求完成。它限制 I/O 并发，不是 5 个 CPU 线程，也不代表有自动重试。
 
@@ -24,7 +24,7 @@
 
 [normalizeLibrarySearchText](../../lib/core/domain/media/library_search_text.dart) 将文本小写并移除规定的空格 / 分隔符；它不是完整的 Unicode NFKC、拼音或繁简转换。
 
-[LibraryRepository](../../lib/features/library/catalog/library_repository.dart) 在 SQL 中对标题 / 原标题取两者评分的最大值：
+[LibraryCatalogRepository](../../lib/features/library/catalog/data/database_library_catalog_repository.dart) 在 SQL 中对标题 / 原标题取两者评分的最大值：
 
 | 匹配 | 标题得分 | 原标题得分 |
 | --- | --- | --- |

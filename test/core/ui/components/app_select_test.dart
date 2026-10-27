@@ -1,3 +1,6 @@
+// 【行为测试】验证展示候选项并报告当前选择。
+// 测试对象的职责边界：复用应用菜单外观，候选数据与选中值由调用方提供。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

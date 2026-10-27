@@ -1,3 +1,6 @@
+// 【行为测试】验证提供成功、失败、警告和加载提示及其队列宿主。
+// 测试对象的职责边界：消息归属调用方所在视图；加载提示由返回的句柄关闭。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

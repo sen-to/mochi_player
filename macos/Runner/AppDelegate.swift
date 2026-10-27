@@ -1,3 +1,6 @@
+// 【应用宿主】创建共享 Flutter 引擎、注册插件并接管系统退出请求。
+// 引擎由应用持有，退出先交给 Dart 排空播放与持久化，超时才强制结束。
+
 import Cocoa
 import FlutterMacOS
 
@@ -26,8 +29,8 @@ class AppDelegate: FlutterAppDelegate {
     if !exitRequested {
       exitRequested = true
       channel.invokeMethod("requestExit", arguments: nil)
-      // A hung Dart engine must not leave playback running indefinitely.
-      // The Dart coordinator normally finishes within 26 seconds.
+      // Dart 引擎失去响应时，也不能让播放无限持续。
+      // Dart 退出协调器正常情况下会在 26 秒内完成。
       DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
         exit(0)
       }

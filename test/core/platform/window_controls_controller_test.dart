@@ -1,3 +1,6 @@
+// 【行为测试】验证协调原生或应用绘制的窗口按钮。
+// 测试对象的职责边界：使用所属视图的 WindowService，不持有播放资源。
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

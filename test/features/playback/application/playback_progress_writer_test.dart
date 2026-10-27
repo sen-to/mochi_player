@@ -1,3 +1,6 @@
+// 【行为测试】验证按请求顺序串行保存播放进度。
+// 测试对象的职责边界：避免周期保存、跳转和关闭快照互相覆盖。
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';

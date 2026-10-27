@@ -181,7 +181,7 @@ test/           与 lib/ 结构对应的单元测试与 Widget 测试
 windows/ macos/ 各平台 runner
 ```
 
-新增代码遵循 [代码组织与新增功能](docs/guides/code-organization.md) 中的骨架与依赖规则，类型命名遵循 [编码指南](docs/guides/code-organization.md#命名约定)。功能内部按需设置 `application / domain / infrastructure / presentation`，不强制补齐空层。
+新增代码遵循 [代码组织与新增功能](docs/guides/code-organization.md) 中的骨架与依赖规则，类型命名遵循 [编码指南](docs/guides/code-organization.md#命名约定)。功能界面进入 `ui`；全仓库统一使用 `ui / application / domain / data`，数据库 DO、业务模型及展示 VO 分离，边界转换由 Mapper 负责。手写 Dart 文件开头用中文说明职责与协作边界，不强制补齐空层。
 
 播放通过 `PlaybackEngine` 门面接入，当前唯一实现为 media_kit + libmpv。播放控制、状态订阅、音轨 / 字幕、缓存与硬解设置、视频视图均通过门面；mpv 属性读写集中在后端实现。实施状态和未来直接接 libmpv 的条件见 [播放引擎 ADR](docs/decisions/0002-playback-engine.md)。
 

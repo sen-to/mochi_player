@@ -1,37 +1,44 @@
 # 媒体库维护地图
 
-媒体库页面和其他功能从 [MediaLibraryProvider](media_library_provider.dart) 查询与操作媒体库。来源配置和文件浏览分别有自己的入口，不经过媒体库查询入口。
+先按功能流程找入口，再按统一职责目录找代码：`ui` 是界面，`application` 是 Provider、用例和能力契约，`domain` 是业务模型与规则，`data` 是数据库或外部服务适配。没有独立服务器后端，SQLite、网络和协议访问属于数据层。
 
-## 按要修改的功能找代码
+## 入口与数据流
 
-| 要改什么 | 从这里开始 | 接着读哪里 |
+```text
+application/media_library_provider.dart   媒体库共享状态与操作入口
+browser/application/file_browser_provider.dart  文件浏览状态与连接协调
+sources/application/storage_sources_service.dart 来源保存、删除与测试入口
+sync/application/library_sync_service.dart       扫描与刮削总流程
+metadata/application/metadata_scraper.dart        受限并发与文件级统计
+metadata/application/metadata_matcher.dart        ID 与标题匹配用例
+```
+
+界面调用这些入口；入口依赖应用契约及领域模型。`data` 实现契约，实例由 `app/bootstrap` 注入。数据库只生成 DO，数据 Mapper 转为业务模型；展示 Mapper 再生成 VO，UI 不理解数据库记录。
+
+## 按修改任务定位
+
+| 要改什么 | 入口 | 相关职责 |
 | --- | --- | --- |
-| 电影 / 剧集列表、收藏、续播、分页 | [catalog/library_repository.dart](catalog/library_repository.dart) | `catalog/library_page.dart`；共享查询组件在 `widgets/library_query.dart` |
-| 列表海报、评分和进度样式 | [widgets/media_card.dart](widgets/media_card.dart) | `catalog/media_card_view_data.dart`；下载 / 缓存实现在共享的 `core/infrastructure/tmdb/` |
-| 媒体详情、季集、演员 | [detail/media_detail_page.dart](detail/media_detail_page.dart) | 同目录的 `media_detail_header.dart`、`episode_list.dart`、`cast_list.dart` |
-| 点击播放、选择版本、准备剧集与播放队列 | [library_playback_launcher.dart](library_playback_launcher.dart) | 查询媒体库后创建播放请求，交给播放功能的 `PlayerWindowCoordinator`；播放功能不依赖媒体库 Provider |
-| 文件浏览、排序和搜索 | [browser/file_browser_provider.dart](browser/file_browser_provider.dart) | 同目录的 `file_browser_page.dart`、`file_browser_entry.dart` 和列表 / 网格组件 |
-| 添加 / 编辑 / 删除来源 | [sources/storage_sources_settings.dart](sources/storage_sources_settings.dart) | 对应的 `local_source_editor.dart`、`smb_source_editor.dart`、`webdav_source_editor.dart`；保存 / 测试入口是 `storage_sources_service.dart` |
-| 扫描顺序、分批入库、失效文件清理、退出收尾 | [sync/library_sync_service.dart](sync/library_sync_service.dart) | 同目录的 `library_source_scanner.dart`、`library_sync_repository.dart`；读写实现是 `database_library_sync_repository.dart` |
-| 文件名解析和技术信息 | [sync/filename_parser.dart](sync/filename_parser.dart) | `media_file_metadata_mapper.dart` 将解析结果应用到文件快照 |
-| 目录遍历、扫描期间的连接释放 | [sync/storage_library_source_scanner.dart](sync/storage_library_source_scanner.dart) | 同文件内的扫描会话和递归扫描实现 |
-| 显式 ID、已有 ID、标题 / 年份回退匹配 | [metadata/metadata_matcher.dart](metadata/metadata_matcher.dart) | 候选、搜索计划和匹配结果都在同文件；仅修改策略无需阅读网络或 SQL 实现 |
-| 刮削并发、剧集分组、成功 / 失败统计 | [metadata/metadata_scraper.dart](metadata/metadata_scraper.dart) | 输入匹配交给 `MetadataMatcher`；结果与进度类型放在本文件 |
-| TMDB 响应 / 错误如何进入刮削 | [metadata/tmdb_metadata_source.dart](metadata/tmdb_metadata_source.dart) | `metadata_source.dart` 定义所需能力；共享 HTTP / JSON 实现在 `core/infrastructure/tmdb/` |
-| 元数据和关联的原子导入 | [metadata/database_metadata_repository.dart](metadata/database_metadata_repository.dart) | `metadata_repository.dart` 定义契约；表与共享写入在 `core/infrastructure/database/` |
-| 增加存储协议 | 共享的 `core/domain/storage/storage_adapter.dart` | 在 `core/infrastructure/storage/` 实现并注册协议；配置表单位于 `sources/`，扫描编排不判断具体协议 |
+| 列表、收藏、续播、分页、SQL 开销 | [目录数据库实现](catalog/data/database_library_catalog_repository.dart) | [目录契约](catalog/application/library_catalog_repository.dart)、[媒体库 Provider](application/media_library_provider.dart)、[目录页面](catalog/ui/library_page.dart) |
+| 卡片字段和格式 | [卡片 Mapper](catalog/application/media_card_mapper.dart) | [卡片 VO](catalog/application/media_card_vo.dart) 只保存数据；[卡片界面](ui/widgets/media_card.dart) 只负责渲染 |
+| 详情字段与布局 | [详情页面](detail/ui/media_detail_page.dart) | [详情 Mapper](detail/ui/media_detail_mapper.dart)、[详情 VO](detail/ui/media_detail_vo.dart) 和同目录组件 |
+| 浏览、排序、过滤、连接切换 | [浏览 Provider](browser/application/file_browser_provider.dart) | [条目模型](browser/domain/file_browser_entry.dart)、[浏览界面](browser/ui/file_browser_page.dart) |
+| 新增、编辑、删除来源 | [来源服务](sources/application/storage_sources_service.dart) | [来源面板](sources/ui/storage_sources_panel.dart) 与 `*_source_dialog.dart`；共享持久化契约及实现分别位于 core/domain、core/data |
+| 版本选择与播放请求 | [媒体库播放入口](ui/library_playback_launcher.dart) | 媒体库完成版本与队列查询后提交请求，播放功能不反向导入媒体库 |
+| 扫描顺序、分批入库、失效清理、退出 | [同步服务](sync/application/library_sync_service.dart) | [扫描契约](sync/application/library_source_scanner.dart)、[持久化契约](sync/application/library_sync_repository.dart)、[数据库适配](sync/data/database_library_sync_repository.dart) |
+| 文件名解析与本地属性 | [文件名解析规则](sync/domain/media_filename_parser.dart) | [解析结果模型](sync/domain/parsed_media_filename.dart)、[扫描文件 Mapper](sync/application/scanned_media_file_mapper.dart) |
+| 遍历目录与释放扫描连接 | [存储扫描适配](sync/data/storage_library_source_scanner.dart) | 会话封装凭据和连接；不完整扫描报告读取失败，不清除旧索引 |
+| 候选输入与 ID / 标题匹配 | [匹配用例](metadata/application/metadata_matcher.dart) | [候选 Mapper](metadata/application/scrape_candidate_mapper.dart)、[候选模型](metadata/domain/scrape_candidate.dart)、[搜索计划规则](metadata/domain/scrape_search_plan.dart) |
+| 刮削并发、分组与统计 | [刮削用例](metadata/application/metadata_scraper.dart) | [匹配结果模型](metadata/domain/metadata_match.dart)、[搜索计划模型](metadata/domain/scrape_search_plan.dart)；请求错误不等同于未匹配 |
+| TMDB 结果与错误 | [TMDB 数据适配](metadata/data/tmdb_metadata_source.dart) | [获取契约](metadata/application/metadata_source.dart)；共享 JSON Mapper 只留在 core/data |
+| 元数据与关联的原子导入 | [元数据数据库适配](metadata/data/database_metadata_repository.dart) | [持久化契约](metadata/application/metadata_repository.dart)；DO 与业务模型通过 core/data/database/mappers 转换 |
 
-## 阅读和依赖规则
+## 约束与验证
 
-- 先打开对应流程目录里的入口，再按实际需要阅读同目录的规则、契约或适配器。目录靠近不表示页面可以直接调用数据库或创建协议连接。
-- `sync` 编排通过扫描与持久化契约工作；`metadata` 的匹配、刮削通过元数据获取 / 持久化契约工作。事务、凭据和协议实例留在具体适配器。
-- 来源保存 / 删除后的浏览失效统一由 `StorageSourcesService` 发出变更通知，组装入口连接到 `FileBrowserProvider.invalidateSource`。表单只保存、刷新列表并依据返回值提示重新打开，不直接清理浏览状态。
-- `widgets` 仅放多个媒体库流程共用的 UI；仅用于详情或浏览的组件留在各自流程目录。
-- 输入、进度、结果等仅伴随一个流程的类型与其放在同文件。不创建旧路径转发文件或一层层的 barrel 导出。
-- 应用组装统一在 [`ApplicationDependencies`](../../app/bootstrap/application_dependencies.dart)，共享数据模型、协议和数据库仍保留在 `core`。
+- Provider 不导入具体数据实现；新增数据库或协议实现只在组装处选择。
+- 业务规则只消费业务类型；原始 JSON、DO 和第三方 SDK 类型不能进入 Provider 或 UI。
+- 来源变更后的浏览失效、设置生效后的首页刷新由应用入口连接，不由表单或页面自行协调其他功能。
+- 共享组件只放 `library/ui/widgets`；跨功能通用图片资源经 `core/ui/images`，功能页面不接触具体缓存实现。
+- 独立 SQL 搜索和续播参考实现只位于 `test/support`。测试按实际职责放在 `test/features/library`，不新增旧路径导出或兼容别名。
 
-## 验证位置
-
-`test/features/library/` 按相同流程镜像组织：`catalog` 验证查询和 SQL 次数，`browser` 验证浏览，`sources` 验证来源业务与表单，`sync` 验证扫描 / 退出，`metadata` 验证匹配、刮削与事务。文件名解析和搜索计划测试也在对应目录；独立 SQL 搜索评分参考实现仅放在 `test/support/library_search_reference.dart`。
-
-执行方式及已确认的平台范围见 [测试指南](../../../docs/guides/testing.md)。
+完整规则见 [编码指南](../../../docs/guides/code-organization.md)，命令与证据见 [测试指南](../../../docs/guides/testing.md)。

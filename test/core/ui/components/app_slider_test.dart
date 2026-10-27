@@ -1,3 +1,6 @@
+// 【行为测试】验证提供滑块、数值格式与悬浮提示的统一外观。
+// 测试对象的职责边界：数值由调用方控制，组件只处理输入和展示。
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

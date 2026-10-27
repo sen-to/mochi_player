@@ -1,3 +1,6 @@
+// 【行为测试】验证统一准备目标、打开与切换媒体、保存进度及释放资源。
+// 测试对象的职责边界：会话拥有引擎和目标资源，失败与关闭都从此入口收尾。
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +56,7 @@ void main() {
     expect(fixture.resources[1]!.closes, 0);
     expect(fixture.resources[2]!.closes, 0);
     expect(await fixture.session.moveBy(1, subtitleStyleOverride: false), isNull);
-    // A timer cannot write the old backend position against the new file.
+    // 定时保存不能把旧后端位置写入新文件。
     await fixture.session.saveProgress(positionMs: 4000, durationMs: 10000, force: true);
     expect(fixture.store.writes, isEmpty);
     fixture.engine.openGate!.complete();

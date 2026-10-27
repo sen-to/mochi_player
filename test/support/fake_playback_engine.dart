@@ -1,3 +1,6 @@
+// 【测试替身】用内存状态和可控事件模拟播放引擎。
+// 用于会话及界面测试，不调用原生播放器。
+
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';

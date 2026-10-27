@@ -1,7 +1,11 @@
+// 【行为测试】验证提供独立的标题搜索评分参考实现。
+// 测试对象的职责边界：只供测试比较 SQL 查询结果，不随应用发布。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
+
 import '../../../support/library_search_reference.dart';
-import 'package:mochi_player/features/library/catalog/media_card_view_data.dart';
 
 void main() {
   const saw = Movie(
@@ -40,7 +44,7 @@ void main() {
       size: 1,
       addedAt: DateTime(2026),
     );
-    final card = MediaCardViewData(file: file, libraryItem: saw, title: saw.title);
+    final card = MediaCardVO(file: file, libraryItem: saw, title: saw.title);
 
     expect(LibrarySearchReference.mediaCards([card], '电锯惊魂3'), [card]);
     expect(LibrarySearchReference.mediaCards([card], 'Remux'), isEmpty);

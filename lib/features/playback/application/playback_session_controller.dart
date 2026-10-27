@@ -1,3 +1,6 @@
+// 【播放会话编排】统一准备目标、打开与切换媒体、保存进度及释放资源。
+// 会话拥有引擎和目标资源，失败与关闭都从此入口收尾。
+
 import 'dart:async';
 
 import 'package:mochi_player/core/domain/app_failure.dart';
@@ -10,7 +13,7 @@ import 'package:mochi_player/features/playback/application/playback_progress_wri
 import 'package:mochi_player/features/playback/domain/playback_queue.dart';
 import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';
 
-/// Owns target preparation, backend lifetime and resource release for one session.
+/// 统一持有一个会话的目标准备、后端生命周期与资源释放。
 class PlaybackSessionController {
   PlaybackSessionController({
     required PlaybackMediaRepository mediaRepository,
@@ -53,8 +56,7 @@ class PlaybackSessionController {
     try {
       return _engine = factory(options);
     } catch (_) {
-      // Engine construction can fail synchronously before the page registers
-      // close callbacks. Cleanup remains owned by this prepared session.
+      // 页面注册关闭回调前，引擎构造就可能同步失败；清理仍由已准备的会话负责。
       unawaited(close().catchError((Object _) {}));
       rethrow;
     }
@@ -93,7 +95,7 @@ class PlaybackSessionController {
     _busy = true;
     try {
       final operation = action();
-      _operation = operation.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+      _operation = operation.then<void>((_) {}, onError: (Object _, StackTrace _) {});
       return await operation;
     } finally {
       _operation = null;
@@ -112,7 +114,7 @@ class PlaybackSessionController {
     return target;
   }
 
-  /// Prepares a target before a view or backend exists. The session owns it now.
+  /// 视图或后端创建前先准备目标；目标从此由会话持有。
   Future<bool> prepare() async =>
       await _run<bool>(() async {
         _currentTarget ??= await _resolve(currentItem);
@@ -161,8 +163,7 @@ class PlaybackSessionController {
       return start;
     } catch (_) {
       if (!_closing) {
-        // An open failure alone does not establish that the backend is idle.
-        // Stop explicitly before dropping either the old or attempted target.
+        // 打开失败不能证明后端已空闲；释放旧目标或尝试中的目标前必须显式停止。
         try {
           await engine.stop();
         } catch (_) {
@@ -191,7 +192,7 @@ class PlaybackSessionController {
         force: true,
       );
     } catch (_) {
-      // Persistence failure must not prevent playback of another item.
+      // 持久化失败不能阻止播放另一个条目。
     }
     if (_closing) return null;
     final PlaybackTarget? target;
@@ -214,7 +215,7 @@ class PlaybackSessionController {
     } catch (_) {
       return PlaybackQueueMoveResult.failed(item, AppFailure.playbackOpen);
     } finally {
-      // _open either completed the replacement, stopped, or disposed the engine.
+      // 打开流程已完成替换、停止或销毁引擎，此时才释放旧目标。
       if (_closing) {
         await close();
       } else if (previous != null && !identical(previous, target)) {
@@ -232,8 +233,7 @@ class PlaybackSessionController {
     return release.whenComplete(() => _releases.remove(target));
   }
 
-  /// Also closes prepared sessions whose page never mounted. Late resolutions
-  /// release themselves; backend disposal precedes release of active targets.
+  /// 页面从未挂载的已准备会话也需关闭；迟到解析自行释放，先销毁后端，再释放活动目标。
   Future<void> close() {
     beginShutdown();
     return _closeFuture ??= _close();

@@ -16,7 +16,7 @@
 
 必须遵守的规则：
 
-1. 使用 drift `@UseRowClass` / SQL `WITH` 直接读取不可变领域模型，通过生成的 Insertable / Companion 写入；删除旧 Entity、Stored 枚举和手写双重映射，不保留旧存储接口。文件与单集表在 `media_tables.drift` 声明组合关系，让生成器处理级联订阅，其余表使用 Dart 声明。
+1. **行模型策略已被 [ADR 0007](0007-unified-module-boundaries.md) 替代**：当前生成独立 DO，并通过 Mapper 转换。以下是迁移时的历史决定：使用 drift `@UseRowClass` / SQL `WITH` 直接读取不可变领域模型，通过生成的 Insertable / Companion 写入；删除旧 Entity、Stored 枚举和手写双重映射，不保留旧存储接口。文件与单集表在 `media_tables.drift` 声明组合关系，让生成器处理级联订阅，其余表使用 Dart 声明。
 2. 媒体文件使用 `(sourceId, path)` 的组合 UNIQUE 约束；电影 / 剧使用 TMDB ID，季使用 `(tvShowTmdbId, seasonNumber)`，集使用明确命名的 `episodeKey` 主键并另存真实 TMDB ID，媒体源直接使用 `sourceId` 主键。文件 upsert 保留已有自增 ID；派生 `storageKey` 不存数据库。
 3. 生产数据库通过 `NativeDatabase.createInBackground` 在后台 isolate 执行。每个连接启用 WAL 与 `busy_timeout = 5000`，首次切换 WAL 遇到锁竞争时限时重试，首次建表在写锁内复查版本并原子提交，保留多连接安全性；2026-10-13 官方多视图迁移后生产视图共享同一后台连接，连接仅在应用退出时关闭。
 4. 类型标签和演员列表通过 `TypeConverter` 存为 JSON 文本；枚举存名称，日期存 ISO 文本以保留微秒精度。

@@ -1,3 +1,6 @@
+// 【行为测试】验证维护一个会话的文件顺序与当前项。
+// 测试对象的职责边界：不解析播放地址，不发出播放器命令。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/features/playback/domain/playback_queue.dart';

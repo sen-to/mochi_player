@@ -1,9 +1,12 @@
+// 【内部界面】提供菜单面板、选项行和触发区域的共享视觉实现。
+// 供应用菜单组合使用，不承载具体业务动作。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_control_metrics.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 
-/// Internal visual panel shared by application-owned menus.
+/// 应用菜单共同使用的内部视觉面板。
 class MenuPanel extends StatelessWidget {
   const MenuPanel({super.key, required this.children});
 
@@ -37,7 +40,7 @@ class MenuPanel extends StatelessWidget {
   }
 }
 
-/// Internal interactive option row shared by application-owned menus.
+/// 应用菜单共同使用的内部可交互选项行。
 class MenuOptionRow extends StatefulWidget {
   const MenuOptionRow({super.key, required this.onPressed, required this.child});
 
@@ -82,7 +85,7 @@ class _MenuOptionRowState extends State<MenuOptionRow> {
   }
 }
 
-/// Internal pointer-only trigger used by dropdown menus.
+/// 下拉菜单内部使用的指针触发区域。
 class MenuTriggerArea extends StatefulWidget {
   const MenuTriggerArea({super.key, required this.onPressed, required this.child});
 

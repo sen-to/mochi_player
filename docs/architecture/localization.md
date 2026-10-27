@@ -8,9 +8,9 @@
 | --- | --- |
 | [app_en.arb](../../lib/l10n/app_en.arb)、[app_zh.arb](../../lib/l10n/app_zh.arb) | 英文模板与简体中文译文 |
 | [l10n.yaml](../../l10n.yaml) | 生成目录、模板与输出文件配置 |
-| [AppLocaleProvider](../../lib/l10n/app_locale_provider.dart) | 语言选择、持久化、回退与共享通知 |
+| [AppLocaleProvider](../../lib/l10n/application/app_locale_provider.dart) | 语言选择、持久化、回退与共享通知 |
 | [l10n.dart](../../lib/l10n/l10n.dart) | 展示层获取当前语言与业务错误文案 |
-| [main.dart](../../lib/main.dart)、[PlayerWindowApp](../../lib/features/playback/presentation/player_window_app.dart) | 两个 MaterialApp 的 locale、委托与支持语言接线 |
+| [main.dart](../../lib/main.dart)、[PlayerWindowApp](../../lib/features/playback/ui/player_window_app.dart) | 两个 MaterialApp 的 locale、委托与支持语言接线 |
 | [check_l10n.dart](../../tool/check_l10n.dart) | 资源 key、译文与占位符完整性检查 |
 
 ## 语言状态与回退
@@ -28,7 +28,7 @@
 
 业务文案通过 `context.l10n` 在展示时解析。后台任务返回 `AppFailure`、`LibraryActivity` 等类型，避免把 BuildContext、已翻译字符串或原始网络异常传入纯 Dart 服务；挂起任务完成后使用展示时的语言。
 
-季集、数量和组合提示使用 ARB 参数及 ICU 复数；日期 / 数字通过 intl 显式指定当前 locale。[FileBrowserEntryDisplay](../../lib/features/library/browser/file_browser_entry_display.dart) 在展示层格式化，不向领域模型注入 Flutter 依赖。
+季集、数量和组合提示使用 ARB 参数及 ICU 复数；日期 / 数字通过 intl 显式指定当前 locale。[FileBrowserEntryDisplay](../../lib/features/library/browser/ui/file_browser_entry_display.dart) 在展示层格式化，不向领域模型注入 Flutter 依赖。
 
 标准剪切 / 复制 / 粘贴菜单使用 Flutter 本地化资源，自定义操作走 ARB，菜单样式、操作与启用条件由项目组件控制。日志、文件解析规则和字幕语言匹配中的中文不是界面翻译资源。
 

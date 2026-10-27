@@ -1,3 +1,6 @@
+// 【行为测试】验证保留有限条已脱敏的播放日志快照。
+// 测试对象的职责边界：不保存媒体凭据，不参与播放状态决策。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_log_buffer.dart';

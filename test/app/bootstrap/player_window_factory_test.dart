@@ -1,3 +1,6 @@
+// 【行为测试】验证创建播放器视图并协调挂载、替换和关闭。
+// 测试对象的职责边界：依赖与会话显式注入，创建失败也必须释放已准备资源。
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/app/bootstrap/player_window_factory.dart';

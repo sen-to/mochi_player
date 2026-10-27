@@ -1,7 +1,10 @@
+// 【开发工具】检查中英文 ARB 的键、非空文案与必需占位符。
+// 只验证语言资源，不参与应用运行。
+
 import 'dart:convert';
 import 'dart:io';
 
-/// Keep translated resources complete instead of silently falling back to English.
+/// 保证翻译资源完整，不静默回退为英文。
 void main() {
   final directory = Directory('lib/l10n');
   final template = jsonDecode(File('${directory.path}/app_en.arb').readAsStringSync()) as Map<String, dynamic>;

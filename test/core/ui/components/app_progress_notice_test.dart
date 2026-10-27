@@ -1,3 +1,6 @@
+// 【行为测试】验证展示任务阶段、进度和完成数量。
+// 测试对象的职责边界：进度由任务入口提供，组件不调度后台任务。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

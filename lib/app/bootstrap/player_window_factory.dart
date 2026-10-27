@@ -1,4 +1,8 @@
+// 【应用组装】创建播放器视图并协调挂载、替换和关闭。
+// 依赖与会话显式注入，创建失败也必须释放已准备资源。
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
@@ -6,11 +10,11 @@ import 'package:mochi_player/core/platform/window_controls_controller.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
-import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/application/player_window_controller.dart';
+import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
-import 'package:mochi_player/features/playback/presentation/player_window_app.dart';
-import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
+import 'package:mochi_player/features/playback/ui/controllers/player_window_close_coordinator.dart';
+import 'package:mochi_player/features/playback/ui/player_window_app.dart';
 
 Future<PlayerWindowSession> createPlayerWindow({
   required DesktopWindowHost host,
@@ -53,8 +57,7 @@ Future<PlayerWindowSession> createPlayerWindow({
     await lifecycle.windowControls.configureTitlebar(minimumSize: windowSetup.minimumSize);
     return lifecycle;
   } catch (_) {
-    // A creation that fails after registration still owns a live native view.
-    // Retire it before allowing the coordinator to accept another launch.
+    // 注册后才失败的创建操作仍持有原生视图；必须先退役该视图，再允许下一次启动。
     await lifecycle.close();
     rethrow;
   }
@@ -112,7 +115,7 @@ class _PlayerWindowLifecycle with WindowEvents implements PlayerWindowSession {
     if (isClosing) return;
     await windows.activate();
     if (!session.bootstrap.isReady) {
-      throw const PlayerWindowLaunchFailed();
+      throw const PlayerWindowLaunchFailure();
     }
   }
 

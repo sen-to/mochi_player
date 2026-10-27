@@ -1,3 +1,6 @@
+// 【共享模型】描述剧集标题、评分、演员及季信息。
+// 不执行界面操作或数据查询。
+
 import 'package:mochi_player/core/domain/media/artist.dart';
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/domain/media/season.dart';

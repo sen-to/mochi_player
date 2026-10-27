@@ -1,3 +1,6 @@
+// 【菜单界面】提供锚定触发控件的选项菜单。
+// 候选项和动作由调用方定义，菜单负责浮层交互。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
@@ -12,10 +15,10 @@ class AppDropdownOption<T> {
   final IconData? icon;
 }
 
-/// Horizontal edge of a menu that is anchored to its trigger.
+/// 菜单锚定到触发控件时的水平对齐边缘。
 enum AppDropdownMenuAlignment { start, end }
 
-/// An anchored pointer-operated application menu.
+/// 通过指针触发、锚定控件的应用菜单。
 class AppDropdown<T> extends StatelessWidget {
   const AppDropdown({
     super.key,
@@ -49,9 +52,7 @@ class AppDropdown<T> extends StatelessWidget {
       clipBehavior: Clip.none,
       alignmentOffset: Offset(menuAlignment == AppDropdownMenuAlignment.end ? -menuWidth : 0, 6),
       style: MenuStyle(
-        // With MenuAnchor, bottomEnd starts the menu at the trigger's trailing
-        // edge. Offset it back by the menu width so contextual action menus
-        // truly align their trailing edges and grow toward the leading edge.
+        // MenuAnchor 的 bottomEnd 从触发控件尾端开始排列菜单；回移一个菜单宽度，使两者尾端真正对齐，并向前端展开。
         alignment: menuAlignment == AppDropdownMenuAlignment.start
             ? AlignmentDirectional.bottomStart
             : AlignmentDirectional.bottomEnd,
@@ -59,8 +60,7 @@ class AppDropdown<T> extends StatelessWidget {
         surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
         shadowColor: WidgetStatePropertyAll(shadowColor),
         elevation: const WidgetStatePropertyAll(8),
-        // Keep the popup width identical to the trigger width. Desktop's
-        // compact visual density otherwise shrinks fixed-width menus.
+        // 菜单宽度与触发控件保持一致，避免桌面紧凑密度缩小固定宽度菜单。
         visualDensity: VisualDensity.standard,
         padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
         side: WidgetStatePropertyAll(BorderSide(color: AppColors.separator(context))),

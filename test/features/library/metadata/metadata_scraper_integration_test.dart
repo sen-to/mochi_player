@@ -1,24 +1,30 @@
-import 'package:mochi_player/features/library/metadata/tmdb_metadata_source.dart';
+// 【行为测试】验证按受限并发匹配电影与剧集，并统计文件级结果。
+// 测试对象的职责边界：匹配规则交给 MetadataMatcher，原子导入交给持久化契约。
+
 import 'package:dio/dio.dart';
-import 'package:mochi_player/core/domain/app_failure.dart';
-import '../../../support/tmdb_fixture.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/library/metadata/database_metadata_repository.dart';
-import '../../../support/database_fixture.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/data/database/sqlite_setup.dart';
+import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/core/infrastructure/database/app_database.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
-import 'package:mochi_player/features/library/metadata/metadata_matcher.dart';
-import 'package:mochi_player/features/library/metadata/metadata_scraper.dart';
+import 'package:mochi_player/features/library/metadata/application/metadata_matcher.dart';
+import 'package:mochi_player/features/library/metadata/application/metadata_scraper.dart';
+import 'package:mochi_player/features/library/metadata/application/scrape_candidate_mapper.dart';
+import 'package:mochi_player/features/library/metadata/data/database_metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/data/tmdb_metadata_source.dart';
+import 'package:mochi_player/features/library/metadata/domain/metadata_match.dart';
+import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
+
+import '../../../support/database_fixture.dart';
+import '../../../support/tmdb_fixture.dart';
 
 void main() {
-  late DatabaseService db;
+  late AppDatabase db;
   setUp(() async {
-    db = DatabaseService.withDatabase(AppDatabase(NativeDatabase.memory(setup: configureSqlite)));
+    db = AppDatabase(NativeDatabase.memory(setup: configureSqlite));
     await db.init();
   });
   tearDown(() => db.close());
@@ -55,8 +61,8 @@ void main() {
       });
       final scraper = MetadataScraper(
         repository: DatabaseMetadataRepository(database: db),
-        matchResolver: MetadataMatcher(
-          source: TmdbMetadataSource(service: tmdb),
+        matcher: MetadataMatcher(
+          source: TmdbMetadataSource(api: tmdb),
           repository: DatabaseMetadataRepository(database: db),
         ),
       );
@@ -97,8 +103,8 @@ void main() {
     );
     final result = await MetadataScraper(
       repository: DatabaseMetadataRepository(database: db),
-      matchResolver: MetadataMatcher(
-        source: TmdbMetadataSource(service: tmdb),
+      matcher: MetadataMatcher(
+        source: TmdbMetadataSource(api: tmdb),
         repository: DatabaseMetadataRepository(database: db),
       ),
     ).scrapeBatch([file]);
@@ -134,8 +140,8 @@ void main() {
     );
     final result = await MetadataScraper(
       repository: DatabaseMetadataRepository(database: db),
-      matchResolver: MetadataMatcher(
-        source: TmdbMetadataSource(service: tmdb),
+      matcher: MetadataMatcher(
+        source: TmdbMetadataSource(api: tmdb),
         repository: DatabaseMetadataRepository(database: db),
       ),
     ).scrapeBatch([file]);
@@ -189,8 +195,8 @@ void main() {
     });
     final result = await MetadataScraper(
       repository: DatabaseMetadataRepository(database: db),
-      matchResolver: MetadataMatcher(
-        source: TmdbMetadataSource(service: tmdb),
+      matcher: MetadataMatcher(
+        source: TmdbMetadataSource(api: tmdb),
         repository: DatabaseMetadataRepository(database: db),
       ),
     ).scrapeBatch(files);
@@ -228,7 +234,7 @@ void main() {
     await db.setTitleFavorite(const TVShow(tmdbId: '999', title: 'Show'), true);
     final result = await MetadataScraper(
       repository: DatabaseMetadataRepository(database: db),
-      matchResolver: _EpisodeResolver(db),
+      matcher: _EpisodeResolver(db),
     ).scrapeBatch(files);
     expect(result.successCount, 1);
     expect(result.failCount, 1);
@@ -258,19 +264,19 @@ void main() {
       addedAt: DateTime.utc(2026),
     );
     final resolver = MetadataMatcher(
-      source: TmdbMetadataSource(service: TmdbService()),
+      source: TmdbMetadataSource(api: TmdbApi()),
       repository: DatabaseMetadataRepository(database: db),
     );
-    final candidate = ScrapeCandidate.fromMediaFile(file);
+    final candidate = ScrapeCandidateMapper.fromMediaFile(file);
     expect((await resolver.resolveMovie(candidate)).metadata!.tmdbId, '2');
     expect((await resolver.resolveTVShow(candidate)).metadata!.tmdbId, '2');
   });
 }
 
 class _EpisodeResolver extends MetadataMatcher {
-  _EpisodeResolver(DatabaseService database)
+  _EpisodeResolver(AppDatabase database)
     : super(
-        source: TmdbMetadataSource(service: TmdbService()),
+        source: TmdbMetadataSource(api: TmdbApi()),
         repository: DatabaseMetadataRepository(database: database),
       );
   @override

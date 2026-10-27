@@ -1,9 +1,12 @@
-import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
+// 【展示格式】根据媒体文件生成版本名称、编码、分辨率和观看信息。
+// 只生成本地化展示文本，不读取数据库或修改文件记录。
+
+import 'package:mochi_player/core/application/media_format.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
-import 'package:mochi_player/core/formatters/media_format.dart';
+import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
-/// Builds the title and detail lines used to present a media file.
+/// 生成媒体文件的展示标题与详情文本。
 abstract final class MediaFileLabels {
   static String versionTitle(MediaFile file) {
     final parsedLabel = file.versionLabel?.trim();

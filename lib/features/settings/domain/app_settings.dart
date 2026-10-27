@@ -1,4 +1,7 @@
-/// Persisted application settings and playback defaults.
+// 【设置模型】定义普通偏好、播放默认值、边界及规范化规则。
+// 比较已生效的 TMDB 配置时只关注网络相关字段。
+
+/// 持久化的应用设置及播放默认值。
 class AppSettings {
   static const defaultPlaybackCacheSizeMb = 256;
   static const defaultPlaybackReadaheadSeconds = 60;
@@ -47,21 +50,22 @@ class AppSettings {
   String get normalizedSubtitleLanguagePriority =>
       _normalizeLanguagePriority(subtitleLanguagePriority, defaultSubtitleLanguagePriority);
 
-  AppSettings withFallbacks(AppSettings fallback) {
-    return AppSettings(
-      tmdbApiKey: tmdbApiKey.trim().isNotEmpty ? tmdbApiKey : fallback.tmdbApiKey,
-      tmdbApiBaseUrl: tmdbApiBaseUrl.trim().isNotEmpty ? tmdbApiBaseUrl : fallback.tmdbApiBaseUrl,
-      tmdbProxyUrl: tmdbProxyUrl.trim(),
-      tmdbProxyEnabled: tmdbProxyEnabled,
-      playbackCacheSizeMb: playbackCacheSizeMb.clamp(minPlaybackCacheSizeMb, maxPlaybackCacheSizeMb).toInt(),
-      playbackReadaheadSeconds: playbackReadaheadSeconds
-          .clamp(minPlaybackReadaheadSeconds, maxPlaybackReadaheadSeconds)
-          .toInt(),
-      enableHardwareAcceleration: enableHardwareAcceleration,
-      subtitleLanguagePriority: _normalizeLanguagePriority(subtitleLanguagePriority, fallback.subtitleLanguagePriority),
-      subtitleFontSize: subtitleFontSize.clamp(18.0, 40.0).toDouble(),
-    );
-  }
+  /// 规范化可保存的设置输入；范围与默认值规则只在领域模型中维护。
+  AppSettings normalized() => AppSettings(
+    tmdbApiKey: tmdbApiKey.trim(),
+    tmdbApiBaseUrl: tmdbApiBaseUrl.trim().isEmpty ? AppSettings.defaultTmdbApiBaseUrl : tmdbApiBaseUrl.trim(),
+    tmdbProxyUrl: tmdbProxyUrl.trim(),
+    tmdbProxyEnabled: tmdbProxyEnabled,
+    playbackCacheSizeMb: playbackCacheSizeMb
+        .clamp(AppSettings.minPlaybackCacheSizeMb, AppSettings.maxPlaybackCacheSizeMb)
+        .toInt(),
+    playbackReadaheadSeconds: playbackReadaheadSeconds
+        .clamp(AppSettings.minPlaybackReadaheadSeconds, AppSettings.maxPlaybackReadaheadSeconds)
+        .toInt(),
+    enableHardwareAcceleration: enableHardwareAcceleration,
+    subtitleLanguagePriority: subtitleLanguagePriority.trim(),
+    subtitleFontSize: subtitleFontSize.clamp(18.0, 40.0).toDouble(),
+  );
 
   static String _normalizeLanguagePriority(String value, String fallback) {
     final parts = value.split(',').map((part) => part.trim()).where((part) => part.isNotEmpty).toList();

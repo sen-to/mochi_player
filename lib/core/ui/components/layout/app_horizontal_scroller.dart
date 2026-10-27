@@ -1,3 +1,6 @@
+// 【通用界面】为横向内容提供前后滚动按钮及滚动状态。
+// 组件持有并释放自己的滚动控制器。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/basic/app_clickable_area.dart';
 import 'package:mochi_player/core/ui/components/layout/app_glass_surface.dart';
@@ -5,11 +8,7 @@ import 'package:mochi_player/core/ui/theme/app_radii.dart';
 
 typedef AppHorizontalScrollContentBuilder = Widget Function(BuildContext context, ScrollController controller);
 
-/// Adds desktop previous/next controls to horizontally scrollable content.
-///
-/// The content receives this component's controller through [contentBuilder],
-/// so the controls and the scrollable cannot accidentally use different
-/// controllers.
+/// 为横向内容提供桌面前后滚动控件；通过 [contentBuilder] 向内容传递同一个控制器，避免控件和内容使用不同滚动控制器。
 class AppHorizontalScroller extends StatefulWidget {
   const AppHorizontalScroller({
     super.key,
@@ -21,7 +20,7 @@ class AppHorizontalScroller extends StatefulWidget {
   final ScrollController controller;
   final AppHorizontalScrollContentBuilder contentBuilder;
 
-  /// Space below the visual scrolling area, such as labels under posters.
+  /// 滚动视觉区域下方预留的空间，例如海报下的文字标签。
   final double controlsBottomInset;
 
   @override

@@ -1,3 +1,6 @@
+// 【通用界面】组合搜索图标、文本输入、清除操作和快捷键提示。
+// 搜索规则与查询请求交给调用方处理。
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,7 +8,7 @@ import 'package:mochi_player/core/ui/components/input/app_input.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
-/// A search-specific composition of [AppInput].
+/// 基于 [AppInput] 组合搜索专用输入。
 class AppSearchInput extends StatefulWidget {
   const AppSearchInput({super.key, this.placeholder, this.onChanged, this.focusNode});
 

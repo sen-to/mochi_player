@@ -1,6 +1,9 @@
+// 【平台契约】定义所属视图的尺寸、位置、全屏与原生窗口操作。
+// 界面使用此边界，平台桥实现留在桌面适配中。
+
 import 'dart:ui' show Rect, Size;
 
-/// The only desktop-window API exposed to application and playback code.
+/// 应用与播放代码可使用的统一桌面窗口接口。
 abstract class WindowService {
   int get viewId;
 
@@ -38,11 +41,10 @@ abstract class WindowService {
 
   Future<bool> isFullScreen();
 
-  /// Completes when the native window confirms the requested state, or fails
-  /// within a bounded wait. Callers must not treat sending a request as success.
+  /// 原生窗口确认目标状态后才完成，或在有限等待后失败；发送请求不能当作操作成功。
   Future<void> setFullScreen(bool value);
 
-  /// Ends the whole process after application-owned cleanup, including all windows. This must only be called by the main window.
+  /// 应用资源收尾后结束整个进程及全部窗口；只能由主窗口调用。
   void exitApplication();
 }
 

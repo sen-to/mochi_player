@@ -7,3 +7,5 @@
 后续代码按指南中的 `app / features / core / l10n` 骨架落位，命名遵循编码指南，依赖作用域和资源所有权遵循架构说明。按实际需要创建目录，复用现有业务入口；不要为了目录或名称统一进行无关重构。
 
 验证按 [测试指南](docs/guides/testing.md) 执行，Flutter / Dart 命令使用项目 FVM 固定 SDK。只同步受影响的机制与验证文档；阶段变化更新 status.md，技术方向变化才修订 ADR。未来计划与已实现行为分别描述。
+
+手写 Dart 文件开头使用中文说明实际职责、协作入口与资源所有权；新增解释性注释使用中文。统一使用 `ui / application / domain / data`；Provider 和用例只依赖契约，具体后端由应用组装。DO、业务模型与 VO 独立，边界转换放入 Mapper；纯展示数据使用 VO（View Object），不命名为状态 ViewModel，弹窗命名体现 Dialog。生成代码不手工修改。

@@ -1,3 +1,6 @@
+// 【共享模型】描述剧集中的季及其单集信息。
+// 数据由元数据导入流程维护。
+
 import 'package:mochi_player/core/domain/media/episode.dart';
 
 /// 季 Domain Model

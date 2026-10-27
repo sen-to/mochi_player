@@ -1,7 +1,10 @@
+// 【行为测试】验证排列标签、说明文本与输入控件，并支持说明独占一行。
+// 测试对象的职责边界：只负责布局与样式，不读取或保存表单数据。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/core/ui/components/input/form/settings_switch_item.dart';
+import 'package:mochi_player/core/ui/components/input/form/app_form_switch_item.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
@@ -22,7 +25,7 @@ void main() {
                   child: SizedBox(
                     width: 300,
                     child: Builder(
-                      builder: (context) => SettingsSwitchItem(
+                      builder: (context) => AppFormSwitchItem(
                         label: context.l10n.enableSource,
                         subtitle: context.l10n.disableSourceDescription,
                         value: true,
@@ -36,7 +39,7 @@ void main() {
           ),
         );
 
-        final context = tester.element(find.byType(SettingsSwitchItem));
+        final context = tester.element(find.byType(AppFormSwitchItem));
         final description = find.text(context.l10n.disableSourceDescription);
         final descriptionRect = tester.getRect(description);
         final switchRect = tester.getRect(find.byType(AppSwitch));

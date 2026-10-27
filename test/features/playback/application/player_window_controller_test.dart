@@ -1,3 +1,6 @@
+// 【行为测试】验证保存启动请求与播放器窗口的展示状态。
+// 测试对象的职责边界：实际引擎生命周期由播放会话管理，原生视图由窗口工厂创建。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';

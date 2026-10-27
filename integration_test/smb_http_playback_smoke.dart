@@ -1,22 +1,26 @@
-// Runs the production media_kit backend over the SMB HTTP bridge using a
-// generated file reader. No NAS credentials or user database are accessed.
+// 【原生冒烟】使用延迟读取替身验证 HTTP Range 播放与快速跳转。
+// 不连接真实 NAS，成功标记用于判断当前验证范围。
+
+// 通过生成文件的读取替身，让正式 media_kit 后端经过 SMB HTTP 桥播放。
+
+// 不访问 NAS 凭据或用户数据库。
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
+import 'package:mochi_player/core/data/storage/smb_http_playback_proxy.dart';
+import 'package:mochi_player/core/data/storage/smb_media_reader.dart';
+import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
-import 'package:mochi_player/core/domain/media/media_file.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_http_playback_proxy.dart';
-import 'package:mochi_player/core/infrastructure/storage/smb_media_reader.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/features/playback/application/playback_engine.dart';
 import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/playback_session_controller.dart';
-import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
+import 'package:mochi_player/features/playback/data/media_kit_playback_engine.dart';
 
 // ignore: always_use_package_imports
 import 'video_fixture.dart';

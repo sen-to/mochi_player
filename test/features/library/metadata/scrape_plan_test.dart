@@ -1,6 +1,10 @@
+// 【行为测试】验证按显式 ID、已有 ID、标题与年份选择元数据。
+// 测试对象的职责边界：候选与搜索规则由 domain 提供；请求失败不等同于未匹配。
+
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/features/library/metadata/metadata_matcher.dart';
-import 'package:mochi_player/features/library/sync/filename_parser.dart';
+import 'package:mochi_player/features/library/metadata/application/scrape_candidate_mapper.dart';
+import 'package:mochi_player/features/library/metadata/domain/scrape_search_plan.dart';
+import 'package:mochi_player/features/library/sync/domain/media_filename_parser.dart';
 
 void main() {
   _usesOneCompleteCleanedTitleWithYearThenWithoutYear();
@@ -9,8 +13,8 @@ void main() {
 }
 
 void _usesOneCompleteCleanedTitleWithYearThenWithoutYear() {
-  final plan = const ScrapePlanFactory().createTitleSearchPlan(
-    ScrapeCandidate.fromMediaFile(
+  final plan = ScrapeSearchPlan.forCandidate(
+    ScrapeCandidateMapper.fromMediaFile(
       MediaFile(
         mediaType: MediaType.movie,
         parsedTitle: '大话西游之仙履奇缘 A Chinese Odyssey Part II Cinderella',
@@ -32,8 +36,8 @@ void _usesOneCompleteCleanedTitleWithYearThenWithoutYear() {
 }
 
 void _doesNotRetryWithoutYearWhenNoYearWasParsed() {
-  final plan = const ScrapePlanFactory().createTitleSearchPlan(
-    ScrapeCandidate.fromMediaFile(
+  final plan = ScrapeSearchPlan.forCandidate(
+    ScrapeCandidateMapper.fromMediaFile(
       MediaFile(
         mediaType: MediaType.movie,
         parsedTitle: 'Departures',
@@ -51,9 +55,9 @@ void _doesNotRetryWithoutYearWhenNoYearWasParsed() {
 }
 
 void _keepsMoonAndItsYearInTheFirstSearchAttempt() {
-  final parsed = FilenameParser.parse(fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv');
-  final plan = const ScrapePlanFactory().createTitleSearchPlan(
-    ScrapeCandidate.fromMediaFile(
+  final parsed = MediaFilenameParser.parse(fileName: 'Top231.月球.Moon.2009.Bluray.1080p.x265.AAC(5.1).GREENOTEA.mkv');
+  final plan = ScrapeSearchPlan.forCandidate(
+    ScrapeCandidateMapper.fromMediaFile(
       MediaFile(
         mediaType: MediaType.movie,
         parsedTitle: parsed.title,

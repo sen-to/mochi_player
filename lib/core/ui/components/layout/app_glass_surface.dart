@@ -1,3 +1,6 @@
+// 【通用界面】统一浮层使用的模糊背景、边框和圆角。
+// 只提供视觉容器，不处理业务交互。
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -27,9 +30,7 @@ class AppGlassSurface extends StatelessWidget {
       borderRadius: borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        // A zero-radius blur is visually a no-op, but the backdrop filter still
-        // costs a layer and a backdrop read on every frame. Disabling it skips
-        // that work while keeping the element tree stable.
+        // 零半径模糊没有视觉效果，但背景过滤仍会逐帧增加图层与背景读取；禁用过滤以跳过这些工作，同时保持组件树稳定。
         enabled: blur > 0,
         child: DecoratedBox(
           decoration: BoxDecoration(

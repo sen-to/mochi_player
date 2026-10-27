@@ -1,15 +1,18 @@
-// Official windowing is experimental; confine SDK internal APIs to this adapter.
+// 【平台适配】通过单引擎视图注册表创建和管理桌面视图。
+// 每个视图获得独立窗口服务，窗口操作显式携带视图身份。
+
+// 官方多窗口能力仍处于实验阶段，SDK 内部接口只允许在此适配器中使用。
 // ignore_for_file: implementation_imports, invalid_use_of_internal_member
 import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter/src/widgets/_window.dart' as official;
+import 'package:flutter/widgets.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:provider/provider.dart';
 
-/// One registry and one engine. Each view gets its own WindowService provider.
+/// 一个引擎共用一个视图注册表，每个视图获得自己的 WindowService。
 class DesktopWindowHost {
   official.WindowRegistry? _registry;
   final Map<_DesktopWindowService, official.WindowEntry> _entries = {};
@@ -39,7 +42,7 @@ class DesktopWindowHost {
     final entry = _entries.remove(service);
     if (entry == null) return;
     _registry!.unregister(entry);
-    // Remove the View from the widget tree before invalidating its FlutterView.
+    // 先从组件树移除视图，再使对应的 FlutterView 失效。
     await WidgetsBinding.instance.endOfFrame;
     service._controller.removeListener(service._stateChanged);
     service._controller.destroy();
@@ -55,8 +58,7 @@ class _DesktopWindowService extends WindowService with official.WindowController
       constraints: BoxConstraints(minWidth: setup.minimumSize.width, minHeight: setup.minimumSize.height),
       delegate: this,
     );
-    // The pinned Windows host omits its initial native tracking constraints.
-    // Reapply after creation so resizing also respects the configured minimum.
+    // 固定 SDK 的 Windows 宿主遗漏初始原生约束；创建后重新应用，使拖动缩放也遵守最小尺寸。
     if (Platform.isWindows) {
       _controller.setConstraints(
         BoxConstraints(minWidth: setup.minimumSize.width, minHeight: setup.minimumSize.height),
@@ -160,13 +162,12 @@ class _DesktopWindowService extends WindowService with official.WindowController
   Future<void> setFullScreen(bool value) async {
     if (_controller.isFullscreen != value) _controller.setFullscreen(value);
     if (Platform.isMacOS) {
-      // The style-mask flag can change before AppKit's animation finishes.
-      // Wait for its completion notification before allowing another request.
+      // 样式标志可能早于 AppKit 动画完成发生变化；收到完成通知后才允许下一次请求。
       await _invoke<void>('waitForFullscreen', {'enabled': value});
       _stateChanged();
       return;
     }
-    // Keep transitions serialized until the controller confirms native state.
+    // 控制器确认原生状态前，窗口转换始终保持串行。
     final deadline = DateTime.now().add(const Duration(seconds: 5));
     while (_controller.isFullscreen != value) {
       if (_closing != null) throw StateError('Window closed during fullscreen transition.');

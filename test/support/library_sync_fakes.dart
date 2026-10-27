@@ -1,11 +1,14 @@
+// 【测试替身】模拟扫描、元数据与持久化依赖。
+// 通过可控结果验证业务顺序和失败收尾。
+
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/core/domain/storage/storage_source.dart';
 import 'package:mochi_player/core/domain/storage/storage_source_type.dart';
-import 'package:mochi_player/features/library/sync/library_source_scanner.dart';
-import 'package:mochi_player/features/library/sync/library_sync_repository.dart';
-import 'package:mochi_player/features/library/metadata/metadata_repository.dart';
-import 'package:mochi_player/features/library/metadata/metadata_source.dart';
+import 'package:mochi_player/features/library/metadata/application/metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/application/metadata_source.dart';
+import 'package:mochi_player/features/library/sync/application/library_source_scanner.dart';
+import 'package:mochi_player/features/library/sync/application/library_sync_repository.dart';
 
 StorageSource librarySource(String id) =>
     StorageSource(id: id, name: id, type: StorageSourceType.local, endpoint: '/$id');
@@ -25,21 +28,21 @@ MediaFile libraryFile(String path, {String sourceId = 'local', int? season, int?
 class FakeLibrarySourceScanner implements LibrarySourceScanner {
   List<StorageSource> available = [librarySource('local')];
   Future<List<StorageSource>> Function()? onSources;
-  Future<LibrarySourceScan> Function(StorageSource)? onOpen;
+  Future<LibrarySourceScanSession> Function(StorageSource)? onOpen;
   final opened = <String>[];
-  final sessions = <String, FakeLibrarySourceScan>{};
+  final sessions = <String, FakeLibrarySourceScanSession>{};
 
   @override
   Future<List<StorageSource>> enabledSources() async => onSources == null ? available : await onSources!();
 
   @override
-  Future<LibrarySourceScan> open(StorageSource source) async {
+  Future<LibrarySourceScanSession> open(StorageSource source) async {
     opened.add(source.id);
-    return onOpen == null ? sessions.putIfAbsent(source.id, FakeLibrarySourceScan.new) : await onOpen!(source);
+    return onOpen == null ? sessions.putIfAbsent(source.id, FakeLibrarySourceScanSession.new) : await onOpen!(source);
   }
 }
 
-class FakeLibrarySourceScan implements LibrarySourceScan {
+class FakeLibrarySourceScanSession implements LibrarySourceScanSession {
   Stream<MediaFile> Function()? onScan;
   Future<void> Function()? onClose;
   int closeCount = 0;

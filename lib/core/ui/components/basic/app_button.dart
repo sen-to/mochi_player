@@ -1,3 +1,6 @@
+// 【通用界面】统一文字按钮、图标按钮、尺寸及忙碌状态。
+// 组件负责交互反馈，操作结果由调用方处理。
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mochi_player/core/ui/components/basic/app_appearance.dart';
@@ -10,7 +13,7 @@ enum AppButtonVariant { primary, secondary, ghost }
 
 enum AppButtonSize { compact, regular, large }
 
-/// The shared application button API for labeled and icon-only actions.
+/// 统一带文字和仅图标的应用按钮接口。
 class AppButton extends StatefulWidget {
   const AppButton({
     super.key,

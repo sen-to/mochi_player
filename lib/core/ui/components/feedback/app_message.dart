@@ -1,3 +1,6 @@
+// 【消息界面】提供成功、失败、警告和加载提示及其队列宿主。
+// 消息归属调用方所在视图；加载提示由返回的句柄关闭。
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -5,7 +8,7 @@ import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 
-/// Simple page-facing API for transient application messages.
+/// 供页面调用的短时应用消息入口。
 abstract final class AppMessage {
   static const _defaultDuration = Duration(seconds: 3);
 
@@ -34,7 +37,7 @@ abstract final class AppMessage {
   }
 }
 
-/// Allows a persistent loading message to be dismissed when work completes.
+/// 允许任务完成后主动关闭持续显示的加载提示。
 class AppMessageHandle {
   AppMessageHandle._(this._dismiss);
 
@@ -46,7 +49,7 @@ class AppMessageHandle {
   }
 }
 
-/// Installs the queue and visual host used internally by [AppMessage].
+/// 安装 [AppMessage] 内部使用的队列与展示宿主。
 class AppMessageHost extends StatefulWidget {
   const AppMessageHost({super.key, required this.child, this.top = 70, this.horizontalPadding = AppSpacing.page});
 

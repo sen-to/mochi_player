@@ -1,9 +1,12 @@
+// 【原生窗口适配】补充标题栏、文件选择、全屏等待与窗口几何操作。
+// 按 Flutter 视图 ID 定位窗口；观察者及待完成请求由此适配器持有和释放。
+
 import Cocoa
 import FlutterMacOS
 import UniformTypeIdentifiers
 
-/// Native operations missing from the experimental Dart window API.
-/// Every request resolves the window by Flutter view ID, never the key window.
+/// 补充实验性 Dart 窗口 API 尚未提供的原生操作。
+/// 每次请求都按 Flutter 视图 ID 定位窗口，不依赖当前焦点窗口。
 final class NativeWindowControls {
   private let channel: FlutterMethodChannel
   private var observers: [NSObjectProtocol] = []
@@ -73,13 +76,13 @@ final class NativeWindowControls {
         }
         let minimumContentSize = NSSize(width: width, height: height)
         let maximumContentSize = window.contentMaxSize
-        // Use the system titlebar in all views. Full-size content keeps the
-        // existing Flutter header, with the traffic lights above it.
+        // 所有视图使用系统标题栏；全尺寸内容保留 Flutter 顶栏，
+        // 系统窗口按钮位于其上方。
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.styleMask.insert(.fullSizeContentView)
-        // Reapply after changing the style mask. contentMinSize takes precedence
-        // over minSize and is also updated by the SDK when mini mode changes.
+        // 修改窗口样式后重新应用约束；contentMinSize 优先于 minSize，
+        // SDK 也会在切换迷你模式时更新此值。
         window.contentMinSize = minimumContentSize
         window.contentMaxSize = maximumContentSize
         result(nil)

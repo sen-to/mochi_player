@@ -1,8 +1,10 @@
+// 【通用界面】为整块区域提供点击、悬浮和键盘焦点反馈。
+// 回调交给调用方执行，不负责导航或数据修改。
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Makes an entire desktop UI area clickable with hover and keyboard-focus
-/// feedback, without Material ink splash or pressed-state highlight.
+/// 让整个桌面区域可点击，并提供悬浮及键盘焦点反馈，不使用水波纹或按压高亮。
 class AppClickableArea extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -38,9 +40,7 @@ class _AppClickableAreaState extends State<AppClickableArea> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    // Keep transparent resting surfaces in the same color space as the hover
-    // target. Otherwise ColorTween interpolates from transparent black, which
-    // creates a muddy intermediate frame for light hover colors in dark mode.
+    // 透明静止态与悬浮目标保持相同色彩空间；否则 ColorTween 从透明黑色插值，会让暗色模式中的浅色悬浮动画出现浑浊中间帧。
     final restingColor = widget.backgroundColor.a == 0 ? widget.hoverColor.withAlpha(0) : widget.backgroundColor;
     final hoverColor = widget.backgroundColor.a == 0
         ? widget.hoverColor
@@ -74,8 +74,7 @@ class _AppClickableAreaState extends State<AppClickableArea> {
             behavior: HitTestBehavior.opaque,
             onTap: widget.onTap,
             child: TweenAnimationBuilder<double>(
-              // Only pointer entry, exit, and keyboard focus own this
-              // animation. External selection changes update immediately.
+              // 动画只响应鼠标进入、离开和键盘焦点；外部选中状态变化立即生效。
               tween: Tween(end: enabled && (_hovering || _focused) ? 1 : 0),
               duration: const Duration(milliseconds: 140),
               curve: Curves.easeOutCubic,

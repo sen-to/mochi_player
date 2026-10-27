@@ -1,3 +1,6 @@
+// 【行为测试】验证为整块区域提供点击、悬浮和键盘焦点反馈。
+// 测试对象的职责边界：回调交给调用方执行，不负责导航或数据修改。
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

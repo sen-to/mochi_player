@@ -14,7 +14,7 @@
 2. 人工实测反馈显示，所用 `media_kit_libs_video` 捆绑的 libmpv 不能打开 / seek SMB 文件；具体是否因为缺少该协议仍需构建信息或日志确认。原解析器注释也把支持 SMB 写成假设，不能当作已具备的播放能力。
 3. 该路径把凭据放进 URL 的 `userInfo`，可能泄漏到日志等诊断信息中；[playback_log_buffer.dart](../../lib/features/playback/application/playback_log_buffer.dart) 对 URL 与 Authorization 做脱敏，但脱敏不能消除凭据进入播放链路的风险。
 
-对照：WebDAV 走 HTTP(S) 直链并附加 `Authorization` 头（[webdav_playback_resolver.dart](../../lib/core/infrastructure/storage/webdav_playback_resolver.dart)），由 FFmpeg 的 http 协议与 Range 支撑。
+对照：WebDAV 走 HTTP(S) 直链并附加 `Authorization` 头（[webdav_playback_resolver.dart](../../lib/core/data/storage/webdav_playback_resolver.dart)），由 FFmpeg 的 http 协议与 Range 支撑。
 
 ## 直链方案的历史实测依据
 

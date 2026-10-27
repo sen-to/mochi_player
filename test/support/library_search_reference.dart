@@ -1,16 +1,19 @@
+// 【查询参考】提供独立的标题搜索评分参考实现。
+// 只供测试比较 SQL 查询结果，不随应用发布。
+
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/domain/media/library_search_text.dart';
-import 'package:mochi_player/features/library/catalog/media_card_view_data.dart';
+import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 
-/// Independent reference scorer for verifying SQL search ranking.
+/// 独立的参考评分，用于验证 SQL 搜索排序。
 ///
-/// Production searches execute in LibraryRepository; this implementation is test-only.
+/// 正式搜索由 LibraryCatalogRepository 执行，此实现仅用于测试。
 abstract final class LibrarySearchReference {
   static List<T> libraryItems<T extends LibraryItem>(Iterable<T> items, String query) {
     return _rank(items, query, _libraryItemScore);
   }
 
-  static List<MediaCardViewData> mediaCards(Iterable<MediaCardViewData> items, String query) {
+  static List<MediaCardVO> mediaCards(Iterable<MediaCardVO> items, String query) {
     return _rank(items, query, _mediaCardScore);
   }
 
@@ -39,7 +42,7 @@ abstract final class LibrarySearchReference {
     return _max(score, _textScore(item.originalTitle, normalizedQuery, exact: 110));
   }
 
-  static int _mediaCardScore(MediaCardViewData item, String normalizedQuery) {
+  static int _mediaCardScore(MediaCardVO item, String normalizedQuery) {
     final score = item.libraryItem == null ? 0 : _libraryItemScore(item.libraryItem!, normalizedQuery);
     return _max(score, _textScore(item.title, normalizedQuery, exact: 120));
   }

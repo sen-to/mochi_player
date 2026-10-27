@@ -1,3 +1,6 @@
+// 【通用界面】提供滑块、数值格式与悬浮提示的统一外观。
+// 数值由调用方控制，组件只处理输入和展示。
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
@@ -29,8 +32,7 @@ class AppSlider extends StatelessWidget {
   final double min;
   final double max;
 
-  /// Distance between selectable values. When omitted, the slider is
-  /// continuous.
+  /// 可选值之间的步长；省略时使用连续滑动。
   final double? step;
   final ValueChanged<double>? onChanged;
   final ValueChanged<double>? onChangeStart;

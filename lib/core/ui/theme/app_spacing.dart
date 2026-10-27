@@ -1,3 +1,6 @@
+// 【主题常量】定义布局和控件间距。
+// 共享间距供界面组合使用。
+
 class AppSpacing {
   const AppSpacing._();
 

@@ -1,3 +1,6 @@
+// 【行为测试】验证统一文字按钮、图标按钮、尺寸及忙碌状态。
+// 测试对象的职责边界：组件负责交互反馈，操作结果由调用方处理。
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

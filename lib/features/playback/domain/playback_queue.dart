@@ -1,9 +1,9 @@
+// 【播放业务数据】维护一个会话的文件顺序与当前项。
+// 不解析播放地址，不发出播放器命令。
+
 import 'package:mochi_player/core/domain/media/media_file.dart';
 
-/// Owns the ordered media items for one playback session.
-///
-/// Link resolution and player commands intentionally stay outside this class,
-/// so queue state can be tested without Flutter or a media backend.
+/// 持有一个播放会话的有序文件；地址解析与播放器命令留在类外，队列可以脱离 Flutter 或播放后端独立测试。
 class PlaybackQueue {
   PlaybackQueue({required MediaFile initialItem, required List<MediaFile> items}) : _items = _deduplicate(items) {
     _currentIndex = _items.indexWhere(

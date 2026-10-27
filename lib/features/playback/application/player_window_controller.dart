@@ -1,3 +1,6 @@
+// 【窗口展示状态】保存启动请求与播放器窗口的展示状态。
+// 实际引擎生命周期由播放会话管理，原生视图由窗口工厂创建。
+
 import 'package:flutter/foundation.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/features/playback/application/playback_media_repository.dart';

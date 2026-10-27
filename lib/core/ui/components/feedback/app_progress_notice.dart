@@ -1,3 +1,6 @@
+// 【通用界面】展示任务阶段、进度和完成数量。
+// 进度由任务入口提供，组件不调度后台任务。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';

@@ -1,5 +1,7 @@
-/// Trending item 简化模型
-/// 用于首页 Trending 展示，不持久化到数据库
+// 【服务结果模型】描述 TMDB 趋势条目的标题、图片和评分。
+// 由共享 TMDB 服务返回，不持久化为本地媒体文件。
+
+/// 共享 TMDB 服务返回的趋势条目摘要；供首页消费，不是界面格式化后的 VO。
 class TrendingItem {
   final String tmdbId;
   final String title;

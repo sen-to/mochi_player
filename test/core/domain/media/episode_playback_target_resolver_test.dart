@@ -1,3 +1,6 @@
+// 【行为测试】验证根据观看历史选择续播、下一集或从头播放的本地单集。
+// 测试对象的职责边界：详情页和媒体库播放入口复用，不负责解析播放地址。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 

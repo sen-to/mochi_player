@@ -1,10 +1,13 @@
+// 【通用界面】展示紧凑的评分、分类或描述标签。
+// 只接收外部文本与样式。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/basic/app_appearance.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 
-/// Displays a short piece of descriptive metadata.
+/// 展示简短的描述性元信息。
 class AppTag extends StatelessWidget {
   const AppTag({
     super.key,

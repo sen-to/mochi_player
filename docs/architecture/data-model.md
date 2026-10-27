@@ -1,6 +1,6 @@
 # 数据模型与持久化
 
-核对日期：2026-10-14。本文描述当前 schema 与读写语义；选型及迁移边界见 [ADR 0003](../decisions/0003-persistence-migration.md)，规则与算法见 [算法说明](algorithms.md)。
+核对日期：2026-10-27。本文描述当前 schema 与读写语义；选型及迁移边界见 [ADR 0003](../decisions/0003-persistence-migration.md)，规则与算法见 [算法说明](algorithms.md)。
 
 ## 存储分工
 
@@ -10,9 +10,19 @@
 | 应用设置、主题、语言偏好 | SharedPreferences | 共享设置 / 主题 / 语言控制器 |
 | TMDB 图片 | flutter_cache_manager 文件缓存，30 天过期、上限 1200 条 | 图片缓存服务 |
 
-[AppDatabase](../../lib/core/infrastructure/database/app_database.dart) 收集 Dart 表定义及 [media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift) 中的 SQL 表定义，`DatabaseService` 管理连接与写入，`LibraryRepository` 提供读取投影。生产连接使用 `NativeDatabase.createInBackground`；主视图与播放器共用同一个后台 SQLite 连接，播放器关闭不关闭数据库，应用退出统一关闭。
+[AppDatabase](../../lib/core/data/database/app_database.dart) 统一管理 Dart 表定义、[media_tables.drift](../../lib/core/data/database/media_tables.drift) 中的 SQL 表定义、连接与公共读写，`LibraryCatalogRepository` 提供读取投影。生产连接使用 `NativeDatabase.createInBackground`；主视图与播放器共用同一个后台 SQLite 连接，播放器关闭不关闭数据库，应用退出统一关闭。
 
-数据库服务是由组装入口创建的普通实例，不通过全局单例获取。[ApplicationDependencies](../../lib/app/bootstrap/application_dependencies.dart) 将同一实例注入来源仓库、库查询 / 扫描 / 刮削和播放持久化适配。页面通过 `MediaLibraryProvider` 的应用查询入口读取，具体 `LibraryRepository` 不公开给页面。
+数据库服务是由组装入口创建的普通实例，不通过全局单例获取。[ApplicationDependencies](../../lib/app/bootstrap/application_dependencies.dart) 将同一实例注入来源仓库、库查询 / 扫描 / 刮削和播放持久化适配。页面通过 `MediaLibraryProvider` 的应用查询入口读取，具体 `LibraryCatalogRepository` 不公开给页面。
+
+## 数据库记录、业务模型与展示对象
+
+六张表分别生成 `MovieDO / TVShowDO / SeasonDO / EpisodeDO / MediaFileDO / StorageSourceDO`，不再通过 `UseRowClass` 或 SQL `WITH` 复用业务类型。DO 字段为数据库值：枚举保存名称字符串，列表保存 JSON 文本，关联记录分别查询。
+
+[数据库 Mapper](../../lib/core/data/database/mappers/media_file_mapper.dart) 在读取和写入边界转换 DO 与业务模型；JSON 格式集中在 [StoredJsonMapper](../../lib/core/data/database/mappers/stored_json_mapper.dart)。`MediaFile / Movie / TVShow` 等业务模型没有数据库映射、JSON 编解码或 SDK 依赖。
+
+`MediaCardVO` 是批量查询后的展示投影，`MediaDetailVO` 是详情快照。转换由各自 Mapper 完成，VO 只保存字段；不把表记录或请求状态塞进 VO。
+
+本次更换 Dart 类型及 Mapper，没有修改物理表结构，继续使用 schema 2。兼容测试从此前的 schema 快照建立旧库，再用新实现重开并检查结构、JSON、枚举、凭据和观看状态，见 [兼容测试](../../test/core/data/database/schema_v2_compatibility_test.dart)。DTO、DO、VO 与 DAL 的约定见 [编码指南](../guides/code-organization.md#模型术语与数据访问层)。
 
 ## 表概览
 
@@ -37,7 +47,7 @@ SQLite 类型列表示当前存储映射：`String → TEXT`、`int → INTEGER`
 
 ### MediaFiles → `media_files`
 
-定义：[media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift)。领域行模型：[MediaFile](../../lib/core/domain/media/media_file.dart)。
+定义：[media_tables.drift](../../lib/core/data/database/media_tables.drift)。领域行模型：[MediaFile](../../lib/core/domain/media/media_file.dart)。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -89,7 +99,7 @@ CHECK (parsed_episode IS NULL OR parsed_episode >= 0)
 
 ### Movies → `movies`
 
-定义：[Movies](../../lib/core/infrastructure/database/app_database.dart)。领域行模型：[Movie](../../lib/core/domain/media/movie.dart)。
+定义：[Movies](../../lib/core/data/database/app_database.dart)。领域行模型：[Movie](../../lib/core/domain/media/movie.dart)。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -111,7 +121,7 @@ CHECK (parsed_episode IS NULL OR parsed_episode >= 0)
 
 ### TVShows → `t_v_shows`
 
-定义：[TVShows](../../lib/core/infrastructure/database/app_database.dart)。领域行模型：[TVShow](../../lib/core/domain/media/tv_show.dart)。实际 SQL 表名是 **`t_v_shows`**，不是 `tv_shows`。
+定义：[TVShows](../../lib/core/data/database/app_database.dart)。领域行模型：[TVShow](../../lib/core/domain/media/tv_show.dart)。实际 SQL 表名是 **`t_v_shows`**，不是 `tv_shows`。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -136,7 +146,7 @@ CHECK (parsed_episode IS NULL OR parsed_episode >= 0)
 
 ### Seasons → `seasons`
 
-定义：[Seasons](../../lib/core/infrastructure/database/app_database.dart)。领域行模型：[Season](../../lib/core/domain/media/season.dart)。
+定义：[Seasons](../../lib/core/data/database/app_database.dart)。领域行模型：[Season](../../lib/core/domain/media/season.dart)。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -151,7 +161,7 @@ CHECK (parsed_episode IS NULL OR parsed_episode >= 0)
 
 ### Episodes → `episodes`
 
-定义：[media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift)。领域行模型：[Episode](../../lib/core/domain/media/episode.dart)。
+定义：[media_tables.drift](../../lib/core/data/database/media_tables.drift)。领域行模型：[Episode](../../lib/core/domain/media/episode.dart)。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -181,7 +191,7 @@ CHECK (episode_key = tv_show_tmdb_id || '_s' || season_number || 'e' || episode_
 
 ### StorageSources → `storage_sources`
 
-定义：[StorageSources](../../lib/core/infrastructure/database/app_database.dart)。生成行模型 `StorageSourceRow` 经 [存储源仓库](../../lib/core/infrastructure/storage/storage_source_repository.dart) 转为领域对象。
+定义：[StorageSources](../../lib/core/data/database/app_database.dart)。生成行模型 `StorageSourceDO` 经 [存储源仓库](../../lib/core/data/storage/database_storage_source_repository.dart) 转为领域对象。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -306,13 +316,13 @@ erDiagram
 
 ## 映射、字段编码与索引
 
-- drift `@UseRowClass` / SQL `WITH` 直接构造不可变领域模型；Dart 表生成 `toInsertable()`，SQL 表通过 typed Companion 写入。媒体源使用生成的 `StorageSourceRow` 经服务转换。
-- 类型、演员和客串演员列表由 [JSON 转换器](../../lib/core/infrastructure/database/json_converters.dart) 存为 TEXT，不是关联表。当前满足展示，复杂的按演员 / 类型查询仍需评估。
+- drift 为六表生成独立 DO，边界 Mapper 显式转换业务模型。写入通过 typed Companion 或 DO 的生成映射，局部更新仅提交受影响字段。
+- 类型、演员和客串演员列表由 [JSON Mapper](../../lib/core/data/database/mappers/stored_json_mapper.dart) 存为 TEXT，不是关联表。当前满足展示，复杂的按演员 / 类型查询仍需评估。
 - 枚举存名称；日期按 [build.yaml](../../build.yaml) 配置存 ISO 文本以保留微秒精度。播放位置和时长以毫秒存储。
 - 文件唯一索引 `(sourceId, path)` 同时支持来源路径查找；电影索引 `(movieTmdbId, addedAt)` 支持按电影找版本与最早添加时间；剧集索引 `(tvShowTmdbId, parsedSeason, parsedEpisode, path)` 支持剧集版本排序；单集键、观看状态、最近观看时间、收藏与添加时间索引用于对应查询。
 - 季组合主键与集的 `(tvShowTmdbId, seasonNumber, episodeNumber)` 唯一索引支持归属过滤与排序。单集的 `(episodeKey, tvShowTmdbId)` 唯一约束是文件组合外键的目标，不是多余的业务主键。
 - 每个连接在开放业务读写前执行 `PRAGMA foreign_keys=ON`，真实 SQLite 测试确认拒绝错误引用和执行删除级联。
-- 文件与单集表在 `media_tables.drift` 声明组合外键，让生成器识别完整关系和季 → 集的级联订阅通知；其他四表使用 Dart 声明，不重复定义同一张表。不手工修改生成代码或使用内部通知 API。SQL 表与现有领域模型的组合方式见 [drift 文件](https://drift.simonbinder.eu/sql_api/drift_files/) 与 [行模型映射](https://drift.simonbinder.eu/dart_api/rows/)。
+- 文件与单集表在 `media_tables.drift` 声明组合外键，让生成器识别完整关系和季 → 集的级联订阅通知；其他四表使用 Dart 声明，不重复定义同一张表。不手工修改生成代码或使用内部通知 API。SQL 表与独立行类型的声明方式见 [drift 文件](https://drift.simonbinder.eu/sql_api/drift_files/) 与 [行模型映射](https://drift.simonbinder.eu/dart_api/rows/)。
 
 索引按过滤、关联和排序路径配置，不为每个字段建索引，也不重复建立与主键 / 唯一约束相同的索引。当前组合索引的查询计划已验证；收藏、观看状态等索引在真实规模下的收益与写入成本仍需负载测试，不把“已有索引”当作性能保证。
 
@@ -322,12 +332,11 @@ erDiagram
 
 | 文件 | 职责 |
 | --- | --- |
-| [app_database.dart](../../lib/core/infrastructure/database/app_database.dart) | 电影 / 剧 / 季 / 来源表、领域模型映射、SQL 表入口与 schema 生命周期 |
-| [media_tables.drift](../../lib/core/infrastructure/database/media_tables.drift) | 文件与单集表、组合外键、CHECK、索引及 SQL 行模型映射 |
-| [app_database.g.dart](../../lib/core/infrastructure/database/app_database.g.dart) | drift 生成的列、映射、Companion 与数据库实现，不手工修改 |
-| [database_service.dart](../../lib/core/infrastructure/database/database_service.dart) | 连接、字段级写入、事务与简单类型化查询 |
-| [library_repository.dart](../../lib/features/library/catalog/library_repository.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
-| [json_converters.dart](../../lib/core/infrastructure/database/json_converters.dart) | JSON 列与领域列表互转 |
+| [app_database.dart](../../lib/core/data/database/app_database.dart) | 表定义、共享连接、迁移、字段级写入、事务与公共类型化查询 |
+| [media_tables.drift](../../lib/core/data/database/media_tables.drift) | 文件与单集表、组合外键、CHECK、索引及 SQL 行模型映射 |
+| [app_database.g.dart](../../lib/core/data/database/app_database.g.dart) | drift 生成的列、映射、Companion 与数据库实现，不手工修改 |
+| [database_library_catalog_repository.dart](../../lib/features/library/catalog/data/database_library_catalog_repository.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
+| [数据库 Mapper](../../lib/core/data/database/mappers/media_file_mapper.dart)、[JSON Mapper](../../lib/core/data/database/mappers/stored_json_mapper.dart) | DO、业务类型与 JSON 字段边界转换 |
 
 ## 写入边界
 
@@ -362,7 +371,7 @@ SQL 完成列表搜索、排序、收藏去重和每标题续播目标选择，�
 
 ## 连接、schema 与凭据
 
-[sqlite_setup.dart](../../lib/core/infrastructure/database/sqlite_setup.dart) 启用 WAL、5 秒 busy timeout 并注册 `library_normalize`；首次切换 WAL 锁竞争限时重试。首次建表在 `BEGIN IMMEDIATE` 写锁内复查 `user_version` 并原子提交。生产共享连接仍保留这些并发安全措施。
+[sqlite_setup.dart](../../lib/core/data/database/sqlite_setup.dart) 启用 WAL、5 秒 busy timeout 并注册 `library_normalize`；首次切换 WAL 锁竞争限时重试。首次建表在 `BEGIN IMMEDIATE` 写锁内复查 `user_version` 并原子提交。生产共享连接仍保留这些并发安全措施。
 
 项目尚无 Release，当前 `schemaVersion = 2`；打开版本 1 的 SQLite 开发库时，在写锁内原子删除六张旧表并按新结构重建，不搬运数据，媒体源、元数据、进度和收藏全部重置，需要重新配置与扫描。SharedPreferences 设置和图片缓存不在这次重建范围内。版本复查可防止并发打开重复重建；其他版本不自动清空，拒绝未知版本转换。
 
@@ -370,7 +379,7 @@ SQL 完成列表搜索、排序、收藏去重和每标题续播目标选择，�
 
 ```bash
 fvm dart run build_runner build
-fvm dart run drift_dev schema dump lib/core/infrastructure/database/app_database.dart drift_schemas/
+fvm dart run drift_dev schema dump lib/core/data/database/app_database.dart drift_schemas/
 ```
 
 后续 SQLite schema 变化需提升版本并明确迁移策略 / 测试，不能把这次开发库重建推广为发布版可随意清空数据。
@@ -381,6 +390,6 @@ fvm dart run drift_dev schema dump lib/core/infrastructure/database/app_database
 
 - 无引用元数据回收及凭据存储；引用约束已实施。
 - 大库搜索、扩展 LIMIT 与索引的实测容量基线。
-- TMDB 网络错误与搜索未命中的区分，避免失败匹配破坏已有关系。
+- TMDB 请求失败后的退避与重试策略；请求失败和搜索未命中已经区分，失败保留已有关系。
 
 数据层自动化验证唯一键、外键、CHECK、JSON、日期、事务、局部更新、开发库并发重建、查询计划与关闭重开；组合索引查询计划通过不等于大库性能已验证。自动化与真实媒体 / 平台验证分别记录在 [测试指南](../guides/testing.md)。

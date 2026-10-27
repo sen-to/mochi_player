@@ -1,3 +1,6 @@
+// 【通用界面】提供带上下限及步进按钮的整数输入。
+// 组件管理编辑状态，数值与持久化由调用方负责。
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,10 +11,7 @@ import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_typography.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
-/// A bounded integer input with increment and decrement controls.
-///
-/// The value is controlled by the parent. The component owns its editing
-/// controller and normalizes incomplete or out-of-range input on focus loss.
+/// 提供带上下限及增减按钮的整数输入。数值由父级控制；组件持有编辑控制器，并在失焦时规范化未完成或越界输入。
 class AppInputNumber extends StatefulWidget {
   const AppInputNumber({
     super.key,

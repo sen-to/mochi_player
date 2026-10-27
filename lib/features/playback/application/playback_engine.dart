@@ -1,9 +1,11 @@
+// 【播放后端契约】定义打开、控制、轨道、状态流和视频表面。
+// 后端类型与任意 mpv 属性不进入调用方，会话负责引擎所有权。
+
 import 'package:flutter/widgets.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/features/playback/domain/playback_track.dart';
 
-/// The Flutter playback boundary. No backend player, property names or track
-/// objects may escape it. The backend owns the video surface and native resources.
+/// Flutter 播放边界；后端播放器、属性名称或轨道对象不能泄漏到调用方，视频表面与原生资源由后端封装。
 abstract interface class PlaybackEngine {
   PlaybackState get state;
 
@@ -11,10 +13,10 @@ abstract interface class PlaybackEngine {
 
   Widget buildVideoSurface();
 
-  /// Completes when the open command settles; later decode errors use the stream.
+  /// 打开命令完成后结束等待；之后的解码错误通过状态流报告。
   Future<void> open(PlaybackTarget target, {Duration? start});
 
-  /// Unload media; completion establishes that target resources can be released.
+  /// 卸载媒体，完成后才说明可以释放对应目标资源。
   Future<void> stop();
 
   Future<void> pause();
@@ -37,7 +39,7 @@ abstract interface class PlaybackEngine {
 
   Future<double?> readCacheBytesPerSecond();
 
-  /// Invalidate pending option changes when switching media or shutting down.
+  /// 换片或关闭时，使待执行的选项修改失效。
   void cancelPendingCommands();
 
   Future<void> dispose();

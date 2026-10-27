@@ -1,3 +1,6 @@
+// 【行为测试】验证组合空状态、错误或完成结果的图标、说明与操作。
+// 测试对象的职责边界：只展示状态，不发起业务请求。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

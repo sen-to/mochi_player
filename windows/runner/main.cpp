@@ -1,3 +1,6 @@
+// 【应用宿主】启动共享 Flutter 引擎并提供 Windows 原生窗口操作。
+// 通过视图 ID 路由窗口请求，COM 对话框与消息循环在宿主线程内完成。
+
 #include <flutter/dart_project.h>
 #include <flutter/flutter_engine.h>
 #include <flutter_windows.h>

@@ -1,14 +1,51 @@
+// 【行为测试】验证加载、串行保存普通偏好并应用运行时网络配置。
+// 测试对象的职责边界：配置生效后发出变更回调，不依赖首页页面或趋势 Provider。
+
+import 'dart:async';
+
 import 'package:dio/dio.dart';
-import 'package:mochi_player/core/domain/app_failure.dart';
-import '../../../support/tmdb_fixture.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
+import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
+import 'package:mochi_player/features/settings/application/app_settings_repository.dart';
+import 'package:mochi_player/features/settings/application/app_settings_runtime.dart';
+import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/tmdb_settings_runtime.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../support/tmdb_fixture.dart';
+
 void main() {
+  test('disposing during load prevents late runtime changes and notifications', () async {
+    final repository = _DelayedSettingsRepository();
+    final runtime = _RecordingRuntime();
+    final provider = AppSettingsProvider(settingsRepository: repository, runtime: runtime);
+    var notifications = 0;
+    provider.addListener(() => notifications++);
+    final loading = provider.load();
+    provider.dispose();
+    repository.loading.complete(const AppSettings(tmdbApiKey: 'late'));
+    await loading;
+    expect(notifications, 1);
+    expect(runtime.applied, isEmpty);
+    expect(await provider.testTmdbConnection(), false);
+    expect(runtime.connectionChecks, 0);
+  });
+  test('disposing drains an accepted save without applying runtime changes', () async {
+    final repository = _DelayedSettingsRepository();
+    final runtime = _RecordingRuntime();
+    final provider = AppSettingsProvider(settingsRepository: repository, runtime: runtime);
+    final saving = _save(provider, tmdbApiKey: 'accepted', applyRuntime: true);
+    provider.dispose();
+    await Future<void>.delayed(Duration.zero);
+    repository.saving.complete(const AppSettings(tmdbApiKey: 'accepted'));
+    await saving;
+    expect(repository.saved.single.tmdbApiKey, 'accepted');
+    expect(runtime.applied, isEmpty);
+  });
+
   for (final entry in {
     401: AppFailure.tmdbAuthentication,
     429: AppFailure.tmdbRateLimited,
@@ -30,7 +67,10 @@ void main() {
           ),
         ),
       );
-      final provider = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: tmdb);
+      final provider = AppSettingsProvider(
+        settingsRepository: PreferencesAppSettingsRepository(),
+        runtime: TmdbSettingsRuntime(tmdbApi: tmdb),
+      );
       addTearDown(provider.dispose);
       await provider.load();
       expect(await provider.testTmdbConnection(), isFalse);
@@ -45,8 +85,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     var changes = 0;
     final provider = AppSettingsProvider(
-      settingsRepository: AppSettingsRepository(),
-      tmdbService: TmdbService(),
+      settingsRepository: PreferencesAppSettingsRepository(),
+      runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
       onTmdbConfigurationChanged: () => changes++,
     );
     addTearDown(provider.dispose);
@@ -67,7 +107,7 @@ void main() {
     var changes = 0;
     final provider = AppSettingsProvider(
       settingsRepository: _FailingSettingsRepository(),
-      tmdbService: TmdbService(),
+      runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
       onTmdbConfigurationChanged: () => changes++,
     );
     addTearDown(provider.dispose);
@@ -82,8 +122,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     var changes = 0;
     final provider = AppSettingsProvider(
-      settingsRepository: AppSettingsRepository(),
-      tmdbService: TmdbService(),
+      settingsRepository: PreferencesAppSettingsRepository(),
+      runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
       onTmdbConfigurationChanged: () => changes++,
     );
     addTearDown(provider.dispose);
@@ -97,7 +137,10 @@ void main() {
 
   test('exit drains accepted settings saves and rejects new drafts', () async {
     SharedPreferences.setMockInitialValues({});
-    final provider = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: TmdbService());
+    final provider = AppSettingsProvider(
+      settingsRepository: PreferencesAppSettingsRepository(),
+      runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
+    );
     await provider.load();
     final first = _save(provider, tmdbApiKey: 'first');
     final second = _save(provider, tmdbApiKey: 'last-accepted');
@@ -111,7 +154,10 @@ void main() {
 
   test('persists drafts without applying network runtime configuration', () async {
     SharedPreferences.setMockInitialValues({});
-    final provider = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: TmdbService());
+    final provider = AppSettingsProvider(
+      settingsRepository: PreferencesAppSettingsRepository(),
+      runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
+    );
     await provider.load();
 
     await _save(provider, tmdbApiKey: 'draft-key');
@@ -141,7 +187,32 @@ Future<void> _save(AppSettingsProvider provider, {required String tmdbApiKey, bo
   );
 }
 
-class _FailingSettingsRepository extends AppSettingsRepository {
+class _FailingSettingsRepository extends PreferencesAppSettingsRepository {
   @override
   Future<AppSettings> save(AppSettings settings) async => throw StateError('settings write failed');
+}
+
+class _DelayedSettingsRepository implements AppSettingsRepository {
+  final loading = Completer<AppSettings>();
+  final saving = Completer<AppSettings>();
+  final saved = <AppSettings>[];
+  @override
+  Future<AppSettings> load() => loading.future;
+  @override
+  Future<AppSettings> save(AppSettings settings) {
+    saved.add(settings);
+    return saving.future;
+  }
+}
+
+class _RecordingRuntime implements AppSettingsRuntime {
+  final applied = <AppSettings>[];
+  int connectionChecks = 0;
+  @override
+  void apply(AppSettings settings) => applied.add(settings);
+  @override
+  Future<bool> testTmdbConnection() async {
+    connectionChecks++;
+    return true;
+  }
 }

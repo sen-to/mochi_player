@@ -1,3 +1,6 @@
+// 【主题规格】定义标题、正文和辅助文字的排版。
+// 只提供视觉规格，不处理本地化文案。
+
 import 'package:flutter/material.dart';
 
 abstract final class AppTypography {

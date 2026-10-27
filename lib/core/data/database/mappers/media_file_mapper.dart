@@ -1,0 +1,73 @@
+// 【持久化映射】在 MediaFileDO 数据库记录与 MediaFile 业务模型之间转换。
+// 数据库字段、枚举存储值和 JSON 转换限于数据层，业务模型不依赖 drift。
+
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/domain/media/models.dart';
+
+abstract final class MediaFileMapper {
+  static MediaFile toDomain(MediaFileDO row) => MediaFile(
+    id: row.id,
+    sourceId: row.sourceId,
+    path: row.path,
+    fileName: row.fileName,
+    parsedTitle: row.parsedTitle,
+    parsedYear: row.parsedYear,
+    parsedSeason: row.parsedSeason,
+    parsedEpisode: row.parsedEpisode,
+    mediaType: MediaType.values.byName(row.mediaType),
+    explicitTmdbId: row.explicitTmdbId,
+    metadataMatchStatus: MetadataMatchStatus.values.byName(row.metadataMatchStatus),
+    movieTmdbId: row.movieTmdbId,
+    tvShowTmdbId: row.tvShowTmdbId,
+    episodeKey: row.episodeKey,
+    size: row.size,
+    container: row.container,
+    width: row.width,
+    height: row.height,
+    videoCodec: row.videoCodec,
+    audioCodec: row.audioCodec,
+    audioChannels: row.audioChannels,
+    isHdr: row.isHdr,
+    hdrFormat: row.hdrFormat,
+    versionLabel: row.versionLabel,
+    duration: row.duration,
+    position: row.position,
+    watchStatus: WatchStatus.values.byName(row.watchStatus),
+    lastWatchedAt: row.lastWatchedAt,
+    isFavorite: row.isFavorite,
+    addedAt: row.addedAt,
+  );
+
+  static MediaFileDO toDO(MediaFile model) => MediaFileDO(
+    id: model.id,
+    sourceId: model.sourceId,
+    path: model.path,
+    fileName: model.fileName,
+    parsedTitle: model.parsedTitle,
+    parsedYear: model.parsedYear,
+    parsedSeason: model.parsedSeason,
+    parsedEpisode: model.parsedEpisode,
+    mediaType: model.mediaType.name,
+    explicitTmdbId: model.explicitTmdbId,
+    metadataMatchStatus: model.metadataMatchStatus.name,
+    movieTmdbId: model.movieTmdbId,
+    tvShowTmdbId: model.tvShowTmdbId,
+    episodeKey: model.episodeKey,
+    size: model.size,
+    container: model.container,
+    width: model.width,
+    height: model.height,
+    videoCodec: model.videoCodec,
+    audioCodec: model.audioCodec,
+    audioChannels: model.audioChannels,
+    isHdr: model.isHdr,
+    hdrFormat: model.hdrFormat,
+    versionLabel: model.versionLabel,
+    duration: model.duration,
+    position: model.position,
+    watchStatus: model.watchStatus.name,
+    lastWatchedAt: model.lastWatchedAt,
+    isFavorite: model.isFavorite,
+    addedAt: model.addedAt,
+  );
+}

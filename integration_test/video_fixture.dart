@@ -1,9 +1,11 @@
+// 【冒烟素材】在临时目录生成原生播放冒烟所需的视频。
+// 不下载素材，不写入用户媒体库。
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-/// A moving RGB AVI created inside the test app's sandbox, without network,
-/// copyrighted media, external encoders or checked-in binary assets.
+/// 在测试应用沙箱内生成动态 RGB AVI，不依赖网络、外部编码器、受版权保护的素材或仓库二进制资产。
 Future<File> createVideoFixture(Directory directory, {int frames = 100}) async {
   const width = 160, height = 90, fps = 10;
   const frameSize = width * height * 3;

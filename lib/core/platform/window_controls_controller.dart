@@ -1,7 +1,10 @@
+// 【窗口交互】协调原生或应用绘制的窗口按钮。
+// 使用所属视图的 WindowService，不持有播放资源。
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-/// Controls window buttons that are owned by the operating system or app shell.
+/// 控制系统或应用外壳持有的窗口按钮。
 class WindowControlsController extends ChangeNotifier {
   WindowControlsController({required this.viewId});
 

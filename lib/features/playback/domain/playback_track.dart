@@ -1,4 +1,7 @@
-/// Track identities include their origin: an external path is not an embedded id.
+// 【播放模型】描述音轨、字幕轨道、来源及选中状态。
+// 外挂路径与内嵌轨道身份分开，不暴露后端 SDK 类型。
+
+/// 轨道身份包括来源，外挂字幕路径不等同于内嵌轨道 ID。
 enum PlaybackTrackOrigin { embedded, automatic, disabled, externalFile, externalData }
 
 class PlaybackAudioTrack {

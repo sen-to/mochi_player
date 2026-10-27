@@ -1,7 +1,10 @@
+// 【播放业务规则】决定是否续播及应回退到的起播位置。
+// 只根据文件快照计算，不执行 seek 或写入进度。
+
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/watch_progress_policy.dart';
 
-/// Decides whether playback should resume and where it should start.
+/// 决定是否续播，以及应该从哪个位置开始。
 class PlaybackResumePolicy {
   static const Duration backoff = Duration(seconds: 5);
 

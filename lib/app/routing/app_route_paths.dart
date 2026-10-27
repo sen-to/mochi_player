@@ -1,6 +1,9 @@
+// 【路由约定】集中定义页面导航路径。
+// 不创建页面或保存导航状态。
+
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
+import 'package:mochi_player/app/ui/navigation/app_destination.dart';
 
 abstract final class AppRoutePaths {
   static String destination(AppDestination destination) => destination.path;

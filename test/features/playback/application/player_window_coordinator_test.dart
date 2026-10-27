@@ -1,3 +1,6 @@
+// 【行为测试】验证串行创建、替换及关闭单个播放器视图。
+// 测试对象的职责边界：通过注入的窗口工厂工作，重复请求不产生额外播放器。
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';

@@ -1,22 +1,25 @@
-import '../../support/database_fixture.dart';
+// 【行为测试】验证串行协调退出请求、播放收尾与应用数据写入。
+// 测试对象的职责边界：重复退出共享同一操作，单阶段失败仍继续后续释放。
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/app/application/application_exit_coordinator.dart';
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
-import 'package:mochi_player/core/infrastructure/database/app_database.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
 import 'package:mochi_player/features/playback/application/playback_progress_writer.dart';
-import 'package:mochi_player/features/playback/presentation/controllers/player_window_close_coordinator.dart';
+import 'package:mochi_player/features/playback/ui/controllers/player_window_close_coordinator.dart';
+
+import '../../support/database_fixture.dart';
 
 void main() {
   test('queued periodic save and final snapshot survive graceful exit and reopen', () async {
     final directory = await Directory.systemTemp.createTemp('mochi_exit_test_');
     final path = File('${directory.path}/library.sqlite');
-    final database = DatabaseService.withDatabase(AppDatabase(NativeDatabase(path, setup: configureSqlite)));
+    final database = AppDatabase(NativeDatabase(path, setup: configureSqlite));
     await database.init();
     final file = MediaFile(
       id: 0,
@@ -68,7 +71,7 @@ void main() {
       finishPeriodic.complete();
       await Future.wait([periodic, shuttingDown]);
       expect(events, ['begin', 'saved:10000', 'saved:42000', 'released', 'player closed', 'main cleanup', 'exit']);
-      final reopened = DatabaseService.withDatabase(AppDatabase(NativeDatabase(path, setup: configureSqlite)));
+      final reopened = AppDatabase(NativeDatabase(path, setup: configureSqlite));
       try {
         await reopened.init();
         final saved = (await reopened.getMediaFile('source', '/test.mkv'))!;

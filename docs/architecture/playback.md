@@ -25,16 +25,16 @@ sequenceDiagram
 
 ## 入口与播放请求
 
-- 媒体库播放入口：`LibraryPlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[library_playback_launcher.dart](../../lib/features/library/library_playback_launcher.dart)）。版本选择和队列查询归属媒体库，完成后向播放功能提交请求；播放功能不导入媒体库 Provider。
+- 媒体库播放入口：`LibraryPlaybackLauncher` 的 `playFile` / `playMovie` / `playTVShow` / `playEpisode`（[library_playback_launcher.dart](../../lib/features/library/ui/library_playback_launcher.dart)）。版本选择和队列查询归属媒体库，完成后向播放功能提交请求；播放功能不导入媒体库 Provider。
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
 - 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，在同一 isolate 内传递 `MediaFile`、队列和请求 ID。
-- [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器。[player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建独立视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 保存启动数据与窗口展示状态；[player_window_app.dart](../../lib/features/playback/presentation/player_window_app.dart) 负责界面，共享设置、语言与主题。引擎工厂、数据库播放适配和目标解析器均由组装入口注入。
-- [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 是应用契约；[DatabasePlaybackMediaRepository](../../lib/features/playback/infrastructure/database_playback_media_repository.dart) 是基础设施实现，使用注入的共享数据库。播放会话不自行创建数据库服务或媒体源解析器。
+- [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器。[player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建独立视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 保存启动数据与窗口展示状态；[player_window_app.dart](../../lib/features/playback/ui/player_window_app.dart) 负责界面，共享设置、语言与主题。引擎工厂、数据库播放适配和目标解析器均由组装入口注入。
+- [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 是应用契约；[DatabasePlaybackMediaRepository](../../lib/features/playback/data/database_playback_media_repository.dart) 是基础设施实现，使用注入的共享数据库。播放会话不自行创建数据库服务或媒体源解析器。
 - 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
 ## 播放目标解析
 
-播放会话取得 `MediaFile` 后，交给 [StorageSourcePlaybackResolver](../../lib/core/infrastructure/storage/storage_source_playback_resolver.dart) 按媒体源类型分派：
+播放会话取得 `MediaFile` 后，交给 [StorageSourcePlaybackResolver](../../lib/core/data/storage/storage_source_playback_resolver.dart) 按媒体源类型分派：
 
 | 类型 | 解析结果 | 说明 |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ sequenceDiagram
 
 ### SMB HTTP 回源
 
-[解析器](../../lib/core/infrastructure/storage/smb_playback_resolver.dart) 打开 SMB 文件，启动本机 HTTP 服务并返回播放地址。播放器通过 Range 请求读取所需字节：
+[解析器](../../lib/core/data/storage/smb_playback_resolver.dart) 打开 SMB 文件，启动本机 HTTP 服务并返回播放地址。播放器通过 Range 请求读取所需字节：
 
 ```mermaid
 sequenceDiagram
@@ -99,7 +99,7 @@ sequenceDiagram
 
 窗口入口注入 `MediaKitPlaybackEngine` 工厂，会话创建并持有引擎，`PlayerPlaybackController` 借用引擎。控制器和控制栏通过 [PlaybackEngine](../../lib/features/playback/application/playback_engine.dart) 使用项目状态与轨道类型，执行播放控制、状态订阅、选轨、字幕覆盖和缓存速度查询；视频视图也由后端提供。
 
-[MediaKitPlaybackEngine](../../lib/features/playback/infrastructure/media_kit_playback_engine.dart) 内部创建 `Player`（启用 libass）与 `VideoController`，将 `PlaybackTarget` 的 URL、请求头与续播起点转换为后端媒体对象。以下 mpv 参数仅在此实现中下发：
+[MediaKitPlaybackEngine](../../lib/features/playback/data/media_kit_playback_engine.dart) 内部创建 `Player`（启用 libass）与 `VideoController`，将 `PlaybackTarget` 的 URL、请求头与续播起点转换为后端媒体对象。以下 mpv 参数仅在此实现中下发：
 
 | 参数 | 取值来源 |
 | --- | --- |
@@ -159,7 +159,7 @@ macOS 退出原生通道将 Cmd+Q / Dock 退出导向同一退出协调器；窗
 
 ## 字幕
 
-入口为 [PlayerSubtitleController](../../lib/features/playback/presentation/controllers/player_subtitle_controller.dart)，集中维护轨道订阅、语言优先级、手动选择、外挂文件身份和样式覆盖。页面通过 `PlayerPlaybackController.subtitles` 访问；播放控制器负责创建、转发状态通知、换片时重置及关闭时取消字幕订阅，字幕控制器只借用引擎。
+入口为 [PlayerSubtitleController](../../lib/features/playback/ui/controllers/player_subtitle_controller.dart)，集中维护轨道订阅、语言优先级、手动选择、外挂文件身份和样式覆盖。页面通过 `PlayerPlaybackController.subtitles` 访问；播放控制器负责创建、转发状态通知、换片时重置及关闭时取消字幕订阅，字幕控制器只借用引擎。
 
 - **语言优先级**：默认 `zh,chi,zho,chs,cht,eng`，既用于自动选轨，也直接写入 mpv 的 `slang`。
 - **外挂字幕**：视图所属的系统文件对话框限定 `srt / ass / ssa / vtt`；加载后按轨道标题回查（引擎不会回传新轨标识）。
@@ -171,11 +171,11 @@ macOS 退出原生通道将 Cmd+Q / Dock 退出导向同一退出协调器；窗
 
 | 环节 | 规则 |
 | --- | --- |
-| 周期保存 | 每 10 秒一次（[player_playback_controller.dart](../../lib/features/playback/presentation/controllers/player_playback_controller.dart)） |
+| 周期保存 | 每 10 秒一次（[player_playback_controller.dart](../../lib/features/playback/ui/controllers/player_playback_controller.dart)） |
 | 位移阈值 | 与上次保存位置相差不足 5000ms 时跳过（`PlaybackSessionController.saveProgress`） |
 | 强制保存 | 切换剧集、播放完成、关闭窗口前、组件销毁兜底 |
 | 写入顺序 | `PlaybackProgressWriter` 串行化，避免旧快照覆盖新位置 |
-| 落库 | `DatabasePlaybackMediaRepository` → `DatabaseService.updateProgress`（同时推导观看状态，见 [data-model.md](data-model.md)） |
+| 落库 | `DatabasePlaybackMediaRepository` → `AppDatabase.updateProgress`（同时推导观看状态，见 [data-model.md](data-model.md)） |
 | 续播策略 | 位置回退 5 秒后开始；位置为 0 不续播；已完成（≥95%）不续播（[playback_resume_policy.dart](../../lib/features/playback/domain/playback_resume_policy.dart)） |
 
 ## 设计限制

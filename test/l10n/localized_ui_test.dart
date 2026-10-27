@@ -1,12 +1,16 @@
+// 【行为测试】验证通过界面上下文获取文案，并将失败语义转换为本地化提示。
+// 测试对象的职责边界：语言资源由 ARB 生成，此文件不保存业务状态。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
-import 'package:mochi_player/features/library/media_file_kind.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/browser/file_browser_entry.dart';
-import 'package:mochi_player/features/library/browser/file_browser_entry_display.dart';
-import 'package:mochi_player/features/settings/presentation/widgets/language_preference_control.dart';
-import 'package:mochi_player/l10n/app_locale_provider.dart';
+import 'package:mochi_player/features/library/browser/domain/file_browser_entry.dart';
+import 'package:mochi_player/features/library/browser/ui/file_browser_entry_display.dart';
+import 'package:mochi_player/features/library/domain/media_file_kind.dart';
+import 'package:mochi_player/features/settings/ui/widgets/language_preference_control.dart';
+import 'package:mochi_player/l10n/application/app_locale_provider.dart';
+import 'package:mochi_player/l10n/data/preferences_language_repository.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,7 +42,7 @@ void main() {
   });
 
   testWidgets('language picker switches UI and preserves mounted playback state', (tester) async {
-    final locales = AppLocaleProvider();
+    final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
     await locales.load();
     await locales.setLanguage(AppLanguage.zh);
     var mounts = 0;
@@ -88,7 +92,7 @@ void main() {
   });
 
   testWidgets('dates, plural counts and structured errors follow the current locale', (tester) async {
-    final locales = AppLocaleProvider();
+    final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
     await locales.setLanguage(AppLanguage.en);
     final item = FileBrowserEntry(
       sourceId: 'test',

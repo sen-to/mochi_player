@@ -1,3 +1,6 @@
+// 【行为测试】验证为横向内容提供前后滚动按钮及滚动状态。
+// 测试对象的职责边界：组件持有并释放自己的滚动控制器。
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

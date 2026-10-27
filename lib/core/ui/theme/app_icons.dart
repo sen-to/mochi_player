@@ -1,3 +1,6 @@
+// 【主题规格】集中定义跨功能复用的图标。
+// 功能专属组合仍由所属界面负责。
+
 import 'package:flutter/cupertino.dart';
 
 class AppIcons {

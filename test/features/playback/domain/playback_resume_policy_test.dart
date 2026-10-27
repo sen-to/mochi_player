@@ -1,3 +1,6 @@
+// 【行为测试】验证决定是否续播及应回退到的起播位置。
+// 测试对象的职责边界：只根据文件快照计算，不执行 seek 或写入进度。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/features/playback/domain/playback_resume_policy.dart';

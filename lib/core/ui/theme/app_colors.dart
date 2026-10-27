@@ -1,3 +1,6 @@
+// 【主题规格】提供应用颜色及随主题变化的语义色。
+// 界面按语义取色，业务逻辑不依赖颜色值。
+
 import 'package:flutter/material.dart';
 
 @immutable

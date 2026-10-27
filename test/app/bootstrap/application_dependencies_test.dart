@@ -1,33 +1,37 @@
+// 【行为测试】验证集中选择实现、构造共享实例并连接跨功能回调。
+// 测试对象的职责边界：业务通过构造参数接收依赖，资源作用域由启动入口决定。
+
 import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/app/bootstrap/application_dependencies.dart';
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/data/database/sqlite_setup.dart';
+import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
+import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
+import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
-import 'package:mochi_player/core/infrastructure/database/app_database.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../support/database_fixture.dart';
 
 void main() {
-  late DatabaseService database;
+  late AppDatabase database;
   late ApplicationDependencies dependencies;
-  late TmdbService tmdb;
+  late TmdbApi tmdb;
   setUp(() async {
     SharedPreferences.setMockInitialValues({'tmdb_api_key': 'configured-key'});
-    database = DatabaseService.withDatabase(AppDatabase(NativeDatabase.memory(setup: configureSqlite)));
+    database = AppDatabase(NativeDatabase.memory(setup: configureSqlite));
     await database.init();
-    tmdb = _TmdbService();
+    tmdb = _TmdbApi();
     dependencies = ApplicationDependencies(
       database: database,
       tmdb: tmdb,
       storageRegistry: StorageAdapterRegistry([_StorageAdapter()]),
-      settingsRepository: AppSettingsRepository(),
+      settingsRepository: PreferencesAppSettingsRepository(),
     );
   });
   tearDown(() async {
@@ -46,11 +50,11 @@ void main() {
     await dependencies.settings.load();
     expect(tmdb.isConfigured, isTrue);
     expect(dependencies.trending.isConfigured, isTrue);
-    expect(TmdbService().isConfigured, isFalse);
+    expect(TmdbApi().isConfigured, isFalse);
   });
   test('runtime settings refresh home collections through application wiring without a page', () async {
     await dependencies.settings.load();
-    final service = tmdb as _TmdbService;
+    final service = tmdb as _TmdbApi;
     expect(service.collectionRequests, 0);
     const defaults = AppSettings();
     await dependencies.settings.saveSettings(
@@ -114,7 +118,7 @@ void main() {
   });
 }
 
-class _TmdbService extends TmdbService {
+class _TmdbApi extends TmdbApi {
   int collectionRequests = 0;
   Future<List<TrendingItem>> _collection() async {
     collectionRequests++;

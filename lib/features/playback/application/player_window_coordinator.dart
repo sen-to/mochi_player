@@ -1,6 +1,9 @@
+// 【窗口业务编排】串行创建、替换及关闭单个播放器视图。
+// 通过注入的窗口工厂工作，重复请求不产生额外播放器。
+
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 
-/// A live playback view in the same isolate as the library.
+/// 与媒体库处于同一 isolate 的活动播放器视图。
 abstract interface class PlayerWindowSession {
   bool get isClosing;
   Future<void> replace(PlayerWindowRequest request);
@@ -8,7 +11,7 @@ abstract interface class PlayerWindowSession {
   Future<void> close();
 }
 
-/// Serializes creation, replacement and shutdown of the single player view.
+/// 串行创建、替换及关闭单个播放器视图。
 class PlayerWindowCoordinator {
   PlayerWindowCoordinator({required this.createSession});
 
@@ -35,8 +38,7 @@ class PlayerWindowCoordinator {
         active = await createSession(request);
         _active = active;
       }
-      // Creation/resolution may finish after shutdown started. Its session stays
-      // owned here so closeAll can drain it, but it must never be activated.
+      // 创建或地址解析可能在退出开始后才完成；会话仍归此处所有，供 closeAll 收尾，但不能再激活。
       _checkRunning();
       await active.activate();
     });
@@ -56,9 +58,9 @@ class PlayerWindowCoordinator {
   }
 }
 
-/// The player view presents its own launch error, avoiding a second toast.
-class PlayerWindowLaunchFailed implements Exception {
-  const PlayerWindowLaunchFailed();
+/// 启动错误由播放器视图自行展示，避免主窗口再次弹出提示。
+class PlayerWindowLaunchFailure implements Exception {
+  const PlayerWindowLaunchFailure();
   @override
   String toString() => 'Player view presents the launch failure.';
 }

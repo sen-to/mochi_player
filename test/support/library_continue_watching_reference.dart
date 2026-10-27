@@ -1,3 +1,6 @@
+// 【查询参考】用内存算法计算续播条目。
+// 只供测试比较 SQL 结果，生产续播由数据库查询执行。
+
 import 'package:mochi_player/core/domain/media/episode_playback_target_resolver.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/media/media_type.dart';
@@ -10,7 +13,7 @@ class LibraryContinueWatchingTarget {
   const LibraryContinueWatchingTarget({required this.file, required this.activityAt});
 }
 
-/// Produces one ordered continue-watching target per logical title.
+/// 为每个逻辑标题生成一个有序续播目标。
 class LibraryContinueWatchingReference {
   const LibraryContinueWatchingReference._();
 

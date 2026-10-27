@@ -1,3 +1,6 @@
+// 【界面入口】集中导出跨功能使用的主题、组件与展示格式。
+// 业务页面复用此入口，功能专属组件留在各自功能内。
+
 export 'components/basic/app_appearance.dart';
 export 'components/basic/app_button.dart';
 export 'components/basic/app_clickable_area.dart';

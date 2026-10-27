@@ -1,3 +1,6 @@
+// 【行为测试】验证统一文本输入框、焦点与文本编辑菜单。
+// 测试对象的职责边界：组件管理编辑交互；校验规则和保存动作由表单负责。
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';

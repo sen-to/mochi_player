@@ -1,3 +1,6 @@
+// 【行为测试】验证提供带上下限及步进按钮的整数输入。
+// 测试对象的职责边界：组件管理编辑状态，数值与持久化由调用方负责。
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

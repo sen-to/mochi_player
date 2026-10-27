@@ -1,6 +1,10 @@
-import '../../../support/library_continue_watching_reference.dart';
+// 【行为测试】验证用内存算法计算续播条目。
+// 测试对象的职责边界：只供测试比较 SQL 结果，生产续播由数据库查询执行。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
+
+import '../../../support/library_continue_watching_reference.dart';
 
 void main() {
   test('returns one progressing target per show and one version per movie', () {

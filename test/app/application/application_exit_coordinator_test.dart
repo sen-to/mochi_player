@@ -1,3 +1,6 @@
+// 【行为测试】验证串行协调退出请求、播放收尾与应用数据写入。
+// 测试对象的职责边界：重复退出共享同一操作，单阶段失败仍继续后续释放。
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';

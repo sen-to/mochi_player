@@ -1,4 +1,7 @@
-/// Authentication data for one storage source.
+// 【凭据模型】封装媒体源连接所需的账号与密码。
+// 不用于页面列表或日志展示。
+
+/// 媒体源的认证信息。
 class StorageCredentials {
   final String username;
   final String password;

@@ -1,5 +1,9 @@
+// 【本地化入口】通过界面上下文获取文案，并将失败语义转换为本地化提示。
+// 语言资源由 ARB 生成，此文件不保存业务状态。
+
 import 'package:flutter/widgets.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
+import 'package:mochi_player/core/domain/media/library_activity.dart';
 import 'package:mochi_player/l10n/generated/app_localizations.dart';
 
 export 'package:mochi_player/l10n/generated/app_localizations.dart';

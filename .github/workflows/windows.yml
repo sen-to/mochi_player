@@ -56,6 +56,9 @@ jobs:
       - name: Check localization resources
         run: dart run tool/check_l10n.dart
 
+      - name: Check architecture boundaries
+        run: dart run tool/check_architecture.dart
+
       - name: Generate localizations
         run: flutter gen-l10n
 

@@ -1,3 +1,6 @@
+// 【通用界面】展示候选项并报告当前选择。
+// 复用应用菜单外观，候选数据与选中值由调用方提供。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/overlay/app_dropdown.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';

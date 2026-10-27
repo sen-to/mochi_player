@@ -1,8 +1,11 @@
+// 【界面适配】将 Flutter 文本编辑操作接入应用菜单。
+// 只适配编辑器菜单，不定义业务快捷键。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
-/// Internal adapter from Flutter text-editing actions to the application menu.
+/// 将 Flutter 文本编辑操作适配为应用菜单。
 class AppTextContextMenu extends StatelessWidget {
   const AppTextContextMenu({super.key, required this.editableTextState});
 

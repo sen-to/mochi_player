@@ -1,3 +1,6 @@
+// 【通用界面】提供应用统一样式的布尔开关。
+// 通过回调报告选择，不保存业务配置。
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';

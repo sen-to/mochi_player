@@ -1,13 +1,16 @@
+// 【界面状态】加载并发布首页趋势、剧集和高分列表。
+// 配置刷新使旧请求失效；销毁后不更新界面状态。
+
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:mochi_player/core/domain/media/trending_item.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
+import 'package:mochi_player/features/home/application/trending_media_source.dart';
 
-/// Loads and exposes the non-persistent TMDB collections shown on the home page.
+/// 加载并发布首页展示的非持久化 TMDB 集合。
 class TrendingMediaProvider extends ChangeNotifier {
-  TrendingMediaProvider({required TmdbService tmdbService}) : _tmdbService = tmdbService;
+  TrendingMediaProvider({required TrendingMediaSource source}) : _source = source;
 
-  final TmdbService _tmdbService;
+  final TrendingMediaSource _source;
   final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
   List<TrendingItem> _movies = [];
@@ -27,14 +30,12 @@ class TrendingMediaProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  /// Whether TMDB has been configured. The home page uses this to reserve the
-  /// trending section while a configured endpoint is still returning data.
-  bool get isConfigured => _tmdbService.isConfigured;
+  /// TMDB 是否已配置；请求尚未返回时，首页据此保留趋势区域。
+  bool get isConfigured => _source.isConfigured;
 
   bool get hasContent => _movies.isNotEmpty || _tvShows.isNotEmpty || _topRated.isNotEmpty;
 
-  /// Shares ordinary loads; a configuration change requests the latest data
-  /// even when the previous endpoint still has an outstanding request.
+  /// 普通加载共用请求；配置变化时即使旧请求仍在进行，也会保留一次最新配置刷新。
   Future<void> fetch({bool refresh = false}) {
     if (_disposed) return Future<void>.value();
     if (refresh) {
@@ -52,15 +53,15 @@ class TrendingMediaProvider extends ChangeNotifier {
         _refreshPending = false;
         final generation = _configurationGeneration;
         try {
-          if (!_tmdbService.isConfigured) {
+          if (!_source.isConfigured) {
             _movies = [];
             _tvShows = [];
             _topRated = [];
           } else {
             final results = await Future.wait([
-              _tmdbService.fetchTrendingMovies(limit: 3),
-              _tmdbService.fetchTrendingTV(limit: 3),
-              _tmdbService.fetchTopRated(limit: 3),
+              _source.fetchTrendingMovies(limit: 3),
+              _source.fetchTrendingTV(limit: 3),
+              _source.fetchTopRated(limit: 3),
             ]);
             if (_disposed) return;
             if (generation != _configurationGeneration) continue;

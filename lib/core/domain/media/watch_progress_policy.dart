@@ -1,6 +1,9 @@
+// 【共享业务规则】根据播放位置与时长推导观看进度和完成状态。
+// 数据库写入、续播与进度展示使用同一规则。
+
 import 'package:mochi_player/core/domain/media/watch_status.dart';
 
-/// Shared by persistence, resume decisions and progress presentation.
+/// 持久化、续播决策和进度展示共同使用的规则。
 class WatchProgressPolicy {
   static const double completionThreshold = 0.95;
 

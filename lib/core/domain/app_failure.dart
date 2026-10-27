@@ -1,4 +1,7 @@
-/// User-facing failures carry semantic codes; diagnostic exceptions stay in logs.
+// 【失败模型】定义面向界面的失败语义。
+// 本地化由展示入口处理，底层异常保留在诊断日志。
+
+/// 面向用户的失败只携带语义编码；诊断异常保留在日志中。
 enum AppFailure {
   settingsLoad,
   settingsSave,
@@ -16,24 +19,4 @@ enum AppFailure {
   playbackLink,
   playbackOpen,
   playerLaunch,
-}
-
-enum LibraryActivityKind { scanning, scraping }
-
-class LibraryActivity {
-  const LibraryActivity({
-    required this.kind,
-    required this.completed,
-    required this.total,
-    this.success = 0,
-    this.failed = 0,
-    this.title = '',
-  });
-
-  final LibraryActivityKind kind;
-  final int completed;
-  final int total;
-  final int success;
-  final int failed;
-  final String title;
 }

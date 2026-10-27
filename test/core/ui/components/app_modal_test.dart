@@ -1,3 +1,6 @@
+// 【行为测试】验证统一确认框、表单弹窗、提交状态和关闭结果。
+// 测试对象的职责边界：业务通过回调提交，弹窗不直接访问数据库。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

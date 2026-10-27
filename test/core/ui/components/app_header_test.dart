@@ -1,3 +1,6 @@
+// 【行为测试】验证排列页面标题、操作区域及窗口控制区域。
+// 测试对象的职责边界：窗口行为使用注入的窗口能力，不创建业务服务。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

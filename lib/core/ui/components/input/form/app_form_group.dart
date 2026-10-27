@@ -1,13 +1,16 @@
+// 【表单布局】将相关表单项组合为连续的视觉分组。
+// 接收外部控件，不持有业务数据。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 
-/// Groups related form items on one visually connected surface.
+/// 在连续的视觉表面中组合相关表单项。
 class AppFormGroup extends StatelessWidget {
   const AppFormGroup({super.key, required this.children, this.title, this.trailing});
 
-  /// Optional heading for this settings card.
+  /// 此设置卡片的可选标题。
   final String? title;
   final Widget? trailing;
   final List<Widget> children;

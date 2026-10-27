@@ -1,143 +1,131 @@
 # 代码组织与新增功能
 
-本文规定后续新增和修改代码的目录骨架与职责边界。当前实现及资源所有权见 [架构总览](../architecture/overview.md)；运行与检查命令见 [测试指南](testing.md)。这里的规则指导增量开发，不代表现有代码已满足严格 Clean Architecture，也不要求为统一目录而重写已有实现。
+本指南约束整个仓库的新增与修改。统一方向见 [ADR 0007](../decisions/0007-unified-module-boundaries.md)，当前机制和资源所有权见 [架构总览](../architecture/overview.md)，验证命令见 [测试指南](testing.md)。
 
 ## 可维护性四原则
 
-1. **一个功能有明确入口。** 查询媒体库、启动扫描、修改匹配、编辑来源各有明确入口；优先从现有入口扩展，避免重复入口和仅转发方法的中间层。
-2. **同一流程的代码靠近。** 按维护时会一起阅读、一起修改的业务流程组织代码，不为了技术分层把同一流程散放在多个目录。
-3. **减少没有独立价值的拆分。** 仅服务一个流程的输入、结果、进度等伴随类型与该流程放在同一文件；保留数据库、协议、播放后端等实际替换或测试边界，不按类型数量机械拆文件。
-4. **职责和名字直接对应。** 从目录与文件名就能找到要改的功能。命名应区分界面状态、任务编排、业务规则和外部适配，避免需要通读实现才能分清几个相似的 Service / Resolver。
+1. **一个功能有明确入口。** 从查询、扫描、来源保存或播放会话的入口扩展，不并列创建另一套实现。
+2. **同一流程代码靠近，职责仍能辨认。** 先按功能和维护流程定位，再用统一职责目录区分 UI、状态与用例、模型与规则、外部适配。
+3. **拆分必须有独立价值。** 跨边界的模型与 Mapper 分开；有独立消费者的模型独立成文件。私有实现细节及同一契约的进度、事件等伴随类型可以就近放置，不为类型数量机械建层。
+4. **名字对应实际职责。** 文件、公开主类型和参数含义一致。VO 不是状态 ViewModel，Provider 不是数据库服务，Repository 实现不混在业务契约中。
 
-评审时用具体维护任务检查结构：修改匹配规则要读哪些文件，修改收藏查询会影响哪里，增加存储协议从哪个入口接入。仅减少构造参数或通过测试，不足以证明代码易于维护。
+评审使用具体维护任务检验结构：修改标题匹配、来源认证、收藏查询或字幕样式时，应能找到明确入口和有限的相关文件。减少行数或通过测试不能单独证明架构易维护。
 
 ## 目录骨架
 
-项目保留 `app / features / core / l10n` 骨架。复杂功能优先按业务流程分组，通过类型职责和依赖方向保持边界；目录名不必再次重复技术层。现有播放、设置等功能沿用各自分层布局，不为了统一目录做无关迁移。
-
-媒体库采用流程目录，维护入口见 [媒体库维护地图](../../lib/features/library/README.md)：
-
-```text
-features/library/
-├── media_library_provider.dart   # 页面与其他功能使用的媒体库入口
-├── library_playback_launcher.dart # 版本 / 队列查询后向播放功能提交请求
-├── catalog/                      # 电影 / 剧集 / 收藏 / 续播查询及列表页面
-├── detail/                       # 详情页面、展示模型与季集 / 演员组件
-├── browser/                      # 文件浏览入口、条目模型与浏览界面
-├── sources/                      # 来源管理、列表与本地 / SMB / WebDAV 编辑表单
-├── sync/                         # 扫描任务、路径索引、文件名解析与存储扫描适配
-├── metadata/                     # 匹配规则、刮削任务、元数据契约与数据库 / TMDB 适配
-└── widgets/                      # 多个媒体库流程使用的卡片、网格和查询组件
-```
-
-其他功能的既有分层目录如下；只创建有实际内容的目录，不要求每个功能凑齐四层。
+全仓库统一 `ui / application / domain / data` 职责，不再混用 `presentation / infrastructure / contracts`。仍按实际内容创建目录，不要求每个小功能凑齐四层。
 
 ```text
 lib/
-├── main.dart                     # 初始化与启动入口
 ├── app/
-│   ├── bootstrap/                # 选择实现、构造与注入依赖、窗口工厂
-│   ├── application/              # 应用级生命周期与退出协调
-│   ├── routing/                  # 路由与导航路径
-│   └── presentation/             # 应用外壳、导航与布局
+│   ├── bootstrap/       # 选择实现、显式依赖组装与窗口工厂
+│   ├── application/     # 应用退出与跨资源生命周期
+│   ├── routing/         # 导航路径与路由组装
+│   └── ui/              # 应用外壳与跨功能界面组合
 ├── features/
-│   └── <feature>/                # 当前为 home、library、playback、settings
-│       ├── domain/               # 功能模型、业务规则与领域契约
-│       ├── application/          # 状态 Provider、用例 Service、会话协调与所需契约
-│       ├── infrastructure/       # 持久化、外部服务与播放后端的具体实现
-│       └── presentation/         # 页面、组件、界面交互控制
-│           ├── pages/
-│           ├── widgets/
-│           └── controllers/      # 有需要时创建
+│   └── <功能或流程>/
+│       ├── ui/          # 页面、弹窗、组件与具体界面交互
+│       ├── application/ # Provider、用例编排、能力契约与业务输入映射
+│       ├── domain/      # 业务模型、输入语义及纯规则
+│       └── data/        # SQL、网络、协议和播放后端的具体实现
 ├── core/
-│   ├── domain/                   # 多个功能共同使用的模型、规则与契约
-│   ├── infrastructure/           # 共享数据库、存储协议与 TMDB 实现
-│   ├── platform/                 # 视图窗口接口与平台桥
-│   ├── ui/                       # 共享主题、组件与展示格式
-│   └── formatters/               # 当前共享媒体格式工具
-└── l10n/                         # ARB、语言 Provider 与生成的本地化代码
-test/                             # 按被测代码的路径组织单元与 Widget 测试
-integration_test/                 # 需要真实应用、原生插件或窗口的集成测试
-tool/                             # 开发与验证脚本，不放应用运行时业务
-macos/、windows/                   # 原生宿主与平台桥实现
+│   ├── application/     # 跨功能的纯应用辅助能力
+│   ├── domain/          # 共享模型、规则及存储 / 播放能力契约
+│   ├── data/            # 共享数据库、协议与 TMDB 基础设施
+│   ├── platform/        # 所属视图的窗口契约与原生适配
+│   └── ui/              # 共享组件、主题及图片渲染资源适配
+└── l10n/
+    ├── application/     # 语言状态与持久化契约
+    ├── domain/          # 语言偏好模型
+    ├── data/            # 语言偏好存储
+    └── generated/       # ARB 生成的本地化实现
 ```
 
-不要在 `lib/` 顶层另建一套全局 `providers / services / repositories / pages`，与 `features/` 并行组织同一业务。文件在功能内按职责归属，类型后缀按下方 [命名约定](#命名约定)选择；Provider、Controller 和 Service 不各自代表固定的一层。
+媒体库的 `browser / catalog / detail / sources / sync / metadata` 是维护流程，每个流程沿用上面的职责目录。公共媒体库入口位于 `library/application`，共享规则位于 `library/domain`，共享媒体库 UI 位于 `library/ui`。具体路径见 [媒体库维护地图](../../lib/features/library/README.md)；播放见 [播放维护地图](../../lib/features/playback/README.md)。测试按被测代码职责镜像组织；生成的历史 schema 夹具位于 `test/generated`。
+
+## 依赖方向
+
+- `ui → application → domain`：界面依赖状态、用例或播放 / 窗口契约，领域不反向依赖 UI、用例或数据 SDK。
+- `data → application / domain`：数据适配实现调用方所需的契约，读取 DO、外部响应并通过 Mapper 返回业务对象或查询 VO。
+- `app/bootstrap` 和启动入口选择具体实现并注入。Provider 不导入 `data`，不直接访问 SQLite、SharedPreferences、HTTP 或第三方协议客户端，也不在缺少参数时偷偷创建后端。
+- `core` 不依赖 `features / app`。跨功能协作保持单向；设置页需要展示媒体源面板时，由应用外壳注入组件，不让设置和媒体库形成循环。
+- 功能 UI 不直接读取数据库、凭据或具体缓存实现。媒体图片经 `core/ui/images/MediaNetworkImage` 适配渲染资源；这是共享资源边界，缓存和代理配置仍留在数据适配中。
+- 数据访问不能依赖 UI。模型不能包含 drift 行映射、JSON 编解码或网络 SDK。业务校验、规范化和身份规则可以保留在领域模型或领域规则中。
+
+## data 具体包含什么
+
+`data` 是数据与外部能力的适配层，不是一种类后缀，也不等于 Mapper 或 Service。它可以实现数据库、网络、协议、偏好存储和播放引擎边界。
+
+| 职责 | 当前类 | 是否执行 I/O |
+| --- | --- | --- |
+| SQLite 定义、连接及持久化入口 | `AppDatabase` | 是 |
+| 实现特定流程的数据契约 | `DatabaseLibraryCatalogRepository`、`PreferencesAppSettingsRepository` | 是 |
+| 外部 API 端点及 HTTP 传输 | `TmdbApi`、`TmdbHttpClient` | 是 |
+| 协议连接及后端实现 | `SmbStorageAdapter`、`SmbStorageConnection`、`MediaKitPlaybackEngine` | 是 |
+| 数据边界转换 | `MediaFileMapper`、`TmdbMetadataMapper` | 否 |
+| 边界参数解析 | `HttpProxyParser` | 否 |
+
+`Service` 用于说明业务流程编排，例如 `LibrarySyncService`、`StorageSourcesService`，放在 application。平台契约 `WindowService` 表示原生窗口操作能力，保留平台约定；不因为名字中有 Service 就把它当成业务层。先看实际职责，再选择名称和目录。
+
+## 模型术语与数据访问层
+
+| 类型 | 职责与当前实例 | 转换位置 |
+| --- | --- | --- |
+| DO | 数据库记录：`MovieDO / TVShowDO / SeasonDO / EpisodeDO / MediaFileDO / StorageSourceDO`，由 drift 生成 | `core/data/database/mappers` 中的专属 Mapper |
+| 业务模型 | `Movie / MediaFile / StorageSource / PlaybackQueue` 等业务数据与规则，不作为数据库行类型 | 只接收或返回业务类型；不依赖存储结构 |
+| VO | **View Object，展示对象**：`MediaCardVO / MediaDetailVO`，不是 DDD 的 Value Object | `MediaCardMapper / MediaDetailMapper`；VO 本身只保存展示字段 |
+| DTO / 外部响应 | 外部边界的数据形态；当前 TMDB 原始 JSON 留在 data 内 | `TmdbMetadataMapper` 显式从 JSON 转换，不让 JSON 进入 Provider 或业务模型 |
+| 用例输入、结果与进度 | `ScrapeCandidate / ScrapeResult / ScrapeProgress / PlayerWindowRequest` 等，名称直接说明用途 | 独立输入由 Mapper 创建；同一契约的伴随数据可与契约就近放置 |
+
+DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不再额外并列 `dal`。Repository 是能力契约，`Database...Repository / Preferences...Repository` 是具体实现。
+
+数据库不再复用业务模型。DO 只保存数据库字段、枚举字符串和 JSON 文本；Mapper 在边界转换为业务枚举及列表。数据库关系数据分别加载后组装，不能为每个卡片新增一条 SQL。VO 字段可以携带操作上下文的业务对象，但不能持有 Widget、连接、订阅或请求。
+
+## 控制维护成本
+
+- 一个真实边界保留一份契约。Repository 隔离功能需要的数据能力，具体实现直接使用 `AppDatabase`；数据库连接和公共读写不再另包一层 Store。
+- 只有一个创建规则的简单工厂并入所属业务模型，例如 `ScrapeSearchPlan.forCandidate`；业务校验与创建规则可以放在模型中，外部格式转换仍由 Mapper 负责。
+- 文件变长不自动意味着拆分。播放器菜单、文件名解析和同一界面的小组件可以留在同一流程内；只有能独立理解、复用或隔离资源所有权时才拆出文件。
+- 不为统一后缀引入 Facade、Manager、Store、Handler 等新概念。已有名称先检查职责；优先减少转发和重复状态，再决定是否更名。
+- 异步入口明确停止与销毁行为。接受的保存继续排空；销毁后不通知界面、不应用迟到配置；迟到读取不覆盖用户已经修改的偏好。保存插件返回 false 也属于失败。
 
 ## 命名约定
 
-同一类职责使用同一后缀，文件名使用与主要公开类型对应的 `snake_case`。后缀表达职责，不表达注入方式，也不保证所在层或实例作用域：
+文件名与主要公开类型对应，使用 `snake_case`；后缀表达职责，不按继承关系机械命名。
 
-| 后缀 | 职责与使用范围 | 当前示例 |
+| 名称 | 使用场景 | 示例 |
 | --- | --- | --- |
-| `Provider` | 维护界面可订阅状态、加载展示数据并提供界面操作入口 | `MediaLibraryProvider`、`FileBrowserProvider`、`TrendingMediaProvider`、`AppSettingsProvider`、`ThemeProvider`、`AppLocaleProvider` |
-| `Controller` | 控制具体交互、播放会话或窗口状态机 | `PlayerPlaybackController`、`PlaybackSessionController`、`PlayerWindowModeController`、`PlayerWindowController`、`WindowControlsController` |
-| `Repository` | 持久化业务数据的查询、保存与订阅；接口可只暴露调用方需要的操作 | `LibraryRepository`、`PlaybackMediaRepository`、`AppSettingsRepository` |
-| `Service` | 编排业务用例，或提供职责明确的技术能力；通过名称与所在层区分 | 应用层 `LibrarySyncService`、`StorageSourcesService`；技术服务 `TmdbService`、`WindowService`、`DatabaseService` |
-| `Adapter` | 将协议或外部能力适配为项目契约 | `StorageAdapter`、`LocalStorageAdapter`、`WebDavStorageAdapter`、`SmbStorageAdapter` |
-| `Engine` | 执行播放与管理媒体运行资源的后端边界 | `PlaybackEngine`、`MediaKitPlaybackEngine` |
-| `Coordinator` | 协调多个参与者及异步操作顺序，通常不负责页面展示状态 | `PlayerWindowCoordinator`、`ApplicationExitCoordinator`、`PlayerWindowCloseCoordinator` |
-| 具体动作 / 数据结构名称 | 职责已经明确时保留具体含义 | `Resolver`、`Scanner`、`Mapper`、`Policy`、`Writer`、`Buffer`、`Registry`、`ViewModel` 等 |
+| `Provider` | 可订阅界面状态与操作入口，统一在 application | `MediaLibraryProvider`、`AppSettingsProvider` |
+| `Controller` | 界面交互或会话状态机；按职责放 ui 或 application | `PlayerSubtitleController`、`PlaybackSessionController` |
+| `Service / Coordinator` | 具体用例编排、多个参与者的顺序协调 | `LibrarySyncService`、`PlayerWindowCoordinator` |
+| `Repository / Source / Engine` | 调用方所需能力契约 | `LibraryCatalogRepository`、`TrendingMediaSource`、`PlaybackEngine` |
+| 后端前缀 | 契约的具体数据 / SDK 实现 | `DatabaseLibraryCatalogRepository`、`PreferencesAppSettingsRepository`、`TmdbTrendingMediaSource` |
+| `Api / HttpClient` | 外部服务端点 / 底层 HTTP 传输 | `TmdbApi / TmdbHttpClient` |
+| `Mapper` | 边界转换，不查询、不保存、不通知界面 | `MediaFileMapper.toDomain / toDO`、`MediaDetailMapper.toVO`、`TmdbMetadataMapper.movieFromJson` |
+| `Page / Panel / Dialog` | 完整页面、可嵌入面板、弹窗 | `FileBrowserPage`、`StorageSourcesPanel`、`showSmbSourceDialog` |
+| 具体业务名称 | 已经表达用途的模型与规则 | `ParsedMediaFilename`、`ScrapeSearchAttempt`、`PlaybackResumePolicy` |
 
-按主要职责选择后缀，不按继承关系机械命名。`ChangeNotifier` 可用于 Provider 的界面状态、Controller 的交互状态，也可用于 Service 的任务进度通知；例如 `LibrarySyncService` 虽会通知扫描进度，主要职责仍是编排扫描与刮削，界面通过 `MediaLibraryProvider` 观察它。
+查询结果的界面组件带 `View`，例如 `LibraryQueryView`；可关闭的扫描资源带 `Session`，例如 `LibrarySourceScanSession`；普通数据对象不使用看起来像转换器或 Widget 的名称。只供 Selector 比较和界面重建使用的私有数据命名为 `...Snapshot`，与 Flutter 的 `State<Widget>` 区分。
 
-Provider 包的 `Provider`、`ChangeNotifierProvider`、`MultiProvider` 是注入机制，不决定业务对象的后缀。项目的 `*Provider` 表示界面状态角色，不要求为每个注入对象创建一个 Provider 类。持久化访问统一使用 `Repository`，不混用 `Store`。
+Provider 包只是一种注入机制，不要求每个服务都套一层 Provider。简单动作不增加仅转发参数的 Service；接口隔离真实的持久化、协议、网络或播放后端边界。共享 UI 使用 `App` 前缀；功能专属组件使用实际业务名称。修正类型名时同步参数名和使用点，不保留旧名别名或转发文件。
 
-`PlaybackState` 等状态快照继续使用 `State`；`PlayerWindowController` 控制播放器视图的打开、关闭与替换状态，保留 Controller。方法名包含 `open / close / beginShutdown` 本身不是选择后缀的依据。`ApplicationDependencies` 是依赖组装入口，不是业务 Service，也不是自动装配容器。
+## 中文文件说明与资源所有权
 
-## 决定代码归属
+手写 Dart 文件开头用中文说明实际职责和协作边界，不能只重复文件名。涉及连接、引擎、订阅、浮层、计时器和任务时，说明谁创建、谁持有、何时释放。非直观的失败与竞争处理用中文解释原因，保留必要的代码标识。
 
-先判断“属于哪个功能”，再判断“承担什么职责”：
+数据库与设置等共享实例由应用创建；窗口能力按视图创建；引擎与播放目标归会话持有。转换器和纯规则不接管外部资源。已有播放关闭顺序见 [播放架构](../architecture/playback.md)，不得因重构改变收尾顺序。
 
-| 新增内容 | 放置位置与边界 |
-| --- | --- |
-| 单个功能的页面、对话框、组件 | 所属流程目录（媒体库如 `catalog / detail / browser / sources`）或既有 `presentation/`；只处理输入、展示及界面交互 |
-| 面向界面的共享状态与操作入口 | 所属功能入口或流程目录中的 Provider；组件内部短暂状态可以留在组件中 |
-| 扫描、刮削、连接测试等业务编排 | 所属流程目录（媒体库 `sync / metadata / sources`）或既有 `application/` 的 Service；管理任务顺序、退出、错误和清理 |
-| 播放队列、续播规则等功能模型与规则 | 所属流程目录或既有 `domain/`；流程专用伴随类型与使用处同文件，跨功能确实共享时才放 `core/domain/` |
-| 功能专属数据库查询或后端适配 | 所属流程目录或既有 `infrastructure/`，通过名称明确 Database / Tmdb 等适配角色；通过应用入口供页面使用 |
-| 应用用例需要的持久化 / 后端契约 | 与调用方放在同一流程目录，或使用既有 `application/`，如 `PlaybackMediaRepository`、`PlaybackEngine`；领域本身需要的契约放 `domain/` |
-| 跨功能共享的协议连接、数据库或外部能力 | `core/infrastructure/`；业务任务编排仍留在所属功能 |
-| 通用窗口操作与原生能力适配 | Dart 接口与适配放 `core/platform/`，原生实现放对应平台 runner；播放器模式控制仍属 `playback` |
-| 跨功能 UI、主题与格式化 | `core/ui/`；已有媒体格式工具继续复用 `core/formatters/` |
-| 依赖实现选择与跨功能装配 | `app/bootstrap/`；业务对象通过构造参数接收依赖 |
+生成的本地化、drift 数据库与 schema 测试夹具由生成工具维护，不手工添加注释。机器识别的指令、许可证和外部地址保持原样。
 
-“可能以后复用”不构成移入 `core` 的理由。功能专属对象即使被启动入口创建，也仍属于该功能；共享代码须具有明确的跨功能用途。`core` 不导入 `features` 或 `app`。
+## 新增功能与评审
 
-避免新建职责含糊的 `CommonService`、`Manager` 或大杂烩 `utils`。优先使用表达实际能力的名称；小工具归入其功能或能力目录，复用已有实现。
+先确定入口和数据流，再沿统一层次扩展。例如手动修正匹配：界面弹窗放 `metadata/ui`，操作编排和外部能力契约放 `metadata/application`，匹配输入与规则放 `metadata/domain`，TMDB / 数据库实现及边界 Mapper 放 `metadata/data`；实例由应用组装。此示例是落位规则，不代表手动匹配已经实现。
 
-## 依赖与组装规则
-
-1. 页面通过 Provider、应用 Service 或交互 Controller 发起业务操作，不直接查询 SQLite、持有具体数据库仓库、读取媒体源凭据或创建协议连接。展示资源加载与视图级窗口操作的既有边界见架构总览。
-2. 应用层负责用例与状态，调用仓库和外部能力；不要让仓库负责弹窗、导航或页面状态，也不要让 Provider 承担 SQL、协议细节和播放器后端属性适配。
-3. 基础设施实现可以使用领域模型及应用契约，不能反向依赖页面、Widget 或界面 Provider。新增业务规则尽量保持独立于 Widget、数据库查询和外部 SDK；现有 drift 行模型复用不要求顺带拆出重复模型。
-4. 保持单向跨功能协作，不导入另一个功能的页面或具体基础设施，也不形成循环依赖。已有功能之间的应用入口调用可以延续；新协作优先通过显式契约、回调或在 `app/bootstrap` 组装共享能力，不为绕过循环把业务整体搬进 `core`。
-5. 数据库、设置、TMDB 等共享依赖在启动入口创建并注入；视图资源按视图创建，播放资源按会话创建。不增加静态全局实例、隐藏服务查找或构造参数缺失时自动创建依赖的兜底路径。
-6. 接口用于明确调用边界、替换后端或隔离测试依赖，按调用方所需能力设计。已有具体仓库调用可以保留；不为每个类机械增加接口、转发 Service 或一表一仓库。
-
-新增订阅、连接、计时器或后台任务时，要同时确定所有者和关闭顺序。主视图与播放器共享应用状态；不要新增语言 / 设置快照、窗口 RPC 或独立数据库连接来同步同一引擎内的状态。退出与窗口行为遵循 [播放生命周期](../architecture/playback.md#生命周期与退出) 和 [ADR 0001](../decisions/0001-multi-window-strategy.md)。
-
-## 新增功能示例
-
-以“媒体库手动修正匹配”为例，以下是落位示例，不表示功能已经实现：
-
-| 内容 | 建议归属 |
-| --- | --- |
-| 搜索与确认匹配的对话框 | `features/library/metadata/` 的匹配对话框 |
-| 展示候选项、加载状态与用户操作入口 | 复用媒体库 Provider，或在状态确需独立时新增功能 Provider |
-| 查询候选、应用选择、协调保存 | `features/library/metadata/` 的用例 Service |
-| 匹配选择及校验规则 | `features/library/metadata/metadata_matcher.dart` 中的匹配规则 |
-| TMDB 请求 | 复用注入的共享 TMDB 能力 |
-| 元数据和媒体关联写入 | 复用既有持久化边界；新增查询 / 写入放对应仓库或数据库实现 |
-| 构造与注入新增对象 | `app/bootstrap/application_dependencies.dart` |
-
-不要从对话框直接调用数据库或 TMDB 后再追加一个仅转发方法的 Service。优先沿已有调用链扩展，确有独立状态、业务步骤或替换需求时再拆分对象。
-
-## 编码与评审流程
+完成后运行架构检查、静态检查及受影响测试。架构检查阻止旧目录、Provider 直连后端、领域序列化、模型兼作数据库行和跨功能循环重新出现，并在 CI 执行。功能与机制变化同步对应文档，技术方向变化更新 ADR，验证证据集中更新测试指南。
 
 ### 表单布局约定
 
-- 输入字段可用固定标签列；开关、按钮保留自身宽度，文字使用剩余空间。开关行复用 `SettingsSwitchItem`。
+- 输入字段可用固定标签列；开关、按钮保留自身宽度，文字使用剩余空间。开关行复用 `AppFormSwitchItem`。
 - 说明和错误允许换行，行高随内容增长。需占用整行时用 `AppFormItem.subtitleBelowControl`，不省略操作后果或必要路径。
 - 占位提示提供格式或短示例，不重复标签，不作为实际默认值。
 - 修改共享组件时检查窄弹窗、中英文和放大字号。布局参考 [Ant Design Form](https://ant.design/components/form/) 与 [MUI Switch](https://mui.com/material-ui/react-switch/)。

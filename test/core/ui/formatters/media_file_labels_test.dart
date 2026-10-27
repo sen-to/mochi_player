@@ -1,3 +1,6 @@
+// 【行为测试】验证根据媒体文件生成版本名称、编码、分辨率和观看信息。
+// 测试对象的职责边界：只生成本地化展示文本，不读取数据库或修改文件记录。
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/ui/formatters/media_file_labels.dart';

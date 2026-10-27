@@ -1,3 +1,6 @@
+// 【主题组装】组合颜色、排版和控件主题，生成明暗主题。
+// 主题偏好的持久化由 ThemeProvider 负责。
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';

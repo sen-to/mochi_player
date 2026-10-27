@@ -1,7 +1,10 @@
+// 【路径规则】解析 SMB 共享名称及配置的媒体根路径。
+// 只处理来源位置，不建立网络连接。
+
 import 'package:mochi_player/core/domain/storage/storage_source.dart';
 import 'package:path/path.dart' as path;
 
-/// Parsed location of one SMB share and its configured media root.
+/// 解析后的 SMB 共享位置及配置的媒体根目录。
 class SmbSourceLocation {
   const SmbSourceLocation({required this.host, required this.share, required this.rootPath});
 
@@ -21,7 +24,7 @@ class SmbSourceLocation {
     return SmbSourceLocation(host: endpoint.host, share: segments.first, rootPath: _normalizePath(source.rootPath));
   }
 
-  /// Returns a path relative to the SMB share.
+  /// 返回相对 SMB 共享根目录的路径。
   String resolve(String sourceRelativePath) {
     final requested = _normalizePath(sourceRelativePath);
     if (requested == '/') return rootPath == '/' ? '' : rootPath.substring(1);

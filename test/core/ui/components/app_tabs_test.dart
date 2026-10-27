@@ -1,3 +1,6 @@
+// 【行为测试】验证展示可横向滚动的同级内容标签。
+// 测试对象的职责边界：当前选项由调用方控制，不直接操作路由。
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';

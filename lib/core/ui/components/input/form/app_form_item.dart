@@ -1,10 +1,13 @@
+// 【表单布局】排列标签、说明文本与输入控件，并支持说明独占一行。
+// 只负责布局与样式，不读取或保存表单数据。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_control_metrics.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 import 'package:mochi_player/core/ui/theme/app_typography.dart';
 
-/// Lays out one label, optional description, and its input control.
+/// 排列标签、可选说明及输入控件。
 class AppFormItem extends StatelessWidget {
   const AppFormItem({
     super.key,
@@ -25,7 +28,7 @@ class AppFormItem extends StatelessWidget {
   final String? subtitle;
   final Color? subtitleColor;
 
-  /// Shows supporting text across the full row, allowing it to wrap.
+  /// 让辅助说明占据整行并允许换行。
   final bool subtitleBelowControl;
   final Widget control;
   final bool enabled;

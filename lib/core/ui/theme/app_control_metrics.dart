@@ -1,3 +1,6 @@
+// 【主题常量】定义输入、按钮等控件的高度和尺寸规格。
+// 避免在各控件中重复定义相同尺寸。
+
 abstract final class AppControlMetrics {
   static const double rowHeight = 46;
   static const double descriptiveRowHeight = 58;

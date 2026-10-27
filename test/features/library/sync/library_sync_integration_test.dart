@@ -1,17 +1,22 @@
+// 【行为测试】验证协调启用来源扫描、分批入库、失效清理与元数据刮削。
+// 测试对象的职责边界：通过契约访问存储和数据库；不完整扫描不删除旧索引。
+
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/app/bootstrap/application_dependencies.dart';
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/data/database/sqlite_setup.dart';
+import 'package:mochi_player/core/data/storage/local_storage_adapter.dart';
+import 'package:mochi_player/core/data/storage/smb_storage_adapter.dart';
+import 'package:mochi_player/core/data/storage/webdav_storage_adapter.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
-import 'package:mochi_player/core/infrastructure/database/app_database.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
-import 'package:mochi_player/core/infrastructure/storage/storage_adapter_registry.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
+import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
+import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
 
 import '../../../support/tmdb_fixture.dart';
 
@@ -23,7 +28,7 @@ void main() {
   }.entries) {
     test('scan exposes ${entry.value}, keeps pending files, and can be retried', () async {
       final directory = await Directory.systemTemp.createTemp('mochi-tmdb-sync-');
-      final database = DatabaseService.withDatabase(AppDatabase(NativeDatabase.memory(setup: configureSqlite)));
+      final database = AppDatabase(NativeDatabase.memory(setup: configureSqlite));
       await database.init();
       var status = entry.key;
       final tmdb = tmdbFixture(
@@ -33,8 +38,8 @@ void main() {
       final dependencies = ApplicationDependencies(
         database: database,
         tmdb: tmdb,
-        storageRegistry: StorageAdapterRegistry.defaults(),
-        settingsRepository: AppSettingsRepository(),
+        storageRegistry: StorageAdapterRegistry([LocalStorageAdapter(), WebDavStorageAdapter(), SmbStorageAdapter()]),
+        settingsRepository: PreferencesAppSettingsRepository(),
       );
       addTearDown(() async {
         await dependencies.mediaLibrary.shutdown();

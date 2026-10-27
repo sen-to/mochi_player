@@ -1,12 +1,15 @@
+// 【路由组装】声明应用路由、导航分支与详情参数传递。
+// 页面业务留在所属功能，路由只负责目的地映射。
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mochi_player/app/presentation/navigation/app_destination.dart';
-import 'package:mochi_player/app/presentation/pages/app_destination_root_page.dart';
-import 'package:mochi_player/app/presentation/pages/app_shell_page.dart';
+import 'package:mochi_player/app/ui/navigation/app_destination.dart';
+import 'package:mochi_player/app/ui/pages/app_destination_root_page.dart';
+import 'package:mochi_player/app/ui/pages/app_shell_page.dart';
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
-import 'package:mochi_player/features/library/catalog/library_section_page.dart';
-import 'package:mochi_player/features/library/detail/media_detail_page.dart';
+import 'package:mochi_player/features/library/catalog/ui/library_section_page.dart';
+import 'package:mochi_player/features/library/detail/ui/media_detail_page.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 GoRouter createAppRouter() {

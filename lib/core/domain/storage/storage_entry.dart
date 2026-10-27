@@ -1,4 +1,7 @@
-/// A file or directory inside a storage source.
+// 【共享模型】描述存储来源内的文件或目录条目。
+// 只保存协议无关信息，不包含播放器或元数据状态。
+
+/// 媒体来源内的一个文件或目录。
 class StorageEntry {
   final String name;
   final bool isDirectory;

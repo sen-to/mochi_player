@@ -1,17 +1,20 @@
-// Run: fvm flutter run -d windows --release -t integration_test/window_constraints_smoke.dart
-// Or: fvm flutter run -d macos --release -t integration_test/window_constraints_smoke.dart
-// Queries native resize limits, including macOS titlebar configuration.
+// 【原生冒烟】验证各视图和迷你模式的窗口最小尺寸约束。
+// 不替代人工拖动、多显示器或 DPI 验收。
+
+// 执行方式：fvm flutter run -d windows --release -t integration_test/window_constraints_smoke.dart
+// macOS 执行方式：fvm flutter run -d macos --release -t integration_test/window_constraints_smoke.dart
+// 查询原生缩放约束，包括 macOS 标题栏配置。
 import 'dart:async';
 import 'dart:ffi' hide Size;
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
-import 'package:mochi_player/core/platform/window_service.dart';
 import 'package:mochi_player/core/platform/window_controls_controller.dart';
+import 'package:mochi_player/core/platform/window_service.dart';
 
 final _user32 = DynamicLibrary.open('user32.dll');
 final _findWindow = _user32
@@ -120,7 +123,7 @@ void main() {
   WidgetsBinding.instance.addPostFrameCallback(
     (_) => unawaited(() async {
       try {
-        // Finish the native first-frame callback before creating another view.
+        // 创建下一视图前，先完成原生首帧回调。
         await Future<void>.delayed(const Duration(milliseconds: 300));
         final mainHandle = Platform.isWindows ? windowHandles().single : null;
         await configureTitlebar(mainWindow, const Size(900, 600));

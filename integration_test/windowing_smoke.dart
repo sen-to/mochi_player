@@ -1,8 +1,15 @@
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
-// Run: fvm flutter run -d macos -t integration_test/windowing_smoke.dart
-// Uses the production runner, real media_kit and sandbox-local generated video.
-// SQLite and preferences are isolated from the user's library.
+// 【原生冒烟】验证多视图创建、播放替换、共享状态与最终进度。
+// 使用正式 runner 与隔离素材，不替代长期真实媒体验收。
+
+import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
+import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/preferences_theme_repository.dart';
+import 'package:mochi_player/features/settings/data/tmdb_settings_runtime.dart';
+import 'package:mochi_player/l10n/data/preferences_language_repository.dart';
+
+// 执行方式：fvm flutter run -d macos -t integration_test/windowing_smoke.dart
+// 使用正式 runner、真实 media_kit 及沙箱内生成的视频。
+// 数据库与偏好均和用户媒体库隔离。
 import 'dart:async';
 import 'dart:io';
 
@@ -15,21 +22,20 @@ import 'package:mochi_player/app/application/main_window_lifecycle.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/core/domain/playback/playback_target.dart';
 import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
-import 'package:mochi_player/core/infrastructure/database/app_database.dart';
-import 'package:mochi_player/core/infrastructure/database/database_service.dart';
-import 'package:mochi_player/core/infrastructure/database/sqlite_setup.dart';
+import 'package:mochi_player/core/data/database/app_database.dart';
+import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
-import 'package:mochi_player/features/playback/infrastructure/database_playback_media_repository.dart';
+import 'package:mochi_player/features/playback/data/database_playback_media_repository.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
-import 'package:mochi_player/features/playback/infrastructure/media_kit_playback_engine.dart';
+import 'package:mochi_player/features/playback/data/media_kit_playback_engine.dart';
 import 'package:mochi_player/app/bootstrap/player_window_factory.dart';
 import 'package:mochi_player/app/bootstrap/mochi_widgets_binding.dart';
-import 'package:mochi_player/features/playback/presentation/widgets/player_controls.dart';
+import 'package:mochi_player/features/playback/ui/widgets/player_controls.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
-import 'package:mochi_player/l10n/app_locale_provider.dart';
+import 'package:mochi_player/l10n/application/app_locale_provider.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,10 +66,10 @@ void main() async {
   final directory = await Directory.systemTemp.createTemp('mochi_windowing_smoke_');
   final mediaPath = (await createVideoFixture(directory)).path;
   final sqliteFile = File('${directory.path}/library.sqlite');
-  final database = DatabaseService.withDatabase(AppDatabase(NativeDatabase(sqliteFile, setup: configureSqlite)));
+  final database = AppDatabase(NativeDatabase(sqliteFile, setup: configureSqlite));
   await database.init();
   await database.saveStorageSource(
-    StorageSourceRow(
+    StorageSourceDO(
       sourceId: 'smoke',
       name: 'Smoke source',
       type: 'local',
@@ -86,11 +92,14 @@ void main() async {
   ]);
   final media = (await database.getMediaFile('smoke', mediaPath))!;
   final host = DesktopWindowHost();
-  final locales = AppLocaleProvider();
+  final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
   await locales.load();
-  final settings = AppSettingsProvider(settingsRepository: AppSettingsRepository(), tmdbService: TmdbService());
+  final settings = AppSettingsProvider(
+    settingsRepository: PreferencesAppSettingsRepository(),
+    runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
+  );
   await settings.load();
-  final theme = ThemeProvider();
+  final theme = ThemeProvider(repository: PreferencesThemeRepository());
   final mainWindow = host.create(
     setup: const WindowSetup(size: Size(960, 640), minimumSize: Size(800, 500)),
     builder: (_) => Consumer<AppLocaleProvider>(
@@ -104,7 +113,7 @@ void main() async {
   );
   PlayerWindowSession? playerSession;
   final progressEvents = <int>[];
-  final progressSubscription = database.database.select(database.database.mediaFiles).watch().listen((files) {
+  final progressSubscription = database.select(database.mediaFiles).watch().listen((files) {
     if (files.isNotEmpty) progressEvents.add(files.single.position);
   });
   final coordinator = PlayerWindowCoordinator(
@@ -127,9 +136,7 @@ void main() async {
     exitProcess: () {
       unawaited(() async {
         try {
-          final reopened = DatabaseService.withDatabase(
-            AppDatabase(NativeDatabase(sqliteFile, setup: configureSqlite)),
-          );
+          final reopened = AppDatabase(NativeDatabase(sqliteFile, setup: configureSqlite));
           await reopened.init();
           final saved = (await reopened.getMediaFile('smoke', mediaPath))!;
           check(saved.duration > 0 && saved.position > 0, 'final playback snapshot survives SQLite close/reopen');
@@ -239,10 +246,10 @@ void main() async {
           if (DateTime.now().isAfter(deadline)) throw TimeoutException('Playback controls did not enter fullscreen.');
           await settle(100);
         }
-        // The requested flag now agrees; this only waits for AppKit completion.
+        // 请求标记已一致，此处仅等待 AppKit 动画完成。
         await activePlayer.setFullScreen(true);
         check(await activePlayer.isFullScreen(), 'main close starts with the real player in fullscreen');
-        // Exercise the same owner callback the native close delegate forwards to.
+        // 验证原生关闭代理所转发的同一个所有者回调。
         lifecycle.onWindowClose();
       } catch (error, stack) {
         debugPrint('$error\n$stack');

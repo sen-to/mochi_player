@@ -1,16 +1,19 @@
+// 【行为测试】验证加载并发布首页趋势、剧集和高分列表。
+// 测试对象的职责边界：配置刷新使旧请求失效；销毁后不更新界面状态。
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/trending_item.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
+import 'package:mochi_player/features/home/application/trending_media_source.dart';
 
 void main() {
   late _TrendingService service;
   late TrendingMediaProvider provider;
   setUp(() {
     service = _TrendingService();
-    provider = TrendingMediaProvider(tmdbService: service);
+    provider = TrendingMediaProvider(source: service);
   });
   tearDown(() => provider.dispose());
 
@@ -64,7 +67,7 @@ void main() {
   });
 
   test('disposed providers ignore late responses and do not notify listeners', () async {
-    final localProvider = TrendingMediaProvider(tmdbService: service);
+    final localProvider = TrendingMediaProvider(source: service);
     var notifications = 0;
     localProvider.addListener(() => notifications++);
     final loading = localProvider.fetch();
@@ -77,7 +80,7 @@ void main() {
   });
 }
 
-class _TrendingService extends TmdbService {
+class _TrendingService implements TrendingMediaSource {
   bool configured = true;
   final requests = <Completer<List<TrendingItem>>>[];
   @override

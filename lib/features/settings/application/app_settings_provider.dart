@@ -1,23 +1,24 @@
-import 'package:flutter/material.dart';
+// 【界面状态与应用入口】加载、串行保存普通偏好并应用运行时网络配置。
+// 配置生效后发出变更回调，不依赖首页页面或趋势 Provider。
+
+import 'package:flutter/foundation.dart';
 import 'package:mochi_player/core/domain/app_failure.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_image_cache_manager.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_service.dart';
-import 'package:mochi_player/core/infrastructure/tmdb/tmdb_failure.dart';
+import 'package:mochi_player/features/settings/application/app_settings_repository.dart';
+import 'package:mochi_player/features/settings/application/app_settings_runtime.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
-import 'package:mochi_player/features/settings/infrastructure/app_settings_repository.dart';
 
 class AppSettingsProvider extends ChangeNotifier {
   final AppSettingsRepository _settingsRepository;
 
   AppSettingsProvider({
     required AppSettingsRepository settingsRepository,
-    required TmdbService tmdbService,
+    required AppSettingsRuntime runtime,
     VoidCallback? onTmdbConfigurationChanged,
   }) : _settingsRepository = settingsRepository,
-       _tmdbService = tmdbService,
+       _runtime = runtime,
        _onTmdbConfigurationChanged = onTmdbConfigurationChanged;
 
-  final TmdbService _tmdbService;
+  final AppSettingsRuntime _runtime;
   final VoidCallback? _onTmdbConfigurationChanged;
 
   AppSettings _settings = const AppSettings();
@@ -25,6 +26,7 @@ class AppSettingsProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _shuttingDown = false;
+  bool _disposed = false;
   Future<void> _pendingSave = Future<void>.value();
 
   void beginShutdown() => _shuttingDown = true;
@@ -63,18 +65,21 @@ class AppSettingsProvider extends ChangeNotifier {
   bool get hasTmdbApiKey => _settings.hasTmdbApiKey;
 
   Future<void> load() async {
+    if (_shuttingDown) return;
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    if (!_disposed) notifyListeners();
 
     try {
-      _settings = await _settingsRepository.load();
+      final settings = await _settingsRepository.load();
+      if (_disposed) return;
+      _settings = settings;
       await _applyRuntimeSettings();
     } catch (e) {
       _error = AppFailure.settingsLoad;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
   }
 
@@ -121,7 +126,7 @@ class AppSettingsProvider extends ChangeNotifier {
   }) async {
     _isSaving = true;
     _error = null;
-    notifyListeners();
+    if (!_disposed) notifyListeners();
 
     try {
       final nextSettings = AppSettings(
@@ -141,37 +146,37 @@ class AppSettingsProvider extends ChangeNotifier {
       _error = AppFailure.settingsSave;
     } finally {
       _isSaving = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
   }
 
   Future<bool> testTmdbConnection() async {
+    if (_shuttingDown) return false;
     _error = null;
     try {
-      if (!hasTmdbApiKey) throw const TmdbFailure(TmdbFailureKind.configuration);
-      final result = await _tmdbService.fetchTrendingMovies(limit: 1);
-      return result.isNotEmpty;
-    } on TmdbFailure catch (failure) {
-      _error = failure.userFailure;
+      return await _runtime.testTmdbConnection();
+    } on SettingsConnectionFailure catch (failure) {
+      _error = failure.failure;
       return false;
     } finally {
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
   }
 
+  @override
+  void dispose() {
+    _disposed = true;
+    beginShutdown();
+    super.dispose();
+  }
+
   Future<void> _applyRuntimeSettings() async {
+    if (_disposed) return;
     final previous = _appliedRuntimeSettings;
-    _tmdbService.configure(
-      apiKey: _settings.tmdbApiKey,
-      apiBaseUrl: _settings.tmdbApiBaseUrl,
-      proxyUrl: _settings.tmdbProxyUrl,
-      proxyEnabled: _settings.tmdbProxyEnabled,
-    );
-    TmdbImageCacheManager.configure(proxyUrl: _settings.tmdbProxyUrl, proxyEnabled: _settings.tmdbProxyEnabled);
+    _runtime.apply(_settings);
 
     _appliedRuntimeSettings = _settings;
-    // Initial loading is followed by the normal home-page load. Draft-only and
-    // playback-only saves do not require invalidating the home collections.
+    // 初次加载后由首页启动流程加载趋势；只保存草稿或只修改播放设置，不需要使首页集合失效。
     if (!_shuttingDown && previous != null && !previous.hasSameTmdbConfiguration(_settings)) {
       _onTmdbConfigurationChanged?.call();
     }

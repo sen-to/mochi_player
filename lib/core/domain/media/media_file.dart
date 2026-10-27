@@ -1,3 +1,6 @@
+// 【共享模型】描述已索引媒体文件、技术信息、元数据关联及观看状态。
+// 模型本身不读写数据库，业务通过数据入口更新。
+
 import 'package:mochi_player/core/domain/media/media_type.dart';
 import 'package:mochi_player/core/domain/media/metadata_match_status.dart';
 import 'package:mochi_player/core/domain/media/watch_status.dart';
@@ -68,7 +71,7 @@ class MediaFile {
     required this.addedAt,
   });
 
-  /// Stable persistence identity within the configured source.
+  /// 媒体源范围内稳定的持久化身份。
   String get storageKey => '$sourceId:$path';
 
   /// 播放进度百分比
@@ -85,7 +88,7 @@ class MediaFile {
 
   static const _unchanged = Object();
 
-  /// Returns a new file snapshot; nullable fields can be explicitly cleared.
+  /// 返回新的文件快照；可空字段支持显式清除。
   MediaFile copyWith({
     int? id,
     String? sourceId,

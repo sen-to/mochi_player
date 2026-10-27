@@ -1,3 +1,6 @@
+// 【通用界面】展示一组互斥选项并反馈选择。
+// 选中值受调用方控制，不包含功能专属状态。
+
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/ui/components/basic/app_clickable_area.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';

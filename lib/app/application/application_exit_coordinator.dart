@@ -1,7 +1,9 @@
+// 【应用生命周期】串行协调退出请求、播放收尾与应用数据写入。
+// 重复退出共享同一操作，单阶段失败仍继续后续释放。
+
 import 'dart:async';
 
-/// Keeps the shared engine alive until playback progress and application writes have
-/// drained. Failures never prevent process termination or cause a second exit.
+/// 播放进度及应用写入排空前保持共享引擎存活；失败不阻止最终退出，也不重复启动退出流程。
 class ApplicationExitCoordinator {
   ApplicationExitCoordinator({
     required this.beginShutdown,
