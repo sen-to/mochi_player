@@ -52,23 +52,36 @@ class LibraryRepository {
   }
 
   Future<List<LibraryItem>> _readTitles(List<QueryRow> rows) async {
-    final items = <String, LibraryItem>{};
-    // Fetch only the selected page in two sets, rather than a SELECT per title.
-    for (final kind in ['movie', 'show']) {
-      final ids = rows.where((row) => row.read<String>('kind') == kind).map((row) => row.read<String>('key')).toList();
-      for (var offset = 0; offset < ids.length; offset += 400) {
-        final batch = ids.skip(offset).take(400);
-        final List<LibraryItem> values = kind == 'movie'
-            ? await (_db.select(_db.movies)..where((t) => t.tmdbId.isIn(batch))).get()
-            : await (_db.select(_db.tVShows)..where((t) => t.tmdbId.isIn(batch))).get();
-        for (final item in values) {
-          items['$kind:${item.tmdbId}'] = item;
-        }
-      }
-    }
+    final items = await _loadTitles(
+      movieIds: rows.where((row) => row.read<String>('kind') == 'movie').map((row) => row.read<String>('key')),
+      showIds: rows.where((row) => row.read<String>('kind') == 'show').map((row) => row.read<String>('key')),
+    );
     return List.unmodifiable([
       for (final row in rows) ?items['${row.read<String>('kind')}:${row.read<String>('key')}'],
     ]);
+  }
+
+  /// Loads only the selected page's metadata, deduplicated by type and ID.
+  Future<Map<String, LibraryItem>> _loadTitles({
+    required Iterable<String> movieIds,
+    required Iterable<String> showIds,
+  }) async {
+    final items = <String, LibraryItem>{};
+    final idsByKind = {'movie': movieIds.toSet().toList(), 'show': showIds.toSet().toList()};
+    for (final entry in idsByKind.entries) {
+      final ids = entry.value;
+      // Bound SQLite parameters when the user expands the result limit.
+      for (var offset = 0; offset < ids.length; offset += 400) {
+        final batch = ids.skip(offset).take(400);
+        final List<LibraryItem> values = entry.key == 'movie'
+            ? await (_db.select(_db.movies)..where((t) => t.tmdbId.isIn(batch))).get()
+            : await (_db.select(_db.tVShows)..where((t) => t.tmdbId.isIn(batch))).get();
+        for (final item in values) {
+          items['${entry.key}:${item.tmdbId}'] = item;
+        }
+      }
+    }
+    return items;
   }
 
   Stream<LibraryItem?> watchHero() {
@@ -189,7 +202,7 @@ class LibraryRepository {
           readsFrom: {_db.mediaFiles, _db.movies, _db.tVShows},
         )
         .watch()
-        .asyncMap((rows) async => [for (final row in rows) await _card(_db.mediaFiles.map(row.data))]);
+        .asyncMap(_readCards);
   }
 
   Stream<List<MediaCardViewData>> watchContinueWatching({int limit = 100}) {
@@ -218,14 +231,29 @@ class LibraryRepository {
     return _db
         .customSelect(sql, variables: [Variable(limit)], readsFrom: {_db.mediaFiles, _db.movies, _db.tVShows})
         .watch()
-        .asyncMap(
-          (rows) async => [for (final row in rows) await _card(_db.mediaFiles.map(row.data), useBackdrop: true)],
-        );
+        .asyncMap((rows) => _readCards(rows, useBackdrop: true));
   }
 
-  Future<MediaCardViewData> _card(MediaFile file, {bool useBackdrop = false}) async {
-    final id = file.mediaType == MediaType.episode ? file.tvShowTmdbId : file.movieTmdbId;
-    final item = id == null ? null : await _title(file.mediaType == MediaType.episode ? 'show' : 'movie', id);
+  Future<List<MediaCardViewData>> _readCards(List<QueryRow> rows, {bool useBackdrop = false}) async {
+    final files = rows.map((row) => _db.mediaFiles.map(row.data)).toList(growable: false);
+    final items = await _loadTitles(
+      movieIds: files
+          .where((file) => file.mediaType != MediaType.episode)
+          .map((file) => file.movieTmdbId)
+          .whereType<String>(),
+      showIds: files
+          .where((file) => file.mediaType == MediaType.episode)
+          .map((file) => file.tvShowTmdbId)
+          .whereType<String>(),
+    );
+    // Preserve SQL ordering; dictionary lookup must not introduce per-card I/O.
+    return List.unmodifiable([for (final file in files) _card(file, items, useBackdrop: useBackdrop)]);
+  }
+
+  MediaCardViewData _card(MediaFile file, Map<String, LibraryItem> items, {bool useBackdrop = false}) {
+    final isEpisode = file.mediaType == MediaType.episode;
+    final id = isEpisode ? file.tvShowTmdbId : file.movieTmdbId;
+    final item = id == null ? null : items['${isEpisode ? 'show' : 'movie'}:$id'];
     final subtitle = file.mediaType == MediaType.episode && useBackdrop
         ? MediaFormat.episodeCode(file)
         : item?.releaseYear?.toString();
