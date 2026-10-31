@@ -159,11 +159,11 @@ SMB 浏览 / 超时与转发播放分别验证；当前缺口见 [实施状态](
 
 [Windows 工作流](../../.github/workflows/windows.yml) 与 [macOS 工作流](../../.github/workflows/macos.yml) 使用相同 `.fvmrc`，执行依赖安装、文案 / 架构 / 格式检查、本地化生成、静态分析、全量测试及对应平台 Release 构建。产物保留 14 天；macOS 应用先归档，以保留权限和符号链接。普通测试通过 [flutter_test_config.dart](../../test/flutter_test_config.dart) 隔离原生宿主初始化；正式应用仍启用多视图。
 
-合并门禁使用固定检查名称 `Test and build Windows`、`Test and build macOS`。master 要求通过 PR 合并、两个状态检查通过且分支保持最新；检查结果限定来自 GitHub Actions。不强制要求第二位开发者批准，适合单人维护。调整时先检查仓库现有规则；配置文件本身不能证明仓库门禁已经启用。
+合并门禁使用固定检查名称 `Test and build Windows`、`Test and build macOS`。master 保留 PR、两个状态检查通过且分支保持最新的规则，检查结果限定来自 GitHub Actions；管理员可绕过这些要求直接 push，不强制额外审批。个人维护时小改动可直接提交，较大变更推荐走 PR。直接 push 后自动运行 CI，失败不会自动撤回提交。调整时先检查仓库现有规则；配置文件本身不能证明仓库门禁已经启用。
 
 2026-10-31，提交 `2f7ac68` 在 [PR #4](https://github.com/sen-to/mochi_player/pull/4) 的 [Windows CI](https://github.com/sen-to/mochi_player/actions/runs/41206216307) 与 [macOS CI](https://github.com/sen-to/mochi_player/actions/runs/41206216456) 均成功：各 432 项测试、检查、Release 构建及产物上传通过。运行结果仅对应上述提交，后续提交需查看各自的检查。本地 macOS 归档另验证了主程序执行权限及 90 个框架符号链接保留；云端构建不代表原生交互验收通过。
 
-2026-10-31，维护者完成身份验证后，已重新打开 [master 保护规则](https://github.com/sen-to/mochi_player/settings/branch_protection_rules/85633516) 核对保存结果：上述要求均启用，管理员也不得绕过；禁止强制推送与删除分支。该规则只匹配 master，功能分支仍可正常提交；本 PR 未自动合并。
+2026-10-31，[master 保护规则](https://github.com/sen-to/mochi_player/settings/branch_protection_rules/85633516) 已保存为上述配置：取消“Do not allow bypassing the above settings”，允许管理员直接提交；强制推送与删除分支仍禁止。该规则只匹配 master，功能分支仍可正常提交；PR #4 未自动合并。
 
 容量基线、可重复的真实媒体样片与人工结果仍需完善。功能阶段更新 `status.md`，本指南只更新最近证据；旧记录移入历史，避免多处维护不同的测试数量。
 

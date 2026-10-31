@@ -22,7 +22,7 @@
 - 固定 SDK 由 [`.fvmrc`](../.fvmrc) 管理，官方多视图仍使用实验能力；升级时需重新验证原生宿主与插件。
 - Windows 因原生 AXTree 崩溃暂时关闭无障碍语义树，读屏不可用。SDK 最小窗口尺寸规避与插件补丁的移除条件见 [Windows 指南](guides/build-windows.md)。
 - macOS 最小内容尺寸专项验收仍需单独记录，不能用播放冒烟替代真实拖动 / 约束检查；权限与标题栏机制见 [macOS 指南](guides/build-macos.md)。
-- 仍使用旧 Material / Cupertino 导入；独立 UI 包迁移尚未进行。Windows 与 macOS 检查、432 项测试和 Release 构建已在 PR #4 云端通过；master 已启用 PR、双平台检查与分支保持最新的合并保护，管理员不得绕过，核对证据见测试指南。SPM 和正式发布流程仍需完善。
+- 仍使用旧 Material / Cupertino 导入；独立 UI 包迁移尚未进行。Windows 与 macOS 检查、432 项测试和 Release 构建已在 PR #4 云端通过；master 保留 PR 与双平台检查规则，管理员可直接 push，提交后自动运行 CI，具体约定见测试指南。SPM 和正式发布流程仍需完善。
 - SMB 隔离 HTTP 冒烟不连接真实 NAS；Windows 历史 CI / 冒烟也不替代当前提交的人工验收。文件对话框的既有人工确认未逐项注明平台与边界。
 
 架构与类名审查已落实；数据库入口统一为 AppDatabase，Repository 只隔离实际的功能数据能力，取消重复的 Store 包装与独立搜索计划工厂，查询界面及扫描会话名称明确；依赖、模型映射及中文文件说明由 CI 检查；详见 [统一边界决策](decisions/0007-unified-module-boundaries.md)。
