@@ -157,9 +157,13 @@ SMB 浏览 / 超时与转发播放分别验证；当前缺口见 [实施状态](
 
 ## CI 与后续验证
 
-[Windows 工作流](../../.github/workflows/windows.yml) 读取固定 SDK，执行依赖、本地化、架构、格式、静态检查、全量测试、Release 构建与产物上传。普通测试通过 [flutter_test_config.dart](../../test/flutter_test_config.dart) 隔离原生宿主初始化；正式应用仍启用多视图。
+[Windows 工作流](../../.github/workflows/windows.yml) 与 [macOS 工作流](../../.github/workflows/macos.yml) 使用相同 `.fvmrc`，执行依赖安装、文案 / 架构 / 格式检查、本地化生成、静态分析、全量测试及对应平台 Release 构建。产物保留 14 天；macOS 应用先归档，以保留权限和符号链接。普通测试通过 [flutter_test_config.dart](../../test/flutter_test_config.dart) 隔离原生宿主初始化；正式应用仍启用多视图。
 
-macOS CI、容量基线、可重复的真实媒体样片与人工结果仍需完善。功能阶段更新 `status.md`，本指南只更新最近证据；旧记录移入历史，避免多处维护不同的测试数量。
+合并门禁使用固定检查名称 `Test and build Windows`、`Test and build macOS`。应在真实 PR 运行两个检查后，将 master 设为需要 PR、两个状态检查通过且分支保持最新；不强制要求第二位开发者批准，避免单人维护时无法完成自身变更。现有规则必须先检查后调整，配置文件本身不能证明仓库门禁已经启用。
+
+本轮本地 macOS Release 构建成功，并验证归档中的主程序执行权限及 90 个框架符号链接保留。云端双平台结果与仓库实际门禁配置需在提交到 GitHub 后核对；本地构建不能代替 Windows 或 macOS runner 的成功结果。
+
+容量基线、可重复的真实媒体样片与人工结果仍需完善。功能阶段更新 `status.md`，本指南只更新最近证据；旧记录移入历史，避免多处维护不同的测试数量。
 
 ## 边界与旧库验证
 
