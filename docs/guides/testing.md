@@ -43,7 +43,7 @@ fvm flutter test --plain-name "解析"
 fvm dart format lib test tool integration_test
 ```
 
-SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错误和警告仍导致静态检查失败。格式为 120 列，由 `analysis_options.yaml` 指定；平台 / 构建目录不参与 Dart 静态分析，drift 生成代码参与分析。Windows CI 已按相同目录执行格式检查，使用固定 SDK；生成代码继续由工具生成，不手工修改。
+SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错误和警告仍导致静态检查失败。格式为 120 列，由 `analysis_options.yaml` 指定；平台 / 构建目录不参与 Dart 静态分析，drift 生成代码参与分析。Windows 与 macOS CI 按相同目录执行格式检查，使用固定 SDK；生成代码继续由工具生成，不手工修改。
 
 ## 测试宿主与真实窗口
 
@@ -161,7 +161,9 @@ SMB 浏览 / 超时与转发播放分别验证；当前缺口见 [实施状态](
 
 合并门禁使用固定检查名称 `Test and build Windows`、`Test and build macOS`。应在真实 PR 运行两个检查后，将 master 设为需要 PR、两个状态检查通过且分支保持最新；不强制要求第二位开发者批准，避免单人维护时无法完成自身变更。现有规则必须先检查后调整，配置文件本身不能证明仓库门禁已经启用。
 
-本轮本地 macOS Release 构建成功，并验证归档中的主程序执行权限及 90 个框架符号链接保留。云端双平台结果与仓库实际门禁配置需在提交到 GitHub 后核对；本地构建不能代替 Windows 或 macOS runner 的成功结果。
+2026-10-31，提交 `2f7ac68` 在 [PR #4](https://github.com/sen-to/mochi_player/pull/4) 的 [Windows CI](https://github.com/sen-to/mochi_player/actions/runs/41206216307) 与 [macOS CI](https://github.com/sen-to/mochi_player/actions/runs/41206216456) 均成功：各 432 项测试、检查、Release 构建及产物上传通过。运行结果仅对应上述提交，后续提交需查看各自的检查。本地 macOS 归档另验证了主程序执行权限及 90 个框架符号链接保留；云端构建不代表原生交互验收通过。
+
+master 保护规则已填写为上述双平台必需检查、PR 和分支保持最新，并适用于管理员；保存时 GitHub 要求重新验证身份，尚不能视为已启用。身份验证并保存后需重新检查仓库设置，再更新此状态。
 
 容量基线、可重复的真实媒体样片与人工结果仍需完善。功能阶段更新 `status.md`，本指南只更新最近证据；旧记录移入历史，避免多处维护不同的测试数量。
 
@@ -169,4 +171,4 @@ SMB 浏览 / 超时与转发播放分别验证；当前缺口见 [实施状态](
 
 `test/core/data/database/mappers/` 验证数据库字段、枚举与 JSON 映射完整性；`schema_v2_compatibility_test.dart` 用已提交的 schema 2 快照建库后打开当前数据库，验证结构、原数据与局部更新。`test/generated/schema/` 由 `fvm dart run drift_dev schema generate drift_schemas test/generated/schema` 生成，保留历史结构作为兼容证据，不手工编辑。
 
-架构检查接入 Windows CI；本地负例覆盖中文文件说明、Provider 依赖具体实现、领域序列化、数据库复用业务行、VO 混入 Mapper、错误 UI 归属、core 反向引用与功能循环依赖，均须拒绝。检查通过不替代人工职责审查。
+架构检查接入 Windows 与 macOS CI；本地负例覆盖中文文件说明、Provider 依赖具体实现、领域序列化、数据库复用业务行、VO 混入 Mapper、错误 UI 归属、core 反向引用与功能循环依赖，均须拒绝。检查通过不替代人工职责审查。
