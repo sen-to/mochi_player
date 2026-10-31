@@ -54,7 +54,7 @@ class ThemeProvider with ChangeNotifier {
   Future<void> _loadTheme() async {
     try {
       final preferences = await _repository.load();
-      if (_disposed) return;
+      if (_shuttingDown) return;
       final themeIndex = preferences.modeIndex ?? ThemeMode.system.index;
       if (!_themeChanged) _themeMode = ThemeMode.values.elementAtOrNull(themeIndex) ?? ThemeMode.system;
       final accentIndex = preferences.accentIndex ?? AppAccentColor.purple.index;
@@ -63,7 +63,7 @@ class ThemeProvider with ChangeNotifier {
       _error = AppFailure.settingsLoad;
       debugPrint('主题偏好加载失败: $error');
     }
-    if (!_disposed) notifyListeners();
+    if (!_shuttingDown) notifyListeners();
   }
 
   // 切换主题并按顺序保存偏好

@@ -12,11 +12,10 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_matcher.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_scraper.dart';
-import 'package:mochi_player/features/library/metadata/application/scrape_candidate_mapper.dart';
+import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 import 'package:mochi_player/features/library/metadata/data/metadata_repository_impl.dart';
 import 'package:mochi_player/features/library/metadata/data/tmdb_metadata_source.dart';
 import 'package:mochi_player/features/library/metadata/domain/metadata_match.dart';
-import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 
 import '../../../support/database_fixture.dart';
 import '../../../support/tmdb_fixture.dart';
@@ -267,7 +266,7 @@ void main() {
       source: TmdbMetadataSource(api: TmdbApi()),
       repository: MetadataRepositoryImpl(database: db),
     );
-    final candidate = ScrapeCandidateMapper.fromMediaFile(file);
+    final candidate = ScrapeCandidate(file: file);
     expect((await resolver.resolveMovie(candidate)).metadata!.tmdbId, '2');
     expect((await resolver.resolveTVShow(candidate)).metadata!.tmdbId, '2');
   });

@@ -91,3 +91,9 @@ flowchart TD
 | 分组与标题归一化逻辑多处重复 | 修改规则需同步多个实现 |
 
 处置见 [0003 持久化](../decisions/0003-persistence-migration.md)。
+
+## 候选与编排维护边界
+
+`ScrapeCandidate` 直接引用一个不可变 `MediaFile`，标题、季集号和关联 ID 均从该文件读取，只在候选中保留显式数字 ID 等匹配规则。不会复制相同字段或引入仅转发数据的 Mapper。
+
+`LibrarySyncService` 的入口按读取启用来源、逐来源扫描、可选元数据刮削和汇总结果执行。逐来源的批次、错误隔离及计数在 `_scanSources` 维护；连接仍由 `_scanSource` 的 finally 关闭。阶段整理不改变完整扫描后才能清理旧索引、失败批次不重试以及退出排空的规则。

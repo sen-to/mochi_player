@@ -6,7 +6,6 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_matcher.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_repository.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_source.dart';
-import 'package:mochi_player/features/library/metadata/application/scrape_candidate_mapper.dart';
 import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 import 'package:mochi_player/features/library/metadata/domain/scrape_search_plan.dart';
 
@@ -106,7 +105,7 @@ class MetadataScraper {
   // ===== 电影处理 =====
 
   Future<void> _scrapeMovieSingle(MediaFile file, ScrapeResult result) async {
-    final candidate = ScrapeCandidateMapper.fromMediaFile(file);
+    final candidate = ScrapeCandidate(file: file);
     try {
       final metadata = (await _matcher.resolveMovie(candidate)).metadata;
 
@@ -142,7 +141,7 @@ class MetadataScraper {
     final matchedKeys = <String>{};
     try {
       // 文件上已确认的单集关联比首个文件的标题更可靠；否则用首个文件代表分组的标题与年份。
-      final candidates = files.map(ScrapeCandidateMapper.fromMediaFile).toList(growable: false);
+      final candidates = files.map((file) => ScrapeCandidate(file: file)).toList(growable: false);
       final resolverCandidate = candidates.firstWhere(
         (candidate) => candidate.tvShowTmdbId != null,
         orElse: () => candidates.first,
@@ -218,7 +217,7 @@ class MetadataScraper {
   // ===== 辅助方法 =====
 
   String _buildTVGroupKey(MediaFile file) {
-    final showTmdbId = ScrapeCandidateMapper.fromMediaFile(file).numericExplicitTmdbId ?? file.tvShowTmdbId;
+    final showTmdbId = ScrapeCandidate(file: file).numericExplicitTmdbId ?? file.tvShowTmdbId;
     if (showTmdbId != null) return 'tmdb:$showTmdbId';
 
     final titleKey = _normalizeGroupKey(file.parsedTitle);

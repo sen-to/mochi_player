@@ -18,6 +18,35 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../support/tmdb_fixture.dart';
 
 void main() {
+  test('shutdown rejects late loaded runtime configuration before disposal', () async {
+    final repository = _DelayedSettingsRepository();
+    final runtime = _RecordingRuntime();
+    final provider = AppSettingsProvider(settingsRepository: repository, runtime: runtime);
+    addTearDown(provider.dispose);
+    final loading = provider.load();
+    provider.beginShutdown();
+    repository.loading.complete(const AppSettings(tmdbApiKey: 'late'));
+    await loading;
+    expect(runtime.applied, isEmpty);
+    expect(provider.tmdbApiKey, isEmpty);
+  });
+  test('shutdown persists an accepted save but keeps the running configuration unchanged', () async {
+    final repository = _DelayedSettingsRepository();
+    final runtime = _RecordingRuntime();
+    final provider = AppSettingsProvider(settingsRepository: repository, runtime: runtime);
+    addTearDown(provider.dispose);
+    repository.loading.complete(const AppSettings(tmdbApiKey: 'running'));
+    await provider.load();
+    final saving = _save(provider, tmdbApiKey: 'accepted', applyRuntime: true);
+    provider.beginShutdown();
+    repository.saving.complete(const AppSettings(tmdbApiKey: 'accepted'));
+    await provider.waitForPendingSave();
+    await saving;
+    expect(repository.saved.single.tmdbApiKey, 'accepted');
+    expect(provider.tmdbApiKey, 'accepted');
+    expect(runtime.applied.single.tmdbApiKey, 'running');
+  });
+
   test('disposing during load prevents late runtime changes and notifications', () async {
     final repository = _DelayedSettingsRepository();
     final runtime = _RecordingRuntime();

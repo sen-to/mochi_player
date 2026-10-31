@@ -75,7 +75,7 @@ lib/
 | 业务模型 | `Movie / MediaFile / StorageSource / PlaybackQueue` 等业务数据与规则，不作为数据库行类型 | 只接收或返回业务类型；不依赖存储结构 |
 | VO | **View Object，展示对象**：`MediaCardVO / MediaDetailVO`，不是 DDD 的 Value Object | `MediaCardMapper / MediaDetailMapper`；VO 本身只保存展示字段 |
 | DTO / 外部响应 | 外部边界的数据形态；当前 TMDB 原始 JSON 留在 data 内 | `TmdbMetadataMapper` 显式从 JSON 转换，不让 JSON 进入 Provider 或业务模型 |
-| 用例输入、结果与进度 | `ScrapeCandidate / ScrapeResult / ScrapeProgress / PlayerWindowRequest` 等，名称直接说明用途 | 独立输入由 Mapper 创建；同一契约的伴随数据可与契约就近放置 |
+| 用例输入、结果与进度 | `ScrapeCandidate / ScrapeResult / ScrapeProgress / PlayerWindowRequest` 等，名称直接说明用途 | 有实际字段转换时由 Mapper 创建；只读业务候选可引用原始不可变模型，同一契约的伴随数据就近放置 |
 
 DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不再额外并列 `dal`。Repository 是能力契约，当前每个仓库只有一个生产实现，统一使用 `接口名Impl`，文件为 `*_repository_impl.dart`。
 
@@ -83,6 +83,7 @@ DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不
 
 ## 控制维护成本
 
+- 同一业务事实只保留一份数据来源。例如 `ScrapeCandidate` 引用 `MediaFile` 并派生读取字段，不同时保存两份标题和匹配 ID；纯复制且没有转换规则的 Mapper 可以合并。DO、业务模型、VO 的外部边界转换仍独立保留。
 - 一个真实边界保留一份契约。Repository 隔离功能需要的数据能力，具体实现直接使用 `AppDatabase`；数据库连接和公共读写不再另包一层 Store。
 - 只有一个创建规则的简单工厂并入所属业务模型，例如 `ScrapeSearchPlan.forCandidate`；业务校验与创建规则可以放在模型中，外部格式转换仍由 Mapper 负责。
 - 文件变长不自动意味着拆分。播放器菜单、文件名解析和同一界面的小组件可以留在同一流程内；只有能独立理解、复用或隔离资源所有权时才拆出文件。
@@ -126,7 +127,7 @@ Provider 包只是一种注入机制，不要求每个服务都套一层 Provide
 
 先确定入口和数据流，再沿统一层次扩展。例如手动修正匹配：界面弹窗放 `metadata/ui`，操作编排和外部能力契约放 `metadata/application`，匹配输入与规则放 `metadata/domain`，TMDB / 数据库实现及边界 Mapper 放 `metadata/data`；实例由应用组装。此示例是落位规则，不代表手动匹配已经实现。
 
-完成后运行架构检查、静态检查及受影响测试。架构检查阻止旧目录、Provider 直连后端、领域序列化、模型兼作数据库行和跨功能循环重新出现，并在 CI 执行。功能与机制变化同步对应文档，技术方向变化更新 ADR，验证证据集中更新测试指南。
+完成后运行格式检查、架构检查、静态检查及受影响测试。架构检查阻止旧目录、Provider 直连后端、领域序列化、模型兼作数据库行和跨功能循环重新出现，并在 CI 执行。功能与机制变化同步对应文档，技术方向变化更新 ADR，验证证据集中更新测试指南。
 
 ### 表单布局约定
 

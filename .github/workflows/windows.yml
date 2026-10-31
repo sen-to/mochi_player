@@ -62,6 +62,9 @@ jobs:
       - name: Generate localizations
         run: flutter gen-l10n
 
+      - name: Check Dart formatting
+        run: dart format --output=none --set-exit-if-changed lib test tool integration_test
+
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 

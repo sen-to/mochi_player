@@ -114,55 +114,16 @@ class LibrarySyncService extends ChangeNotifier {
         return null;
       }
 
-      _scanTotalSources = sources.length;
-      var completedSourceCount = 0;
-      var failedSourceCount = 0;
-      var discoveredFileCount = 0;
-      var newFileCount = 0;
-      var removedFileCount = 0;
-      for (final source in sources) {
-        if (_shuttingDown) break;
-        _scanCurrentSource = source.name;
-        _notify();
-        try {
-          final result = await _scanSource(source);
-          if (result == null) break;
-          discoveredFileCount += result.discoveredCount;
-          newFileCount += result.newCount;
-          removedFileCount += result.removedCount;
-          _logger.i(
-            '媒体源 ${source.name} 扫描完成：发现 ${result.discoveredCount} 个视频，'
-            '新增 ${result.newCount} 个，移除 ${result.removedCount} 个',
-          );
-          if (result.hadReadError || result.closeFailed) {
-            failedSourceCount++;
-            if (result.hadReadError) _logger.w('媒体源 ${source.name} 的扫描不完整，已跳过失效文件清理');
-          } else {
-            completedSourceCount++;
-          }
-        } catch (error) {
-          failedSourceCount++;
-          _logger.w('扫描媒体源 ${source.name} 失败: $error');
-        } finally {
-          _scanCompletedSources++;
-          _notify();
-        }
-      }
-      _logger.i(
-        '全部媒体源扫描完成：启用 ${sources.length} 个，'
-        '成功 $completedSourceCount 个，失败 $failedSourceCount 个，'
-        '发现 $discoveredFileCount 个视频，新增 $newFileCount 个，'
-        '移除 $removedFileCount 个',
-      );
+      final scanResult = await _scanSources(sources);
       if (_shuttingDown) return null;
       final scrapeResult = await _scrapeScannedMediaFiles();
       return MediaSourceScanSummary(
-        enabledSourceCount: sources.length,
-        completedSourceCount: completedSourceCount,
-        failedSourceCount: failedSourceCount,
-        discoveredFileCount: discoveredFileCount,
-        newFileCount: newFileCount,
-        removedFileCount: removedFileCount,
+        enabledSourceCount: scanResult.enabledSourceCount,
+        completedSourceCount: scanResult.completedSourceCount,
+        failedSourceCount: scanResult.failedSourceCount,
+        discoveredFileCount: scanResult.discoveredFileCount,
+        newFileCount: scanResult.newFileCount,
+        removedFileCount: scanResult.removedFileCount,
         metadataMatchedCount: scrapeResult?.successCount,
         metadataFailedCount: scrapeResult?.failCount,
       );
@@ -177,9 +138,56 @@ class LibrarySyncService extends ChangeNotifier {
     }
   }
 
-  Future<ScrapeResult?> _scrapeScannedMediaFiles() async {
-    if (_shuttingDown || !_metadataScraper.isConfigured) return null;
-    return _scrapeMetadata();
+  /// 每个来源独立失败；已提交的发现、新增、移除数量仍计入本轮汇总。
+  Future<MediaSourceScanSummary> _scanSources(List<StorageSource> sources) async {
+    _scanTotalSources = sources.length;
+    var completedSourceCount = 0;
+    var failedSourceCount = 0;
+    var discoveredFileCount = 0;
+    var newFileCount = 0;
+    var removedFileCount = 0;
+    for (final source in sources) {
+      if (_shuttingDown) break;
+      _scanCurrentSource = source.name;
+      _notify();
+      try {
+        final result = await _scanSource(source);
+        if (result == null) break;
+        discoveredFileCount += result.discoveredCount;
+        newFileCount += result.newCount;
+        removedFileCount += result.removedCount;
+        _logger.i(
+          '媒体源 ${source.name} 扫描完成：发现 ${result.discoveredCount} 个视频，'
+          '新增 ${result.newCount} 个，移除 ${result.removedCount} 个',
+        );
+        if (result.hadReadError || result.closeFailed) {
+          failedSourceCount++;
+          if (result.hadReadError) _logger.w('媒体源 ${source.name} 的扫描不完整，已跳过失效文件清理');
+        } else {
+          completedSourceCount++;
+        }
+      } catch (error) {
+        failedSourceCount++;
+        _logger.w('扫描媒体源 ${source.name} 失败: $error');
+      } finally {
+        _scanCompletedSources++;
+        _notify();
+      }
+    }
+    _logger.i(
+      '全部媒体源扫描完成：启用 ${sources.length} 个，'
+      '成功 $completedSourceCount 个，失败 $failedSourceCount 个，'
+      '发现 $discoveredFileCount 个视频，新增 $newFileCount 个，'
+      '移除 $removedFileCount 个',
+    );
+    return MediaSourceScanSummary(
+      enabledSourceCount: sources.length,
+      completedSourceCount: completedSourceCount,
+      failedSourceCount: failedSourceCount,
+      discoveredFileCount: discoveredFileCount,
+      newFileCount: newFileCount,
+      removedFileCount: removedFileCount,
+    );
   }
 
   void reset() {
@@ -198,8 +206,8 @@ class LibrarySyncService extends ChangeNotifier {
     _notify();
   }
 
-  Future<ScrapeResult?> _scrapeMetadata() async {
-    if (_shuttingDown || _isScraping) return null;
+  Future<ScrapeResult?> _scrapeScannedMediaFiles() async {
+    if (_shuttingDown || _isScraping || !_metadataScraper.isConfigured) return null;
 
     _isScraping = true;
     _scrapeCompleted = 0;

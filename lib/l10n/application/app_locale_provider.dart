@@ -15,7 +15,6 @@ class AppLocaleProvider extends ChangeNotifier {
   AppLanguage _language = AppLanguage.system;
   AppLanguage _persistedLanguage = AppLanguage.system;
   bool _stopping = false;
-  bool _disposed = false;
   int _revision = 0;
   Future<void> _pending = Future.value();
 
@@ -27,7 +26,7 @@ class AppLocaleProvider extends ChangeNotifier {
     if (_stopping) return;
     final revision = _revision;
     final language = await _repository.load();
-    if (_disposed || revision != _revision) return;
+    if (_stopping || revision != _revision) return;
     _language = language;
     _persistedLanguage = language;
     notifyListeners();
@@ -52,7 +51,6 @@ class AppLocaleProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _disposed = true;
     beginShutdown();
     super.dispose();
   }

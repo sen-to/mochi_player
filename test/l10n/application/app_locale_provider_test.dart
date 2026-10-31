@@ -12,6 +12,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 void main() {
+  test('shutdown ignores a late language read without requiring disposal', () async {
+    final repository = _DelayedLanguageRepository();
+    final locales = AppLocaleProvider(repository: repository);
+    addTearDown(locales.dispose);
+    var notifications = 0;
+    locales.addListener(() => notifications++);
+    final loading = locales.load();
+    locales.beginShutdown();
+    repository.loading.complete(AppLanguage.zh);
+    await loading;
+    await locales.setLanguage(AppLanguage.en);
+    expect(locales.language, AppLanguage.system);
+    expect(repository.saved, isEmpty);
+    expect(notifications, 0);
+  });
+
   test('a late load cannot replace a language selected while loading', () async {
     final repository = _DelayedLanguageRepository();
     final locales = AppLocaleProvider(repository: repository);

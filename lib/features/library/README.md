@@ -28,7 +28,7 @@ metadata/application/metadata_matcher.dart        ID 与标题匹配用例
 | 扫描顺序、分批入库、失效清理、退出 | [同步服务](sync/application/library_sync_service.dart) | [扫描契约](sync/application/library_source_scanner.dart)、[持久化契约](sync/application/library_sync_repository.dart)、[数据库适配](sync/data/library_sync_repository_impl.dart) |
 | 文件名解析与本地属性 | [文件名解析规则](sync/domain/media_filename_parser.dart) | [解析结果模型](sync/domain/parsed_media_filename.dart)、[扫描文件 Mapper](sync/application/scanned_media_file_mapper.dart) |
 | 遍历目录与释放扫描连接 | [存储扫描适配](sync/data/storage_library_source_scanner.dart) | 会话封装凭据和连接；不完整扫描报告读取失败，不清除旧索引 |
-| 候选输入与 ID / 标题匹配 | [匹配用例](metadata/application/metadata_matcher.dart) | [候选 Mapper](metadata/application/scrape_candidate_mapper.dart)、[候选模型](metadata/domain/scrape_candidate.dart)、[搜索计划规则](metadata/domain/scrape_search_plan.dart) |
+| 候选输入与 ID / 标题匹配 | [匹配用例](metadata/application/metadata_matcher.dart) | [候选模型](metadata/domain/scrape_candidate.dart) 直接引用原始文件，字段不重复保存、[搜索计划规则](metadata/domain/scrape_search_plan.dart) |
 | 刮削并发、分组与统计 | [刮削用例](metadata/application/metadata_scraper.dart) | [匹配结果模型](metadata/domain/metadata_match.dart)、[搜索计划模型](metadata/domain/scrape_search_plan.dart)；请求错误不等同于未匹配 |
 | TMDB 结果与错误 | [TMDB 数据适配](metadata/data/tmdb_metadata_source.dart) | [获取契约](metadata/application/metadata_source.dart)；共享 JSON Mapper 只留在 core/data |
 | 元数据与关联的原子导入 | [元数据数据库适配](metadata/data/metadata_repository_impl.dart) | [持久化契约](metadata/application/metadata_repository.dart)；DO 与业务模型通过 core/data/database/mappers 转换 |

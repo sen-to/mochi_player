@@ -72,7 +72,7 @@ class AppSettingsProvider extends ChangeNotifier {
 
     try {
       final settings = await _settingsRepository.load();
-      if (_disposed) return;
+      if (_shuttingDown) return;
       _settings = settings;
       await _applyRuntimeSettings();
     } catch (e) {
@@ -171,7 +171,7 @@ class AppSettingsProvider extends ChangeNotifier {
   }
 
   Future<void> _applyRuntimeSettings() async {
-    if (_disposed) return;
+    if (_shuttingDown) return;
     final previous = _appliedRuntimeSettings;
     _runtime.apply(_settings);
 

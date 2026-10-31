@@ -11,6 +11,35 @@ import 'package:mochi_player/features/settings/application/theme_provider.dart';
 import 'package:mochi_player/features/settings/domain/theme_preferences.dart';
 
 void main() {
+  test('shutdown drains an accepted theme write and refuses later edits', () async {
+    final repository = _Repository();
+    final provider = ThemeProvider(repository: repository);
+    addTearDown(provider.dispose);
+    provider.setAccentColor(AppAccentColor.green);
+    provider.beginShutdown();
+    provider.setAccentColor(AppAccentColor.red);
+    repository.loading.complete(const ThemePreferences());
+    await provider.waitForPendingSave();
+    expect(repository.accentWrites, [AppAccentColor.green.index]);
+    expect(provider.accentColor, AppAccentColor.green);
+  });
+
+  test('shutdown ignores a late preference read and refuses new edits', () async {
+    final repository = _Repository();
+    final provider = ThemeProvider(repository: repository);
+    addTearDown(provider.dispose);
+    var notifications = 0;
+    provider.addListener(() => notifications++);
+    provider.beginShutdown();
+    repository.loading.complete(ThemePreferences(modeIndex: ThemeMode.dark.index));
+    await Future<void>.delayed(Duration.zero);
+    provider.setAccentColor(AppAccentColor.green);
+    expect(provider.themeMode, ThemeMode.system);
+    expect(provider.accentColor, AppAccentColor.purple);
+    expect(repository.writes, isEmpty);
+    expect(notifications, 0);
+  });
+
   test('a late load preserves edited fields while restoring untouched preferences', () async {
     final repository = _Repository();
     final provider = ThemeProvider(repository: repository);
@@ -56,6 +85,7 @@ void main() {
 class _Repository implements ThemePreferencesRepository {
   final loading = Completer<ThemePreferences>();
   final writes = <int>[];
+  final accentWrites = <int>[];
   @override
   Future<ThemePreferences> load() => loading.future;
   @override
@@ -65,5 +95,7 @@ class _Repository implements ThemePreferencesRepository {
   }
 
   @override
-  Future<void> saveAccent(int index) async {}
+  Future<void> saveAccent(int index) async {
+    accentWrites.add(index);
+  }
 }
