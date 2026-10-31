@@ -16,13 +16,13 @@
 
 ## 数据库记录、业务模型与展示对象
 
-六张表分别生成 `MovieDO / TVShowDO / SeasonDO / EpisodeDO / MediaFileDO / StorageSourceDO`，不再通过 `UseRowClass` 或 SQL `WITH` 复用业务类型。DO 字段为数据库值：枚举保存名称字符串，列表保存 JSON 文本，关联记录分别查询。
+六张表分别生成 `MovieDO / TVShowDO / SeasonDO / EpisodeDO / MediaFileDO / StorageSourceDO`。DO 保存数据库值：枚举为名称字符串，列表为 JSON 文本，关联记录分别查询。
 
 [数据库 Mapper](../../lib/core/data/database/mappers/media_file_mapper.dart) 在读取和写入边界转换 DO 与业务模型；JSON 格式集中在 [StoredJsonMapper](../../lib/core/data/database/mappers/stored_json_mapper.dart)。`MediaFile / Movie / TVShow` 等业务模型没有数据库映射、JSON 编解码或 SDK 依赖。
 
 `MediaCardVO` 是批量查询后的展示投影，`MediaDetailVO` 是详情快照。转换由各自 Mapper 完成，VO 只保存字段；不把表记录或请求状态塞进 VO。
 
-本次更换 Dart 类型及 Mapper，没有修改物理表结构，继续使用 schema 2。兼容测试从此前的 schema 快照建立旧库，再用新实现重开并检查结构、JSON、枚举、凭据和观看状态，见 [兼容测试](../../test/core/data/database/schema_v2_compatibility_test.dart)。DTO、DO、VO 与 DAL 的约定见 [编码指南](../guides/code-organization.md#模型术语与数据访问层)。
+数据库版本为 schema 2。[兼容测试](../../test/core/data/database/schema_v2_compatibility_test.dart) 从 schema 快照建库，验证结构、JSON、枚举、凭据和观看状态。模型术语见 [编码指南](../guides/code-organization.md#模型术语与数据访问层)。
 
 ## 表概览
 
@@ -263,19 +263,19 @@ CHECK (episode_key = tv_show_tmdb_id || '_s' || season_number || 'e' || episode_
 - 当前电影 / 剧元数据以 TMDB 为身份来源，分别使用 `tmdbId`；两个表的相同 ID 不代表同一个标题，查询必须同时区分类型。
 - 一季由“所属剧 + 季号”确定；单集使用 `episodeKey`，另通过三字段唯一约束和 CHECK 固定归属，不把真实 TMDB 单集 ID 当作唯一的内部身份。
 
-增加代理 `id` 后仍需要业务唯一约束，并不自动改善范式或性能。如果未来需要持久化无 TMDB ID 的标题、多提供方元数据或本地自建标题，应重新评估电影 / 剧的内部身份和外部标识映射；当前尚未实现这套扩展，不把它写成现有能力。
+标题身份依赖 TMDB ID；本地自建标题及多提供方标识尚未实现。
 
 ### 范式与当前适用范围
 
 本设计按来源、文件、电影、剧、季、集拆分实体，适用于当前单用户、文件系统媒体源与 TMDB 元数据功能；数据库完整性与现有查询行为有测试，但大库容量尚未得到实测证明。
 
-不宣称整个 schema 严格满足第三范式。范式需要按各表的候选键和字段函数依赖分析，而非仅看有没有主键或外键。当前明确保留的反规范化取舍包括：
+schema 包含以下反规范化设计：
 
 - `MediaFiles.episodeKey` 已能确定所属剧，文件仍保存 `tvShowTmdbId`，方便按剧过滤；组合外键保证这份冗余一致。
 - `watchStatus` 可由位置、时长和完成规则计算，但仍持久化以供 SQL 查询；通过统一规则和字段级写入维护，数据库并未自动重算。
-- 演员、类型与客串演员保存为 JSON。SQLite 将其作为一个 TEXT 值，但按传统关系模型把这些内容视为多值属性时，没有展开为独立关系；不能据此宣称已完成严格的原子属性规范化。
+- 演员、类型与客串演员保存为 JSON TEXT，供界面展示。
 
-当前 schema 是实体拆分与有约束冗余的组合，不统一标注为严格 2NF / 3NF。多账户、按演员检索或跨版本共享观看状态等需求会改变实体关系与函数依赖，届时需重新评估相关表的规范化程度。
+多账户、按演员检索或跨版本共享观看状态等需求需要重新评估实体关系。
 
 `Episodes.episodeKey` 是项目的稳定业务键，例如 `123_s1e1`；`tmdbId` 保存接口返回的真实单集 ID，可为空。季、集归属通过显式字段查询，不解析业务键字符串。以下关系均已声明 SQL 外键：
 
@@ -324,9 +324,9 @@ erDiagram
 - 每个连接在开放业务读写前执行 `PRAGMA foreign_keys=ON`，真实 SQLite 测试确认拒绝错误引用和执行删除级联。
 - 文件与单集表在 `media_tables.drift` 声明组合外键，让生成器识别完整关系和季 → 集的级联订阅通知；其他四表使用 Dart 声明，不重复定义同一张表。不手工修改生成代码或使用内部通知 API。SQL 表与独立行类型的声明方式见 [drift 文件](https://drift.simonbinder.eu/sql_api/drift_files/) 与 [行模型映射](https://drift.simonbinder.eu/dart_api/rows/)。
 
-索引按过滤、关联和排序路径配置，不为每个字段建索引，也不重复建立与主键 / 唯一约束相同的索引。当前组合索引的查询计划已验证；收藏、观看状态等索引在真实规模下的收益与写入成本仍需负载测试，不把“已有索引”当作性能保证。
+索引按过滤、关联和排序路径配置，复用主键与唯一约束索引。组合索引已有查询计划回归；实际读写成本待容量测试。
 
-当前没有自定义 SQL 触发器。引用完整性、删除传播和字段合法性分别由外键、`ON DELETE CASCADE` 与 CHECK 实现；进度状态通过应用规则更新，drift 的生成通知规则负责使订阅跟随级联变化，它不是应用自建的 SQL 触发器。若以后允许其他写入方绕过应用服务，并必须自动维护派生状态，再评估生成列、触发器或统一写入接口。
+引用完整性、删除传播和字段合法性由外键、`ON DELETE CASCADE` 与 CHECK 实现。应用规则更新进度状态，drift 生成通知维护级联变更订阅。数据库没有自定义 SQL 触发器。
 
 ### drift / ORM 代码位置
 
@@ -335,7 +335,7 @@ erDiagram
 | [app_database.dart](../../lib/core/data/database/app_database.dart) | 表定义、共享连接、迁移、字段级写入、事务与公共类型化查询 |
 | [media_tables.drift](../../lib/core/data/database/media_tables.drift) | 文件与单集表、组合外键、CHECK、索引及 SQL 行模型映射 |
 | [app_database.g.dart](../../lib/core/data/database/app_database.g.dart) | drift 生成的列、映射、Companion 与数据库实现，不手工修改 |
-| [database_library_catalog_repository.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
+| [library_catalog_repository_impl.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
 | [数据库 Mapper](../../lib/core/data/database/mappers/media_file_mapper.dart)、[JSON Mapper](../../lib/core/data/database/mappers/stored_json_mapper.dart) | DO、业务类型与 JSON 字段边界转换 |
 
 ## 写入边界
@@ -382,7 +382,7 @@ fvm dart run build_runner build
 fvm dart run drift_dev schema dump lib/core/data/database/app_database.dart drift_schemas/
 ```
 
-后续 SQLite schema 变化需提升版本并明确迁移策略 / 测试，不能把这次开发库重建推广为发布版可随意清空数据。
+SQLite schema 变化需提升版本，并提供数据迁移策略及回归测试。
 
 媒体源用户名 / 密码当前是 SQLite 普通文本，尚未接入系统凭据存储。语言偏好由共享 `AppLocaleProvider` 保存为 SharedPreferences 的 `app_language`（`system / zh / en`）。主题和播放器设置由各自服务保存。
 
@@ -392,4 +392,4 @@ fvm dart run drift_dev schema dump lib/core/data/database/app_database.dart drif
 - 大库搜索、扩展 LIMIT 与索引的实测容量基线。
 - TMDB 请求失败后的退避与重试策略；请求失败和搜索未命中已经区分，失败保留已有关系。
 
-数据层自动化验证唯一键、外键、CHECK、JSON、日期、事务、局部更新、开发库并发重建、查询计划与关闭重开；组合索引查询计划通过不等于大库性能已验证。自动化与真实媒体 / 平台验证分别记录在 [测试指南](../guides/testing.md)。
+数据层验证范围及平台验收结果见 [测试指南](../guides/testing.md)。

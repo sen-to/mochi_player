@@ -17,6 +17,19 @@ Future<void> showSmbSourceDialog(
   required Future<void> Function() onSaved,
   StorageSource? source,
 }) async {
+  // 凭据读取可能失败或等待页面销毁；确认可展示后才创建需要释放的输入控制器。
+  StorageCredentials? existingCredentials;
+  try {
+    if (source != null) {
+      existingCredentials = await context.read<StorageSourcesService>().readCredentials(source.id);
+    }
+  } catch (error, stackTrace) {
+    debugPrint('加载媒体源凭据失败: $error\n$stackTrace');
+    if (context.mounted) AppMessage.error(context, context.l10n.sourcesLoadFailed);
+    return;
+  }
+  if (!context.mounted) return;
+
   final endpoint = Uri.tryParse(source?.endpoint ?? '');
   final nameController = TextEditingController(text: source?.name ?? '');
   final hostController = TextEditingController(text: endpoint?.host ?? '');
@@ -24,20 +37,8 @@ Future<void> showSmbSourceDialog(
     text: endpoint?.pathSegments.where((segment) => segment.isNotEmpty).firstOrNull ?? '',
   );
   final rootPathController = TextEditingController(text: source?.rootPath ?? '/');
-  final existingCredentials = source == null
-      ? null
-      : await context.read<StorageSourcesService>().readCredentials(source.id);
   final usernameController = TextEditingController(text: existingCredentials?.username ?? '');
   final passwordController = TextEditingController(text: existingCredentials?.password ?? '');
-  if (!context.mounted) {
-    nameController.dispose();
-    hostController.dispose();
-    shareController.dispose();
-    rootPathController.dispose();
-    usernameController.dispose();
-    passwordController.dispose();
-    return;
-  }
 
   var showPassword = false;
   var isEnabled = source?.enabled ?? true;

@@ -188,9 +188,6 @@ class _FakeStorageConnection implements StorageConnection {
   Future<List<StorageEntry>> readDirectory(String path) => _read(path);
 
   @override
-  Future<bool> testConnection() async => true;
-
-  @override
   Future<void> close() async {}
 }
 
@@ -222,9 +219,6 @@ class _TrackingStorageConnection implements StorageConnection {
 
   @override
   Future<List<StorageEntry>> readDirectory(String path) async => const [];
-
-  @override
-  Future<bool> testConnection() async => true;
 }
 
 class _DelayedProvider implements StorageAdapter {

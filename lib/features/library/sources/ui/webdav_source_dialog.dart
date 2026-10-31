@@ -16,6 +16,19 @@ Future<void> showWebDavSourceDialog(
   required Future<void> Function() onSaved,
   StorageSource? source,
 }) async {
+  // 凭据读取可能失败或等待页面销毁；确认可展示后才创建需要释放的输入控制器。
+  StorageCredentials? existingCredentials;
+  try {
+    if (source != null) {
+      existingCredentials = await context.read<StorageSourcesService>().readCredentials(source.id);
+    }
+  } catch (error, stackTrace) {
+    debugPrint('加载媒体源凭据失败: $error\n$stackTrace');
+    if (context.mounted) AppMessage.error(context, context.l10n.sourcesLoadFailed);
+    return;
+  }
+  if (!context.mounted) return;
+
   final nameController = TextEditingController(text: source?.name ?? '');
   final existingEndpoint = Uri.tryParse(source?.endpoint ?? '');
   final hostController = TextEditingController(text: existingEndpoint?.host ?? '');
@@ -25,20 +38,9 @@ Future<void> showWebDavSourceDialog(
   final portController = TextEditingController(
     text: existingEndpoint != null && existingEndpoint.host.isNotEmpty ? '${existingEndpoint.port}' : '',
   );
-  final existingCredentials = source == null
-      ? null
-      : await context.read<StorageSourcesService>().readCredentials(source.id);
   final usernameController = TextEditingController(text: existingCredentials?.username ?? '');
   final passwordController = TextEditingController(text: existingCredentials?.password ?? '');
-  if (!context.mounted) {
-    nameController.dispose();
-    hostController.dispose();
-    pathController.dispose();
-    portController.dispose();
-    usernameController.dispose();
-    passwordController.dispose();
-    return;
-  }
+
   var showPassword = false;
   // 本地 WebDAV 服务常使用 HTTP，例如 5244 端口；已有来源保留原协议，新来源默认不启用 HTTPS，有 TLS 的服务器可主动开启。
   var useHttps = existingEndpoint?.scheme == 'https';
@@ -54,23 +56,52 @@ Future<void> showWebDavSourceDialog(
     updateModal?.call(() => formError = message);
   }
 
-  Future<void> testConnection() async {
+  // 测试和保存共用同一份校验与地址构造，避免两处规则逐渐偏离。
+  StorageSource? buildSourceDraft() {
     final host = hostController.text.trim();
     if (host.isEmpty) {
       showFormError(context.l10n.webdavHostRequired);
-      return;
+      return null;
     }
     final portText = portController.text.trim();
     if (portText.isEmpty) {
       showFormError(context.l10n.webdavPortRequired);
-      return;
+      return null;
     }
     final port = int.tryParse(portText);
     if (port == null || port < 1 || port > 65535) {
       showFormError(context.l10n.portRangeError);
-      return;
+      return null;
     }
+    Uri endpoint;
+    try {
+      endpoint = Uri(
+        scheme: useHttps ? 'https' : 'http',
+        host: host,
+        port: port,
+        path: _normalizeWebDavPath(pathController.text),
+      );
+    } on FormatException {
+      showFormError(context.l10n.webdavHostInvalid);
+      return null;
+    }
+    if (endpoint.host.isEmpty) {
+      showFormError(context.l10n.webdavHostInvalid);
+      return null;
+    }
+    return StorageSource(
+      id: source?.id ?? 'connection-test',
+      name: nameController.text.trim().isEmpty ? host : nameController.text.trim(),
+      type: StorageSourceType.webDav,
+      endpoint: endpoint.toString(),
+      rootPath: '/',
+      enabled: isEnabled,
+    );
+  }
 
+  Future<void> testConnection() async {
+    final draft = buildSourceDraft();
+    if (draft == null) return;
     updateModal?.call(() {
       formError = null;
       isTestingConnection = true;
@@ -78,19 +109,8 @@ Future<void> showWebDavSourceDialog(
       connectionTestSucceeded = null;
     });
     try {
-      final endpoint = Uri(
-        scheme: useHttps ? 'https' : 'http',
-        host: host,
-        port: port,
-        path: _normalizeWebDavPath(pathController.text),
-      ).toString();
       await context.read<StorageSourcesService>().testConnection(
-        StorageSource(
-          id: source?.id ?? 'connection-test',
-          name: nameController.text.trim().isEmpty ? host : nameController.text.trim(),
-          type: StorageSourceType.webDav,
-          endpoint: endpoint,
-        ),
+        draft,
         StorageCredentials(username: usernameController.text.trim(), password: passwordController.text),
       );
       updateModal?.call(() {
@@ -198,37 +218,17 @@ Future<void> showWebDavSourceDialog(
         },
       ),
       onConfirm: () async {
-        final host = hostController.text.trim();
-        if (host.isEmpty) {
-          showFormError(context.l10n.webdavHostRequired);
-          return false;
-        }
-        final portText = portController.text.trim();
-        if (portText.isEmpty) {
-          showFormError(context.l10n.webdavPortRequired);
-          return false;
-        }
-        final port = int.tryParse(portText);
-        if (port == null || port < 1 || port > 65535) {
-          showFormError(context.l10n.portRangeError);
-          return false;
-        }
-        final path = _normalizeWebDavPath(pathController.text);
-        final endpoint = Uri(scheme: useHttps ? 'https' : 'http', host: host, port: port, path: path).toString();
-        final uri = Uri.tryParse(endpoint);
-        if (uri == null || uri.host.isEmpty) {
-          showFormError(context.l10n.webdavHostInvalid);
-          return false;
-        }
+        final draft = buildSourceDraft();
+        if (draft == null) return false;
         try {
           requiresBrowserReopen = await context.read<StorageSourcesService>().save(
             StorageSource(
               id: source?.id ?? const Uuid().v4(),
-              name: nameController.text.trim().isEmpty ? host : nameController.text.trim(),
+              name: draft.name,
               type: StorageSourceType.webDav,
-              endpoint: endpoint,
-              rootPath: '/',
-              enabled: isEnabled,
+              endpoint: draft.endpoint,
+              rootPath: draft.rootPath,
+              enabled: draft.enabled,
             ),
             credentials: StorageCredentials(
               username: usernameController.text.trim(),

@@ -10,8 +10,6 @@ abstract interface class StorageConnection {
 
   Future<List<StorageEntry>> readDirectory(String path);
 
-  Future<bool> testConnection();
-
   /// 释放此连接持有的协议专属资源。
   Future<void> close();
 }

@@ -240,14 +240,14 @@ class _VersionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  MediaFileLabels.playableVersionTitle(file),
+                  MediaFileLabels.detailVersionTitle(file),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  MediaFileLabels.playableVersionDetails(file, l10n: context.l10n),
+                  MediaFileLabels.detailVersionSubtitle(file, l10n: context.l10n),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color),

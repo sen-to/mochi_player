@@ -1,8 +1,8 @@
 // 【原生冒烟】验证各视图和迷你模式的窗口最小尺寸约束。
 // 不替代人工拖动、多显示器或 DPI 验收。
 
-// 执行方式：fvm flutter run -d windows --release -t integration_test/window_constraints_smoke.dart
-// macOS 执行方式：fvm flutter run -d macos --release -t integration_test/window_constraints_smoke.dart
+// 执行方式：fvm flutter run -d windows --release -t tool/smoke/window_constraints_smoke.dart
+// macOS 执行方式：fvm flutter run -d macos --release -t tool/smoke/window_constraints_smoke.dart
 // 查询原生缩放约束，包括 macOS 标题栏配置。
 import 'dart:async';
 import 'dart:ffi' hide Size;

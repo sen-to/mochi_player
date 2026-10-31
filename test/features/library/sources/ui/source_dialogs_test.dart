@@ -1,5 +1,5 @@
-// 【行为测试】验证展示来源列表并连接新增、编辑、删除、扫描和清库操作。
-// 测试对象的职责边界：业务进入来源服务或媒体库 Provider，不直接访问协议或数据库。
+// 【来源弹窗回归】验证输入校验、凭据加载失败和关闭后的异步结果隔离。
+// 使用来源仓库及协议替身，保存和测试连接仍经过正式来源服务。
 
 import 'dart:async';
 
@@ -19,6 +19,7 @@ import 'package:provider/provider.dart';
 void main() {
   late _SourceRepository repository;
   late _Adapter adapter;
+  late _Adapter webDavAdapter;
   late StorageSourcesService sources;
   late AppLocalizations strings;
   var saved = 0;
@@ -26,9 +27,10 @@ void main() {
   setUp(() async {
     repository = _SourceRepository();
     adapter = _Adapter();
+    webDavAdapter = _Adapter(type: StorageSourceType.webDav);
     sources = StorageSourcesService(
       repository: repository,
-      registry: StorageAdapterRegistry([adapter]),
+      registry: StorageAdapterRegistry([adapter, webDavAdapter]),
       onSourceChanged: (_) => false,
     );
     strings = await AppLocalizations.delegate.load(const Locale('zh'));
@@ -103,18 +105,72 @@ void main() {
     await openEditor(tester, (context) => showWebDavSourceDialog(context, onSaved: onSaved));
     await fill(tester, strings.host, 'nas.local');
     await fill(tester, strings.port, '0');
+    await tester.tap(find.widgetWithText(AppButton, strings.testConnection));
+    await tester.pumpAndSettle();
+    expect(find.text(strings.portRangeError), findsOneWidget);
+    expect(webDavAdapter.connectedSource, isNull);
     await tester.tap(find.widgetWithText(AppButton, strings.add));
     await tester.pumpAndSettle();
     expect(find.text(strings.portRangeError), findsOneWidget);
     expect(repository.items, isEmpty);
     expect(saved, 0);
     await fill(tester, strings.port, '5244');
+    await tester.tap(find.widgetWithText(AppButton, strings.testConnection));
+    await tester.pumpAndSettle();
+    expect(webDavAdapter.connectedSource!.endpoint, 'http://nas.local:5244/');
     await tester.tap(find.widgetWithText(AppButton, strings.add));
     await tester.pumpAndSettle();
     final source = repository.items.values.single;
     expect(source.type, StorageSourceType.webDav);
     expect(source.endpoint, 'http://nas.local:5244/');
     expect(saved, 1);
+  });
+
+  for (final editor in {'SMB': showSmbSourceDialog, 'WebDAV': showWebDavSourceDialog}.entries) {
+    final source = StorageSource(
+      id: 'existing',
+      name: 'Existing source',
+      type: editor.key == 'SMB' ? StorageSourceType.smb : StorageSourceType.webDav,
+      endpoint: editor.key == 'SMB' ? 'smb://nas/Media' : 'https://nas/dav',
+    );
+    testWidgets('${editor.key} 凭据加载失败时提示错误且不打开表单', (tester) async {
+      repository.loadCredentials = (_) async => throw StateError('凭据读取失败');
+      await openEditor(tester, (context) => editor.value(context, source: source, onSaved: onSaved));
+      expect(find.text(strings.sourcesLoadFailed), findsOneWidget);
+      expect(find.byType(EditableText), findsNothing);
+      expect(tester.takeException(), isNull);
+      expect(saved, 0);
+    });
+
+    testWidgets('${editor.key} 等待凭据期间页面销毁后不再打开表单', (tester) async {
+      final pending = Completer<StorageCredentials?>();
+      repository.loadCredentials = (_) => pending.future;
+      addTearDown(() {
+        if (!pending.isCompleted) pending.complete(null);
+      });
+      await openEditor(tester, (context) => editor.value(context, source: source, onSaved: onSaved));
+      await tester.pumpWidget(const SizedBox.shrink());
+      pending.complete(const StorageCredentials(username: 'viewer', password: 'secret'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EditableText), findsNothing);
+      expect(tester.takeException(), isNull);
+      expect(saved, 0);
+    });
+  }
+
+  testWidgets('WebDAV 测试与保存均拒绝无效主机', (tester) async {
+    await openEditor(tester, (context) => showWebDavSourceDialog(context, onSaved: onSaved));
+    await fill(tester, strings.host, '[');
+    await fill(tester, strings.port, '5244');
+    for (final action in [strings.testConnection, strings.add]) {
+      await tester.tap(find.widgetWithText(AppButton, action));
+      await tester.pumpAndSettle();
+      expect(find.text(strings.webdavHostInvalid), findsOneWidget);
+      expect(adapter.connectedSource, isNull);
+      expect(repository.items, isEmpty);
+      expect(tester.takeException(), isNull);
+    }
+    expect(saved, 0);
   });
 
   testWidgets('cancelling a local editor leaves the source unchanged', (tester) async {
@@ -154,12 +210,14 @@ void main() {
 class _SourceRepository implements StorageSourceRepository {
   final items = <String, StorageSource>{};
   final credentials = <String, StorageCredentials>{};
+  Future<StorageCredentials?> Function(String)? loadCredentials;
   @override
   Future<List<StorageSource>> getAll() async => items.values.toList();
   @override
   Future<StorageSource?> getById(String sourceId) async => items[sourceId];
   @override
-  Future<StorageCredentials?> readCredentials(String sourceId) async => credentials[sourceId];
+  Future<StorageCredentials?> readCredentials(String sourceId) async =>
+      loadCredentials == null ? credentials[sourceId] : await loadCredentials!(sourceId);
   @override
   Future<void> save(StorageSource source, {StorageCredentials? credentials}) async {
     items[source.id] = source;
@@ -177,15 +235,20 @@ class _SourceRepository implements StorageSourceRepository {
 }
 
 class _Adapter implements StorageAdapter {
+  _Adapter({this.type = StorageSourceType.smb});
   final connection = _Connection();
   @override
-  StorageSourceType get type => StorageSourceType.smb;
+  final StorageSourceType type;
+  StorageSource? connectedSource;
   @override
-  Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async => connection;
+  Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async {
+    connectedSource = source;
+    return connection;
+  }
 }
 
 class _Connection implements StorageConnection {
-  Future<List<StorageEntry>> read = Future.value([]);
+  Future<List<StorageEntry>>? read;
   int closes = 0;
   @override
   final source = const StorageSource(
@@ -195,9 +258,7 @@ class _Connection implements StorageConnection {
     endpoint: 'smb://nas/Media',
   );
   @override
-  Future<List<StorageEntry>> readDirectory(String path) => read;
-  @override
-  Future<bool> testConnection() async => true;
+  Future<List<StorageEntry>> readDirectory(String path) => read ?? Future.value([]);
   @override
   Future<void> close() async {
     closes++;

@@ -13,7 +13,7 @@
 
 ## 目录骨架
 
-全仓库统一 `ui / application / domain / data` 职责，不再混用 `presentation / infrastructure / contracts`。仍按实际内容创建目录，不要求每个小功能凑齐四层。
+职责目录统一为 `ui / application / domain / data`，按实际内容创建。
 
 ```text
 lib/
@@ -54,7 +54,7 @@ lib/
 
 ## data 具体包含什么
 
-`data` 是数据与外部能力的适配层，不是一种类后缀，也不等于 Mapper 或 Service。它可以实现数据库、网络、协议、偏好存储和播放引擎边界。
+`data` 适配数据库、网络、协议、偏好存储和播放引擎等外部能力。
 
 | 职责 | 当前类 | 是否执行 I/O |
 | --- | --- | --- |
@@ -77,14 +77,15 @@ lib/
 | DTO / 外部响应 | 外部边界的数据形态；当前 TMDB 原始 JSON 留在 data 内 | `TmdbMetadataMapper` 显式从 JSON 转换，不让 JSON 进入 Provider 或业务模型 |
 | 用例输入、结果与进度 | `ScrapeCandidate / ScrapeResult / ScrapeProgress / PlayerWindowRequest` 等，名称直接说明用途 | 有实际字段转换时由 Mapper 创建；只读业务候选可引用原始不可变模型，同一契约的伴随数据就近放置 |
 
-DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不再额外并列 `dal`。Repository 是能力契约，当前每个仓库只有一个生产实现，统一使用 `接口名Impl`，文件为 `*_repository_impl.dart`。
+数据访问代码位于 `data`。Repository 是能力契约，当前每个仓库只有一个生产实现，统一使用 `接口名Impl`，文件为 `*_repository_impl.dart`。
 
-数据库不再复用业务模型。DO 只保存数据库字段、枚举字符串和 JSON 文本；Mapper 在边界转换为业务枚举及列表。数据库关系数据分别加载后组装，不能为每个卡片新增一条 SQL。VO 字段可以携带操作上下文的业务对象，但不能持有 Widget、连接、订阅或请求。
+数据库使用独立 DO，保存数据库字段、枚举字符串和 JSON 文本；Mapper 在边界转换为业务枚举及列表。数据库关系数据分别加载后组装，不能为每个卡片新增一条 SQL。VO 字段可以携带操作上下文的业务对象，但不能持有 Widget、连接、订阅或请求。
 
 ## 控制维护成本
 
 - 同一业务事实只保留一份数据来源。例如 `ScrapeCandidate` 引用 `MediaFile` 并派生读取字段，不同时保存两份标题和匹配 ID；纯复制且没有转换规则的 Mapper 可以合并。DO、业务模型、VO 的外部边界转换仍独立保留。
-- 一个真实边界保留一份契约。Repository 隔离功能需要的数据能力，具体实现直接使用 `AppDatabase`；数据库连接和公共读写不再另包一层 Store。
+- 一个真实边界保留一份契约。Repository 隔离功能需要的数据能力，`AppDatabase` 管理数据库连接和公共读写。
+- 接口以生产调用为保留依据，测试通过正式入口验证行为。
 - 只有一个创建规则的简单工厂并入所属业务模型，例如 `ScrapeSearchPlan.forCandidate`；业务校验与创建规则可以放在模型中，外部格式转换仍由 Mapper 负责。
 - 文件变长不自动意味着拆分。播放器菜单、文件名解析和同一界面的小组件可以留在同一流程内；只有能独立理解、复用或隔离资源所有权时才拆出文件。
 - 不为统一后缀引入 Facade、Manager、Store、Handler 等新概念。已有名称先检查职责；优先减少转发和重复状态，再决定是否更名。

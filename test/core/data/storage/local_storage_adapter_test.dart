@@ -30,7 +30,6 @@ void main() {
     expect(rootEntries.single.isDirectory, isTrue);
     expect(movieEntries.single.name, 'Example.mkv');
     expect(movieEntries.single.size, 2);
-    expect(await connection.testConnection(), isTrue);
   });
 
   test('does not allow paths outside the selected directory', () async {

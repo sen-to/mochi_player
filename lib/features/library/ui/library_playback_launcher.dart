@@ -169,7 +169,7 @@ class LibraryPlaybackLauncher {
                 separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (ctx, index) {
                   final file = versions[index];
-                  final label = MediaFileLabels.versionTitle(file);
+                  final label = MediaFileLabels.selectionVersionTitle(file);
                   return ListTile(
                     leading: Icon(Icons.movie_outlined, color: theme.colorScheme.primary),
                     title: Text(
@@ -177,7 +177,7 @@ class LibraryPlaybackLauncher {
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      MediaFileLabels.versionSubtitle(file, l10n: context.l10n, includeContainer: false),
+                      MediaFileLabels.selectionVersionSubtitle(file, l10n: context.l10n, includeContainer: false),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     onTap: () {

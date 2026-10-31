@@ -45,6 +45,7 @@ class StorageSourcesService {
     return operation;
   }
 
+  /// 按名称读取全部来源，包含禁用来源；不返回密码，读取失败抛出异常。
   Future<List<StorageSource>> getAll() => _run(_repository.getAll);
 
   /// 先保存来源，再使使用该来源的浏览状态失效；返回是否需要用新配置重新打开。
@@ -52,18 +53,24 @@ class StorageSourcesService {
     await _repository.save(source, credentials: credentials);
     return _onSourceChanged(source.id);
   });
+
+  /// 按来源 ID 读取凭据；来源不存在返回 null，读取失败抛出异常。
   Future<StorageCredentials?> readCredentials(String id) => _run(() => _repository.readCredentials(id));
 
+  /// 删除来源、凭据及关联文件索引，返回移除的索引数；来源不存在返回 null。
+  /// 不删除磁盘文件或共享元数据；失败抛出异常，成功后通知浏览状态失效。
   Future<int?> deleteWithMedia(String id) => _run(() async {
     final count = await _repository.deleteWithMedia(id);
     if (count != null) _onSourceChanged(id);
     return count;
   });
 
-  Future<int> testConnection(StorageSource source, StorageCredentials? credentials) => _run(() async {
+  /// 建立临时连接并读取根目录；读取成功即完成，空目录也视为成功。
+  /// 建连、读取或关闭失败均抛出异常；已创建的连接始终在 finally 中关闭。
+  Future<void> testConnection(StorageSource source, StorageCredentials? credentials) => _run(() async {
     final connection = await _registry.connect(source, credentials);
     try {
-      return (await connection.readDirectory('/')).length;
+      await connection.readDirectory('/');
     } finally {
       await connection.close();
     }

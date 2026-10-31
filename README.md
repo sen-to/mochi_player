@@ -74,7 +74,9 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 2. 在页面底部的 **Artifacts** 区域下载 `mochi-player-windows-x64`；
 3. 解压后直接运行其中的 `mochi_player.exe`。
 
-> Artifact 仅保留 14 天，过期后需要重新触发构建。macOS 版本目前需要从源码构建。
+macOS 构建见 [macOS CI](https://github.com/sen-to/mochi_player/actions/workflows/macos.yml)，下载 `mochi-player-macos` 后解压其中的 ZIP 获取应用。
+
+> 产物保留 14 天。macOS 产物使用临时签名，尚未公证。
 
 ## 🚀 开始使用
 
@@ -178,6 +180,7 @@ lib/
 ├── l10n/       本地化资源与语言状态
 └── main.dart   应用入口，初始化共享服务并创建主视图
 test/           与 lib/ 结构对应的单元测试与 Widget 测试
+tool/smoke/     原生窗口与播放验证应用
 windows/ macos/ 各平台 runner
 ```
 
@@ -201,7 +204,7 @@ windows/ macos/ 各平台 runner
 - TMDB 匹配依赖文件命名质量，少数作品可能需要后续手动处理。
 - SMB 播放使用应用内的本地 HTTP 转发，支持字节范围读取，不依赖播放器的 `smb://` 协议，也不整部下载到硬盘。真实 NAS 的认证、断线恢复与高码率表现仍待验收；需要时可在系统中挂载共享，再按本地目录添加播放。
 - 关闭媒体库主窗口会先保存进度、关闭播放器并退出整个应用；单独关闭播放器则保留媒体库窗口。希望继续观看时请最小化主窗口。正常清理有超时兜底，超时情况下不保证最后快照完整，见 [多窗口策略 ADR](docs/decisions/0001-multi-window-strategy.md)。
-- Windows 曾出现打开播放器后媒体库主窗口鼠标与键盘无响应（界面仍在渲染），关闭播放器也不恢复的现象。runner 已调整 UI 线程策略；完整根因与修复效果仍需 Windows 运行时验证，不能保证更换窗口方案就能消除问题。
+- Windows 的原生输入、窗口关闭与多显示器交互仍需运行时验收，详见 [Windows 指南](docs/guides/build-windows.md)。
 
 ## 🤝 参与贡献
 

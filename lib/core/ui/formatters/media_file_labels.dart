@@ -8,7 +8,8 @@ import 'package:mochi_player/l10n/l10n.dart';
 
 /// 生成媒体文件的展示标题与详情文本。
 abstract final class MediaFileLabels {
-  static String versionTitle(MediaFile file) {
+  /// 版本选择弹窗使用完整版本标签；缺少标签时以画质、视频编码及 HDR 回退。
+  static String selectionVersionTitle(MediaFile file) {
     final parsedLabel = file.versionLabel?.trim();
     if (parsedLabel != null && parsedLabel.isNotEmpty) return parsedLabel;
 
@@ -20,7 +21,8 @@ abstract final class MediaFileLabels {
     return parts.isEmpty ? file.fileName : parts.join(' • ');
   }
 
-  static String versionSubtitle(
+  /// 版本选择弹窗的音频与大小信息，可按展示位置附加容器及续播位置。
+  static String selectionVersionSubtitle(
     MediaFile file, {
     required AppLocalizations l10n,
     bool includeContainer = true,
@@ -47,7 +49,8 @@ abstract final class MediaFileLabels {
     return parts.isEmpty ? file.fileName : parts.join(' • ');
   }
 
-  static String playableVersionTitle(MediaFile file) {
+  /// 详情版本列表将编码与 HDR 放在副标题，主标题中移除这些重复信息。
+  static String detailVersionTitle(MediaFile file) {
     var title = file.versionLabel?.trim() ?? '';
     if (title.isEmpty) {
       return file.quality.isNotEmpty ? file.quality : file.fileName;
@@ -65,7 +68,8 @@ abstract final class MediaFileLabels {
     return title.isEmpty ? (file.quality.isNotEmpty ? file.quality : file.fileName) : title;
   }
 
-  static String playableVersionDetails(MediaFile file, {required AppLocalizations l10n}) {
+  /// 详情版本列表展示视频、音频、容器及大小，并统一技术名称大小写。
+  static String detailVersionSubtitle(MediaFile file, {required AppLocalizations l10n}) {
     final parts = <String>[];
     final videoParts = [
       _formattedCodec(file.videoCodec),

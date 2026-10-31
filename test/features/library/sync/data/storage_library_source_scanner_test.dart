@@ -103,9 +103,6 @@ class _Connection implements StorageConnection {
   }
 
   @override
-  Future<bool> testConnection() async => !failReads;
-
-  @override
   Future<void> close() async {
     closeCount++;
   }

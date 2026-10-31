@@ -147,7 +147,5 @@ class _Connection implements StorageConnection {
   @override
   Future<List<StorageEntry>> readDirectory(String path) async => [];
   @override
-  Future<bool> testConnection() async => true;
-  @override
   Future<void> close() async {}
 }

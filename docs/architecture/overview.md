@@ -28,7 +28,7 @@ flowchart LR
 
 业务调用通常沿“展示交互 → 应用用例 → 仓库 / 外部能力”流动。`core` 不导入 `features` 或 `app`；入口可以选择具体实现，页面通过应用入口操作业务，视图窗口接口与图片资源加载属于展示交互。
 
-`core` 的归属按实际调用判断：媒体记录、观看进度和剧集播放目标由媒体库、播放或共享持久化共同使用；趋势响应模型由共享 TMDB 映射 / 服务返回。仅供媒体库浏览与扫描使用的 `MediaFileClassifier` 位于 `features/library/media_file_kind.dart`，仅供 SQL 回归比较的续播参考实现位于 `test/support/`，不随应用发布。
+`core` 的归属按实际调用判断：媒体记录、观看进度和剧集播放目标由媒体库、播放或共享持久化共同使用；趋势响应模型由共享 TMDB 映射 / 服务返回。仅供媒体库浏览与扫描使用的 `MediaFileClassifier` 位于 `features/library/domain/media_file_kind.dart`，仅供 SQL 回归比较的续播参考实现位于 `test/support/`，不随应用发布。
 
 ### 职责边界
 
@@ -114,7 +114,7 @@ flowchart TB
 
 本图箭头表示创建 / 管理关系，省略业务调用。两个视图使用同一组应用共享对象和数据库连接。
 
-原生 runner 创建一个引擎并注册一次插件；Dart 创建窗口。数据库通过后台 isolate 执行，UI 与播放器共享同一连接对象；数据库后台 isolate 不等于第二个播放器引擎。
+原生 runner 创建一个引擎并注册一次插件，Dart 创建窗口。主视图与播放器共享后台 isolate 的数据库连接。
 
 | 所有者 | 状态 / 资源 | 释放时机 |
 | --- | --- | --- |
@@ -133,7 +133,7 @@ flowchart TB
 
 ### 设置与来源变更联动
 
-- 来源保存成功或实际删除后，`StorageSourcesService` 调用注入的 `onSourceChanged`。`ApplicationDependencies` 将其连接到 `FileBrowserProvider.invalidateSource`；只有正在浏览或正在打开该来源时才清空选择。等待凭据期间的请求不再连接，迟到连接自行关闭。保存返回是否需要重新打开，表单据此展示提示；保存失败不清理浏览状态。
+- 来源保存成功或实际删除后，`StorageSourcesService` 调用注入的 `onSourceChanged`。`ApplicationDependencies` 将其连接到 `FileBrowserProvider.invalidateSource`；只有正在浏览或正在打开该来源时才清空选择。失效请求在取得凭据后停止，迟到连接自行关闭。保存返回是否需要重新打开，表单据此展示提示；保存失败不清理浏览状态。
 - `AppSettingsProvider` 经注入的 `AppSettingsRuntime` 应用运行时配置后，比较上次生效配置，变化时发出 `onTmdbConfigurationChanged`。应用组装入口触发趋势刷新；设置页不读取首页 Provider。初次加载沿启动流程加载趋势，仅保存草稿、网络配置未变或已开始退出时不触发此回调。
 - `TrendingMediaProvider.fetch` 合并普通并发加载；`refresh: true` 使旧配置的在途结果失效，并在当前批次完成后读取最新配置。多次配置变化合并刷新，旧请求失败不吞掉待刷新任务；销毁后的结果不更新状态或通知界面。
 
@@ -154,7 +154,7 @@ flowchart TB
 
 ## 生命周期与同步
 
-主题、语言与普通设置在开始退出后忽略迟到的偏好读取，拒绝新编辑；已经接受的保存继续排空，保存完成不再应用网络运行时配置。各入口保留自身的失败反馈和资源收尾，没有引入通用状态基类。
+主题、语言与普通设置在退出时拒绝新编辑、忽略迟到读取，并等待已接受的保存完成；运行时网络配置仅在正常运行期间应用。
 
 媒体库首页投影通过只读字段发布；列表复制为不可修改快照。`MediaLibraryProvider` 合并并发加载，正常加载完成后复用订阅；初始化或查询失败后再次加载会先取消旧订阅。每个查询独立记录错误，只有对应查询恢复才清除；退出不等待永不产出首条数据的流。标题查询用 `LibraryTitleKind` 表达电影或剧集，仅在数据层转换为 SQL 类型值。
 
@@ -164,6 +164,6 @@ flowchart TB
 
 - Provider 与用例只依赖能力契约、业务模型及共享纯辅助能力；数据库、TMDB、偏好存储的实现由组装入口选择。业务模型不作为数据库记录或序列化载体。共享图片界面组件封装渲染资源，功能 UI 不直接依赖缓存实现。
 - `ApplicationDependencies` 负责手工组装与构造注入，在应用范围内共享实例。共享对象由入口负责释放，Provider 通过 `.value` 暴露它们。
-- 一个 UI isolate 承载所有视图，同步重任务会影响整个界面；数据库后台 isolate 不代表所有计算都已隔离。
+- 一个 UI isolate 承载所有视图，同步重任务会影响整个界面；数据库操作在后台 isolate 执行。
 - 播放会话统一管理引擎与目标资源，窗口工厂通过会话关闭入口收尾；详细所有权和失败回收路径见 [播放](playback.md#播放目标资源所有权)。
 - 实验窗口 API、原生补丁、凭据存储和大库性能仍有约束；当前风险与待办集中见 [实施状态](../status.md)，平台细节见构建指南。

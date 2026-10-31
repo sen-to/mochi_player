@@ -38,6 +38,9 @@ metadata/application/metadata_matcher.dart        ID 与标题匹配用例
 - Provider 不导入具体数据实现；新增数据库或协议实现只在组装处选择。
 - 业务规则只消费业务类型；原始 JSON、DO 和第三方 SDK 类型不能进入 Provider 或 UI。
 - 来源变更后的浏览失效、设置生效后的首页刷新由应用入口连接，不由表单或页面自行协调其他功能。
+- `FileBrowserProvider` 持有来源选择状态，浏览页直接读取。
+- `StorageSourcesService.testConnection` 创建临时连接、读取根目录并关闭；空目录视为成功，失败抛出异常。
+- SMB / WebDAV 弹窗加载凭据后创建输入控制器，关闭时释放；加载失败显示提示，页面销毁后忽略结果。WebDAV 测试和保存共用草稿校验。
 - 共享组件只放 `library/ui/widgets`；跨功能通用图片资源经 `core/ui/images`，功能页面不接触具体缓存实现。
 - 独立 SQL 搜索和续播参考实现只位于 `test/support`。测试按实际职责放在 `test/features/library`，不新增旧路径导出或兼容别名。
 

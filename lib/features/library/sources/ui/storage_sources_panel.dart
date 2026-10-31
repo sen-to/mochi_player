@@ -22,7 +22,7 @@ class StorageSourcesPanel extends StatefulWidget {
 enum _StorageSourceAddOption { local, webDav, smb }
 
 class _StorageSourcesPanelState extends State<StorageSourcesPanel> {
-  StorageSourcesService get _sourceController => context.read<StorageSourcesService>();
+  StorageSourcesService get _storageSourcesService => context.read<StorageSourcesService>();
   List<StorageSource> _storageSources = const [];
   bool _isLoadingStorageSources = true;
 
@@ -182,7 +182,7 @@ class _StorageSourcesPanelState extends State<StorageSourcesPanel> {
 
   Future<void> _loadStorageSources() async {
     try {
-      final sources = await _sourceController.getAll();
+      final sources = await _storageSourcesService.getAll();
       if (!mounted) return;
       setState(() {
         _storageSources = sources;
@@ -212,7 +212,7 @@ class _StorageSourcesPanelState extends State<StorageSourcesPanel> {
     );
     if (confirmed != true) return;
     try {
-      final deletedFileCount = await _sourceController.deleteWithMedia(source.id);
+      final deletedFileCount = await _storageSourcesService.deleteWithMedia(source.id);
       if (deletedFileCount == null) {
         if (!mounted) return;
         AppMessage.error(context, context.l10n.sourceMissing);

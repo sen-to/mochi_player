@@ -27,9 +27,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
   var _sources = const <StorageSource>[];
   var _isLoadingSources = true;
   AppFailure? _sourceError;
-  bool _showSourceList = true;
   String? _openingSourceId;
-  bool _didScheduleExternalSelection = false;
 
   @override
   void initState() {
@@ -39,12 +37,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<FileBrowserProvider>();
-    final shouldShowSourceList = !provider.hasSelectedStorageSource;
-    if (_showSourceList != shouldShowSourceList) {
-      _scheduleSourceListVisibility(shouldShowSourceList);
-    }
-    final showSourceList = shouldShowSourceList || _showSourceList;
+    final showSourceList = context.select<FileBrowserProvider, bool>((provider) => !provider.hasSelectedStorageSource);
 
     return Scaffold(
       body: Column(
@@ -58,7 +51,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
                     width: 300,
                     child: AppSearchInput(
                       placeholder: context.l10n.searchDirectory,
-                      onChanged: provider.setSearchQuery,
+                      onChanged: context.read<FileBrowserProvider>().setSearchQuery,
                     ),
                   ),
           ),
@@ -91,7 +84,7 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
                     builder: (context, state, child) => _FileBrowserBody(
                       state: state,
                       provider: context.read<FileBrowserProvider>(),
-                      onItemTap: (item) => _onItemTap(context, item, provider),
+                      onItemTap: (item) => _onItemTap(context, item, context.read<FileBrowserProvider>()),
                       onSourceSelected: _showSources,
                     ),
                   ),
@@ -99,21 +92,6 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
         ],
       ),
     );
-  }
-
-  void _scheduleSourceListVisibility(bool shouldShowSourceList) {
-    if (_didScheduleExternalSelection) return;
-    _didScheduleExternalSelection = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showSourceList == shouldShowSourceList) {
-        _didScheduleExternalSelection = false;
-        return;
-      }
-      setState(() {
-        _showSourceList = shouldShowSourceList;
-        _didScheduleExternalSelection = false;
-      });
-    });
   }
 
   Future<void> _loadSources() async {
@@ -145,8 +123,6 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
     setState(() => _openingSourceId = source.id);
     try {
       await context.read<FileBrowserProvider>().openStorageSource(source);
-      if (!mounted) return;
-      setState(() => _showSourceList = false);
     } catch (error, stackTrace) {
       debugPrint(
         '打开媒体源失败: name=${source.name}, type=${source.type.name}, '
@@ -160,7 +136,6 @@ class _FileBrowserPageState extends State<FileBrowserPage> {
 
   void _showSources() {
     context.read<FileBrowserProvider>().clearStorageSource();
-    setState(() => _showSourceList = true);
     _loadSources();
   }
 

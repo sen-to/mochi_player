@@ -1,6 +1,6 @@
 # macOS 构建与排障
 
-基础步骤见根 [README](../../README.md#-从源码运行)（FVM 安装、`fvm install`、`fvm flutter run -d macos`）。本文只补充容易踩坑的部分。
+FVM 安装与运行步骤见根 [README](../../README.md#-从源码运行)。
 
 ## 前置
 
@@ -63,7 +63,7 @@ SMB 回源需要 Debug / Release 均有 `network.server`，服务仍只监听回
 - `objc_ownership` / `CVPixelBufferRef`：来自插件 Swift 视频纹理接口生成的 Objective-C 头文件，属于插件接口与编译器桥接问题。上游 README 也记录了同类警告。本项目保留提示，不修改生成头文件或改变像素缓冲区的所有权语义。[上游说明](https://github.com/media-kit/media-kit#notes)
 - `Using the Impeller rendering backend`：正常渲染后端信息，不是构建警告。
 
-宏修正的构建核对和历史日志见 [验证历史](../history/validation-2026-10.md)，不把增量构建未出现某条警告视为上游接口已经修复。
+补丁构建记录见 [验证历史](../history/validation-2026-10.md)。
 
 ## 构建命令
 
@@ -80,6 +80,6 @@ fvm flutter build macos --release   # 发布构建
 
 [macOS 工作流](../../.github/workflows/macos.yml) 在推送 master、面向 master 的 PR 和手动运行时执行。使用 macos-26 runner，按 `.fvmrc` 检出相同 SDK；依次执行文案 / 架构 / 格式检查、静态分析、全量测试和 Release 构建。
 
-沿用工程的临时签名配置，不依赖开发者证书、Apple 账号或发布密钥。构建后的应用先用 ditto 归档，再上传 `mochi-player-macos` 产物并保留 14 天，避免直接上传目录丢失执行权限和框架符号链接。下载后解压其中的 `mochi-player-macos.zip` 获取应用。
+CI 使用临时签名，以 ditto 归档应用并保留执行权限与框架符号链接。产物 `mochi-player-macos` 保留 14 天，下载后解压其中的 `mochi-player-macos.zip`。
 
-CI 产物用于构建验证，不等同于已签名、公证或通过原生交互验收的正式发布版本。具体云端验证状态与门禁设置见 [测试指南](testing.md#ci-与后续验证)。
+CI 产物供构建验证，正式发布仍需签名、公证及原生交互验收。云端结果与门禁设置见 [测试指南](testing.md#ci-与后续验证)。

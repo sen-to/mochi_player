@@ -27,7 +27,7 @@ void main() {
     expect(entries.single.isDirectory, isTrue);
   });
 
-  test('tests the source-relative root directory', () async {
+  test('reads an empty source-relative root directory', () async {
     final client = _FakeWebDavClient(const []);
     final connection = WebDavStorageConnection(
       source: const StorageSource(
@@ -39,7 +39,7 @@ void main() {
       client: client,
     );
 
-    expect(await connection.testConnection(), isTrue);
+    expect(await connection.readDirectory('/'), isEmpty);
     expect(client.requestedPaths, ['/']);
   });
 }

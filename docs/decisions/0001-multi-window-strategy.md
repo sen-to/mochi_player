@@ -2,13 +2,21 @@
 
 - **Status**: Accepted
 - **Date**: 2026-10-13（初稿 2026-10-05，mini 决策补充 2026-10-14）
-- **Related**: [播放引擎](0002-playback-engine.md)、[持久化](0003-persistence-migration.md)、[本地化](0004-i18n-l10n.md)、[历史原型](../history/official-single-engine-windowing.md)
+- **Related**: [播放引擎](0002-playback-engine.md)、[持久化](0003-persistence-migration.md)、[本地化](0004-i18n-l10n.md)
 
 ## Context（背景与约束）
 
 产品需要独立播放器窗口，同时共享媒体库、进度、主题与语言。旧多引擎插件方案需要窗口 RPC、独立状态与连接协调，增加了同步与退出成本。主窗口关闭后必须结束整个应用，不能留下播放器或后台音频。
 
 官方多视图 API 在选型时仍属实验能力，需要固定开发通道 SDK 并承担原生适配与插件兼容成本；原型只证明选型可行，不代替业务验收。
+
+### 选型验证依据
+
+2026-10-12～13，macOS 原型基于提交 `b314ad53146b1bde55b60197a35183fb530aac0a` 的 [官方 multiple_windows 示例](https://github.com/flutter/flutter/tree/b314ad53146b1bde55b60197a35183fb530aac0a/examples/multiple_windows)，使用单个 FlutterEngine、同一 isolate 和独立视图 ID。Debug / Release 验证了双窗口、共享偏好、窗口操作、关闭重开及 RGB AVI 播放；人工反馈确认中文输入、复制粘贴、播放期间主窗口响应和整体退出。
+
+原型未覆盖 Windows、SQLite、真实编码 / HDR、长期运行及无障碍。视图集合包含隐式视图 0，计数需区分引擎视图与可见窗口；实验中出现过 frame-time clamping 日志。原型源码与临时日志未入库，当前可执行验证入口见 [原生冒烟](../guides/testing.md#原生冒烟)。
+
+当时 stable `3.47.7`（`abaf9c523780a608bd46686fd5e53740a07077f8`）未开放同一实验窗口能力，因此选择固定开发通道提交。依据为 [官方实验公告](https://flutter.dev/blog/desktop-windowing-apis) 与 SDK 的 [功能定义](https://github.com/flutter/flutter/blob/d3b14c876900e553bc736ca19295fc09e3853e8e/packages/flutter_tools/lib/src/features.dart)；升级时按实际 SDK 重新核对。
 
 ## Decision（决策）
 
@@ -51,7 +59,7 @@ mini 复用播放器窗口与播放会话，延续字幕、切集及现有控制
 
 ## 相关文档
 
-[当前状态](../status.md)、[运行时所有权](../architecture/overview.md#运行时一个引擎两个视图一个共享数据库连接)、[播放生命周期](../architecture/playback.md#生命周期与退出)、[macOS 适配](../guides/build-macos.md)、[Windows 适配](../guides/build-windows.md)、[测试证据](../guides/testing.md#验证基线)。固定 SDK 的原始版本信息与迁移记录保留在历史文档中。
+[当前状态](../status.md)、[运行时所有权](../architecture/overview.md#运行时一个引擎两个视图一个共享数据库连接)、[播放生命周期](../architecture/playback.md#生命周期与退出)、[macOS 适配](../guides/build-macos.md)、[Windows 适配](../guides/build-windows.md)、[测试证据](../guides/testing.md#验证基线)。
 
 ## Revisit trigger（重估触发条件）
 

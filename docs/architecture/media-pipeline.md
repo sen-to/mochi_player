@@ -77,9 +77,9 @@ flowchart TD
 
 | 能力 | 实现位置 | 说明 |
 | --- | --- | --- |
-| 查询投影 | [library_catalog_repository.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
+| 查询投影 | [library_catalog_repository_impl.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
 | 订阅与分页 | [library_query_view.dart](../../lib/features/library/ui/widgets/library_query_view.dart) | 页面维持稳定查询订阅，网格按需扩展 LIMIT |
-| 继续观看 | [library_catalog_repository.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
+| 继续观看 | [library_catalog_repository_impl.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
 | 搜索 | [library_search_text.dart](../../lib/core/domain/media/library_search_text.dart) | 小写并移除指定空格 / 分隔符；评分与排序见 [算法说明](algorithms.md#本地搜索评分) |
 | 收藏 | [media_library_provider.dart](../../lib/features/library/application/media_library_provider.dart) | 标题级批量切换，作用于该标题下全部版本 |
 
@@ -94,6 +94,6 @@ flowchart TD
 
 ## 候选与编排维护边界
 
-`ScrapeCandidate` 直接引用一个不可变 `MediaFile`，标题、季集号和关联 ID 均从该文件读取，只在候选中保留显式数字 ID 等匹配规则。不会复制相同字段或引入仅转发数据的 Mapper。
+`ScrapeCandidate` 引用不可变 `MediaFile`，从中读取标题、季集号和关联 ID，并解析显式数字 ID。
 
-`LibrarySyncService` 的入口按读取启用来源、逐来源扫描、可选元数据刮削和汇总结果执行。逐来源的批次、错误隔离及计数在 `_scanSources` 维护；连接仍由 `_scanSource` 的 finally 关闭。阶段整理不改变完整扫描后才能清理旧索引、失败批次不重试以及退出排空的规则。
+`LibrarySyncService` 的入口按读取启用来源、逐来源扫描、可选元数据刮削和汇总结果执行。逐来源的批次、错误隔离及计数在 `_scanSources` 维护；`_scanSource` 在 finally 关闭连接。完整扫描后清理旧索引，写入失败终止当前来源，退出时等待已接受任务完成。

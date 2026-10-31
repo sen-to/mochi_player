@@ -96,7 +96,7 @@ void main() {
       if (fails) {
         await expectLater(service.testConnection(connection.source, null), throwsStateError);
       } else {
-        expect(await service.testConnection(connection.source, null), 0);
+        await service.testConnection(connection.source, null);
       }
       expect(connection.closed, isTrue);
     }
@@ -199,8 +199,6 @@ class _Connection implements StorageConnection {
     return pending ?? Future.value([]);
   }
 
-  @override
-  Future<bool> testConnection() async => true;
   @override
   Future<void> close() async {
     closed = true;

@@ -14,7 +14,7 @@ void main() {
   final dependencies = RegExp(r"^(?:import|export|part)\s+'([^']+)'", multiLine: true);
   final widgetDeclaration = RegExp(r'extends\s+(?:StatefulWidget|StatelessWidget|State<)');
 
-  for (final root in ['lib', 'test', 'tool', 'integration_test']) {
+  for (final root in ['lib', 'test', 'tool']) {
     for (final file in Directory(root).listSync(recursive: true).whereType<File>()) {
       final path = file.path.replaceAll('\\', '/');
       if (_isGenerated(path)) continue;

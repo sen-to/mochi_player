@@ -54,8 +54,5 @@ class _FakeStorageConnection implements StorageConnection {
   Future<List<StorageEntry>> readDirectory(String path) async => const [];
 
   @override
-  Future<bool> testConnection() async => true;
-
-  @override
   Future<void> close() async {}
 }

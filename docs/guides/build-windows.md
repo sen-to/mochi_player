@@ -35,7 +35,7 @@ Windows 窗口缩放期间出现 `AccessibilityBridge::CreateRemoveReparentedNod
 
 `windows/CMakeLists.txt` 用 `windows/patches/media_kit_video/media_kit_video_plugin.cc` 替换该插件的单个源文件，其余纹理与渲染实现仍来自锁定的依赖。补丁保留上游 MIT 许可证，使用插件拥有的 Win32 message-only 窗口处理平台线程任务，不依赖主视图或播放器视图；释放输出管理器后再销毁消息窗口。插件不带 viewId 的全屏方法返回 NotImplemented；应用通过视图级 `WindowService` 控制全屏。不修改全局 Pub 缓存或 SDK。
 
-升级 `media_kit_video` 时需核对上游实现是否已支持无隐式视图，再决定移除此源文件替换；同时执行 Windows 启动与 `integration_test/windowing_smoke.dart`，检查视频纹理通知及播放器关闭 / 重开。
+升级 `media_kit_video` 时需核对上游实现是否已支持无隐式视图，再决定移除此源文件替换；同时执行 Windows 启动与 `tool/smoke/windowing_smoke.dart`，检查视频纹理通知及播放器关闭 / 重开。
 
 [main.cpp](../../windows/runner/main.cpp) 创建单个 `FlutterEngine`，注册一次插件；窗口由 Dart 官方 API 创建。
 
@@ -45,9 +45,9 @@ Windows 窗口缩放期间出现 `AccessibilityBridge::CreateRemoveReparentedNod
 
 ## CI 与验收
 
-CI 从 `.fvmrc` 读取完整 main 提交，通过 Git 检出 SDK，再下载预编译引擎；不把提交号交给只接受发布版本的安装参数。流程保留依赖、l10n、静态检查、测试与 Windows Release 构建，产物保留 14 天。SDK 的旧 Material/Cupertino 导入弃用提示暂不作为失败，错误与警告仍会失败。
+CI 按 `.fvmrc` 检出 SDK 并下载预编译引擎，执行项目检查、测试与 Windows Release 构建，产物保留 14 天。检查步骤和静态分析规则见 [测试指南](testing.md#ci-与后续验证)。
 
-构建、原生冒烟与人工验收分别记录，最近结果统一见 [验证基线](testing.md#验证基线)，当前缺口见 [实施状态](../status.md)。CI 的原生符号 / 宏冲突排障和文件对话框人工验收反馈保留在 [验证历史](../history/validation-2026-10.md)，不作为所有 Windows 用例通过的证明。
+构建与验收结果见 [验证基线](testing.md#验证基线)，待办见 [实施状态](../status.md)，历史故障见 [验证历史](../history/validation-2026-10.md)。
 
 ## 构建前检查
 

@@ -7,7 +7,7 @@ import 'package:mochi_player/features/settings/data/theme_preferences_repository
 import 'package:mochi_player/features/settings/data/tmdb_settings_runtime.dart';
 import 'package:mochi_player/l10n/data/language_preferences_repository_impl.dart';
 
-// 执行方式：fvm flutter run -d macos -t integration_test/windowing_smoke.dart
+// 执行方式：fvm flutter run -d macos -t tool/smoke/windowing_smoke.dart
 // 使用正式 runner、真实 media_kit 及沙箱内生成的视频。
 // 数据库与偏好均和用户媒体库隔离。
 import 'dart:async';
@@ -62,6 +62,8 @@ void main() async {
     exit(1);
   };
   MediaKitPlaybackEngine.initialize();
+  // 原生验证应用使用内存偏好，隔离用户配置；这里使用插件提供的测试接口。
+  // ignore: invalid_use_of_visible_for_testing_member
   SharedPreferences.setMockInitialValues({});
   final directory = await Directory.systemTemp.createTemp('mochi_windowing_smoke_');
   final mediaPath = (await createVideoFixture(directory)).path;

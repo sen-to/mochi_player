@@ -36,7 +36,7 @@ class FileBrowserProvider extends ChangeNotifier {
 
   bool get hasSelectedStorageSource => _storageConnection != null;
 
-  // === 状态变量 ===
+  // 当前目录及展示偏好；来源连接只由此 Provider 持有。
   List<FileBrowserEntry> _items = [];
   bool _isLoading = false;
   bool _hasLoaded = false;
@@ -98,7 +98,7 @@ class FileBrowserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // 加载指定路径的文件
+  /// 加载来源相对路径；新请求或来源变化使旧结果失效，读取失败记入 error。
   Future<void> fetchFiles(String path) async {
     if (_shuttingDown) return;
     final requestGeneration = ++_requestGeneration;
@@ -228,13 +228,11 @@ class FileBrowserProvider extends ChangeNotifier {
     );
   }
 
-  // === 核心功能 3: 进入文件夹 ===
   void enterFolder(FileBrowserEntry folder) {
     if (!folder.isDirectory) return;
     fetchFiles(folder.path);
   }
 
-  // === 核心功能 4: 返回上一级目录 ===
   void navigateBack() {
     if (!canGoBack) return;
     final normalized = _currentPath.replaceFirst(RegExp(r'/+$'), '');
@@ -248,7 +246,6 @@ class FileBrowserProvider extends ChangeNotifier {
     fetchFiles(path);
   }
 
-  // === 辅助功能: 刷新当前目录 ===
   Future<void> refresh() async {
     await fetchFiles(_currentPath);
   }

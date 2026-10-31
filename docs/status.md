@@ -1,6 +1,6 @@
 # 当前实施状态
 
-整理日期：2026-10-31。下表是当前完成度与待办的统一入口；验证日期、测试结果与证据范围见 [测试指南](guides/testing.md#验证基线)。本轮重新执行 Dart 回归与架构检查，未重新执行原生平台验收。
+整理日期：2026-11-01。下表是当前完成度与待办的统一入口；验证日期、测试结果与证据范围见 [测试指南](guides/testing.md#验证基线)。
 
 ## 功能状态
 
@@ -25,6 +25,8 @@
 - 仍使用旧 Material / Cupertino 导入；独立 UI 包迁移尚未进行。Windows 与 macOS 检查、432 项测试和 Release 构建已在 PR #4 云端通过；master 保留 PR 与双平台检查规则，管理员可直接 push，提交后自动运行 CI，具体约定见测试指南。SPM 和正式发布流程仍需完善。
 - SMB 隔离 HTTP 冒烟不连接真实 NAS；Windows 历史 CI / 冒烟也不替代当前提交的人工验收。文件对话框的既有人工确认未逐项注明平台与边界。
 
-架构与类名审查已落实；数据库入口统一为 AppDatabase，Repository 只隔离实际的功能数据能力，取消重复的 Store 包装与独立搜索计划工厂，查询界面及扫描会话名称明确；依赖、模型映射及中文文件说明由 CI 检查；详见 [统一边界决策](decisions/0007-unified-module-boundaries.md)。
+来源连接测试由 `StorageSourcesService` 执行；弹窗持有表单资源，WebDAV 测试与保存共用校验；`FileBrowserProvider` 持有来源选择状态。
+
+`AppDatabase` 管理数据库连接及公共读写；各功能 Repository 隔离数据能力。目录、依赖和模型边界见 [统一边界决策](decisions/0007-unified-module-boundaries.md)。
 
 后续优先补真实平台 / 媒体验收与容量基线。新增机制更新对应架构，验证结果更新测试指南；技术方向变化才修订 ADR。

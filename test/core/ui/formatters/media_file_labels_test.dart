@@ -7,7 +7,7 @@ import 'package:mochi_player/core/ui/formatters/media_file_labels.dart';
 import 'package:mochi_player/l10n/generated/app_localizations_zh.dart';
 
 void main() {
-  test('builds one canonical version title and subtitle', () {
+  test('版本选择保留完整标签，详情列表将技术信息移入副标题', () {
     final file = MediaFile(
       id: 1,
       path: '/media/item.mkv',
@@ -27,14 +27,14 @@ void main() {
       addedAt: DateTime(2026),
     );
 
-    expect(MediaFileLabels.versionTitle(file), '4K BluRay HEVC HDR10 EAC3');
+    expect(MediaFileLabels.selectionVersionTitle(file), '4K BluRay HEVC HDR10 EAC3');
     expect(
-      MediaFileLabels.versionSubtitle(file, l10n: AppLocalizationsZh(), includeResumePosition: true),
+      MediaFileLabels.selectionVersionSubtitle(file, l10n: AppLocalizationsZh(), includeResumePosition: true),
       'eac3 • 5.1 • MKV • 1.00 GB • 从 00:25 继续',
     );
-    expect(MediaFileLabels.playableVersionTitle(file), '4K BluRay');
+    expect(MediaFileLabels.detailVersionTitle(file), '4K BluRay');
     expect(
-      MediaFileLabels.playableVersionDetails(file, l10n: AppLocalizationsZh()),
+      MediaFileLabels.detailVersionSubtitle(file, l10n: AppLocalizationsZh()),
       'HEVC HDR10 · EAC3 5.1 · MKV · 1.00 GB',
     );
   });

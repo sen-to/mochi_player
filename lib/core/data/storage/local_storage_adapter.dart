@@ -63,16 +63,6 @@ class LocalStorageConnection implements StorageConnection {
   }
 
   @override
-  Future<bool> testConnection() async {
-    try {
-      await readDirectory('/');
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  @override
   Future<void> close() async {}
 
   String _resolve(String relativePath) {
