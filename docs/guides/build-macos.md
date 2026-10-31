@@ -75,3 +75,11 @@ fvm flutter build macos --release   # 发布构建
 ## 构建前检查
 
 首次检出或修改 ARB 后，先执行 [统一准备与检查步骤](testing.md#推荐运行顺序)，再运行上述构建命令。生成目录不提交，配置与语言边界见 [本地化](../architecture/localization.md)。
+
+## macOS CI
+
+[macOS 工作流](../../.github/workflows/macos.yml) 在推送 master、面向 master 的 PR 和手动运行时执行。使用 macos-26 runner，按 `.fvmrc` 检出相同 SDK；依次执行文案 / 架构 / 格式检查、静态分析、全量测试和 Release 构建。
+
+沿用工程的临时签名配置，不依赖开发者证书、Apple 账号或发布密钥。构建后的应用先用 ditto 归档，再上传 `mochi-player-macos` 产物并保留 14 天，避免直接上传目录丢失执行权限和框架符号链接。下载后解压其中的 `mochi-player-macos.zip` 获取应用。
+
+CI 产物用于构建验证，不等同于已签名、公证或通过原生交互验收的正式发布版本。具体云端验证状态与门禁设置见 [测试指南](testing.md#ci-与后续验证)。

@@ -63,7 +63,7 @@ Mochi Player 是一款面向 Windows 与 macOS 的本地优先媒体库播放器
 
 | 平台 | 状态 |
 | --- | --- |
-| macOS | 使用官方多视图；暂无 CI，需要从源码构建 |
+| macOS | 使用官方多视图；[CI 检查与 Release 构建已通过](https://github.com/sen-to/mochi_player/actions/runs/41206216456)；产物未公证 |
 | Windows | 官方多视图版本 CI 构建已通过，原生交互仍待验收；见下方「下载与安装」 |
 
 ## 📥 下载与安装

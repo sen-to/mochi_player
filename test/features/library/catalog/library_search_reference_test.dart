@@ -3,7 +3,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 
 import '../../../support/library_search_reference.dart';
 
@@ -33,21 +32,6 @@ void main() {
     final results = LibrarySearchReference.libraryItems<LibraryItem>([saw, exact], 'Saw');
 
     expect(results, [exact, saw]);
-  });
-
-  test('matches favorite titles but ignores file metadata', () {
-    final file = MediaFile(
-      id: 1,
-      path: '/movies/saw.mkv',
-      fileName: 'Saw.III.2006.Remux.mkv',
-      parsedTitle: '电锯惊魂3',
-      size: 1,
-      addedAt: DateTime(2026),
-    );
-    final card = MediaCardVO(file: file, libraryItem: saw, title: saw.title);
-
-    expect(LibrarySearchReference.mediaCards([card], '电锯惊魂3'), [card]);
-    expect(LibrarySearchReference.mediaCards([card], 'Remux'), isEmpty);
   });
 
   test('returns the original order for an empty query', () {

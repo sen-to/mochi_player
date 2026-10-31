@@ -1,0 +1,91 @@
+name: macOS CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and build macOS
+    runs-on: macos-26
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Read the Flutter version from .fvmrc
+        id: fvmrc
+        run: |
+          version=$(ruby -rjson -e 'puts JSON.parse(File.read(".fvmrc")).fetch("flutter")')
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install the pinned Flutter main commit
+        env:
+          FLUTTER_REVISION: ${{ steps.fvmrc.outputs.version }}
+        run: |
+          sdk_path="$RUNNER_TEMP/flutter-sdk"
+          git clone --filter=blob:none --no-checkout https://github.com/flutter/flutter.git "$sdk_path"
+          git -C "$sdk_path" checkout "$FLUTTER_REVISION"
+          echo "$sdk_path/bin" >> "$GITHUB_PATH"
+          "$sdk_path/bin/flutter" --version
+
+      - name: Show build environment
+        run: |
+          xcodebuild -version
+          pod --version
+          flutter doctor -v
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check localization resources
+        run: dart run tool/check_l10n.dart
+
+      - name: Check architecture boundaries
+        run: dart run tool/check_architecture.dart
+
+      - name: Generate localizations
+        run: flutter gen-l10n
+
+      - name: Check Dart formatting
+        run: dart format --output=none --set-exit-if-changed lib test tool integration_test
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test --reporter compact
+
+      # 沿用工程的临时签名；不导入发布证书或上传 App Store。
+      - name: Build macOS release
+        run: flutter build macos --release
+
+      # 直接上传目录会丢失 Unix 权限；先归档保留应用包与框架符号链接。
+      - name: Archive macOS application
+        run: |
+          mkdir -p build/artifacts
+          ditto -c -k --sequesterRsrc --keepParent \
+            "build/macos/Build/Products/Release/Mochi Player.app" \
+            build/artifacts/mochi-player-macos.zip
+
+      - name: Upload macOS application
+        uses: actions/upload-artifact@v7
+        with:
+          name: mochi-player-macos
+          path: build/artifacts/mochi-player-macos.zip
+          if-no-files-found: error
+          retention-days: 14

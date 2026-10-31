@@ -1,7 +1,7 @@
 // 【旧库兼容测试】验证独立 DO 与 Mapper 可以原样打开既有第二版数据库。
 // 基线由历史 schema 快照生成，检查物理结构、JSON、枚举及用户状态均保持。
 
-import 'package:drift_dev/api/migrations.dart';
+import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';

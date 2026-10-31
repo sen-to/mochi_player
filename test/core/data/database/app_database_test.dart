@@ -148,7 +148,7 @@ void main() {
       legacy.execute("INSERT INTO $name VALUES ('old development data')");
     }
     legacy.execute('PRAGMA user_version = 1');
-    legacy.dispose();
+    legacy.close();
     AppDatabase open() => AppDatabase(NativeDatabase.createInBackground(path, setup: configureSqlite));
     final first = open();
     final second = open();

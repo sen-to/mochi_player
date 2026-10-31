@@ -161,6 +161,15 @@ void main() {
     expect((await repository.getEpisodeFile('123_s1e2'))!.path, '/s1e2');
   });
 
+  test('favorite search matches localized and original titles but ignores file metadata', () async {
+    await db.saveMovieMetadata(const Movie(tmdbId: '1', title: '电锯惊魂3', originalTitle: 'Saw III'));
+    await saveMediaFixture(db, [file('/Saw.III.2006.Remux.mkv', movieId: '1', favorite: true)]);
+    expect((await repository.watchFavorites(query: '电锯惊魂3').first).single.title, '电锯惊魂3');
+    expect((await repository.watchFavorites(query: 'Saw III').first).single.title, '电锯惊魂3');
+    expect(await repository.watchFavorites(query: 'Remux').first, isEmpty);
+    expect(await repository.watchFavorites(query: '2006').first, isEmpty);
+  });
+
   test('favorites deduplicate versions and retain unmatched file fallback', () async {
     await db.saveTVShowMetadata(const TVShow(tmdbId: '123', title: 'Show'));
     await saveMediaFixture(db, [

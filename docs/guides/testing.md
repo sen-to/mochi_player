@@ -13,6 +13,15 @@
 
 `integration_test/` 当前不是 Flutter integration_test 框架套件，不会随普通 `flutter test` 自动运行。`video_fixture.dart` 在临时目录生成视频，避免下载素材或提交二进制资产。`tool/` 是开发工具目录，不是产品运行代码。
 
+## 用例维护规则
+
+- 每个 `*_test.dart` 必须使用 `test()` / `testWidgets()` 注册命名用例；不能只在 main 中调用函数并手动抛错。表驱动的不同输入应有可辨识的用例名，支持单独筛选和故障定位。
+- 断言使用 expect / expectLater。辅助代码只保留实际用于构造环境、控制异步或独立校验生产结果的部分；避免为了测试辅助函数而维护与生产路径脱节的第二份实现。
+- 合并重复断言时，先明确行为由哪个生产路径的测试接管。相同测试名称、不同组件或不同失败边界不自动构成重复。
+- 历史 schema 和故障回归按当前兼容约定保留；生成夹具由工具维护，不按文件时间删除。原生冒烟单列，不计入普通测试通过数量。
+
+本轮清理依据见 [测试整理记录](../history/test-cleanup-2026-10-31.md)。432 项包含此前未注册的解析和搜索计划场景；不能将数量增长理解为新增了同等数量的功能覆盖。
+
 ## 推荐运行顺序
 
 使用 [.fvmrc](../../.fvmrc) 固定 SDK；首次检出或资源变化后执行：
@@ -34,7 +43,7 @@ fvm flutter test --plain-name "解析"
 fvm dart format lib test tool integration_test
 ```
 
-SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错误和警告仍导致静态检查失败。格式为 120 列，由 `analysis_options.yaml` 指定；平台 / 构建目录不参与 Dart 静态分析，drift 生成代码参与分析。Windows CI 已按相同目录执行格式检查，使用固定 SDK；生成代码继续由工具生成，不手工修改。
+SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错误和警告仍导致静态检查失败。格式为 120 列，由 `analysis_options.yaml` 指定；平台 / 构建目录不参与 Dart 静态分析，drift 生成代码参与分析。Windows 与 macOS CI 按相同目录执行格式检查，使用固定 SDK；生成代码继续由工具生成，不手工修改。
 
 ## 测试宿主与真实窗口
 
@@ -48,7 +57,7 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 | 验证项 | 记录日期 / 结果 | 覆盖与限制 |
 | --- | --- | --- |
-| macOS 全量 Dart 回归 | 2026-10-31，408 项通过 | 包含来源表单保存 / 取消 / 迟到连接回收、列表批量查询次数 / 分页 / 刷新回归、媒体库编排互斥 / 退出、连接收尾、失败批次 / 部分结果统计、元数据事务回滚 / 并发导入去重、TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败，字幕自动 / 手动选择、轨道事件乱序、换片重置 / 迟到结果隔离与关闭；来源变更通知、设置生效后的趋势刷新及进度条交互；新增六类 DO 映射、schema 2 原库兼容、详情 VO 快照、主题保存失败 / 销毁、主题 / 语言读取竞争、设置销毁后的加载 / 保存、开始退出后忽略迟到读取及保存排空、插件 false 返回值重试及 TMDB API 候选顺序回归；不代表真实 NAS 或大库性能 |
+| macOS 全量 Dart 回归 | 2026-10-31，432 项通过 | 包含来源表单保存 / 取消 / 迟到连接回收、列表批量查询次数 / 分页 / 刷新回归、媒体库编排互斥 / 退出、连接收尾、失败批次 / 部分结果统计、元数据事务回滚 / 并发导入去重、TMDB 请求错误分类、失败保留原关联、季级隔离与重试、连接提示；以及会话资源顺序、引擎 / 打开 / 关闭失败、并发换片、进度隔离及窗口创建失败，字幕自动 / 手动选择、轨道事件乱序、换片重置 / 迟到结果隔离与关闭；来源变更通知、设置生效后的趋势刷新及进度条交互；新增六类 DO 映射、schema 2 原库兼容、详情 VO 快照、主题保存失败 / 销毁、主题 / 语言读取竞争、设置销毁后的加载 / 保存、开始退出后忽略迟到读取及保存排空、插件 false 返回值重试及 TMDB API 候选顺序回归；不代表真实 NAS 或大库性能 |
 | 格式 / 静态检查 / 文案 | 2026-10-31，格式通过；无错误 / 警告；280 条文案检查通过 | 保留 SDK 旧 UI 导入弃用 info；不代表完整页面人工验收 |
 | 架构与中文说明检查 | 2026-10-31，317 个手写 Dart 文件通过；违规样例验证见下文 | 检查中文文件说明、功能 UI 归属、引用有效性、模型映射分离、数据 / 核心依赖方向及功能循环依赖；不等同于业务职责的自动语义审查 |
 | macOS Release SMB HTTP 冒烟 | 2026-10-26，两个成功标记均输出 | 会话管理真实 media_kit 的打开与释放，前后及快速 seek；读取器为带延迟的替身，不连接 NAS |
@@ -148,12 +157,18 @@ SMB 浏览 / 超时与转发播放分别验证；当前缺口见 [实施状态](
 
 ## CI 与后续验证
 
-[Windows 工作流](../../.github/workflows/windows.yml) 读取固定 SDK，执行依赖、本地化、静态检查、全量测试、Release 构建与产物上传。普通测试通过 [flutter_test_config.dart](../../test/flutter_test_config.dart) 隔离原生宿主初始化；正式应用仍启用多视图。
+[Windows 工作流](../../.github/workflows/windows.yml) 与 [macOS 工作流](../../.github/workflows/macos.yml) 使用相同 `.fvmrc`，执行依赖安装、文案 / 架构 / 格式检查、本地化生成、静态分析、全量测试及对应平台 Release 构建。产物保留 14 天；macOS 应用先归档，以保留权限和符号链接。普通测试通过 [flutter_test_config.dart](../../test/flutter_test_config.dart) 隔离原生宿主初始化；正式应用仍启用多视图。
 
-macOS CI、容量基线、可重复的真实媒体样片与人工结果仍需完善。功能阶段更新 `status.md`，本指南只更新最近证据；旧记录移入历史，避免多处维护不同的测试数量。
+合并门禁使用固定检查名称 `Test and build Windows`、`Test and build macOS`。master 保留 PR、两个状态检查通过且分支保持最新的规则，检查结果限定来自 GitHub Actions；管理员可绕过这些要求直接 push，不强制额外审批。个人维护时小改动可直接提交，较大变更推荐走 PR。直接 push 后自动运行 CI，失败不会自动撤回提交。调整时先检查仓库现有规则；配置文件本身不能证明仓库门禁已经启用。
+
+2026-10-31，提交 `2f7ac68` 在 [PR #4](https://github.com/sen-to/mochi_player/pull/4) 的 [Windows CI](https://github.com/sen-to/mochi_player/actions/runs/41206216307) 与 [macOS CI](https://github.com/sen-to/mochi_player/actions/runs/41206216456) 均成功：各 432 项测试、检查、Release 构建及产物上传通过。运行结果仅对应上述提交，后续提交需查看各自的检查。本地 macOS 归档另验证了主程序执行权限及 90 个框架符号链接保留；云端构建不代表原生交互验收通过。
+
+2026-10-31，[master 保护规则](https://github.com/sen-to/mochi_player/settings/branch_protection_rules/85633516) 已保存为上述配置：取消“Do not allow bypassing the above settings”，允许管理员直接提交；强制推送与删除分支仍禁止。该规则只匹配 master，功能分支仍可正常提交；PR #4 未自动合并。
+
+容量基线、可重复的真实媒体样片与人工结果仍需完善。功能阶段更新 `status.md`，本指南只更新最近证据；旧记录移入历史，避免多处维护不同的测试数量。
 
 ## 边界与旧库验证
 
 `test/core/data/database/mappers/` 验证数据库字段、枚举与 JSON 映射完整性；`schema_v2_compatibility_test.dart` 用已提交的 schema 2 快照建库后打开当前数据库，验证结构、原数据与局部更新。`test/generated/schema/` 由 `fvm dart run drift_dev schema generate drift_schemas test/generated/schema` 生成，保留历史结构作为兼容证据，不手工编辑。
 
-架构检查接入 Windows CI；本地负例覆盖中文文件说明、Provider 依赖具体实现、领域序列化、数据库复用业务行、VO 混入 Mapper、错误 UI 归属、core 反向引用与功能循环依赖，均须拒绝。检查通过不替代人工职责审查。
+架构检查接入 Windows 与 macOS CI；本地负例覆盖中文文件说明、Provider 依赖具体实现、领域序列化、数据库复用业务行、VO 混入 Mapper、错误 UI 归属、core 反向引用与功能循环依赖，均须拒绝。检查通过不替代人工职责审查。
