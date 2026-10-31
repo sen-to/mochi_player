@@ -1,6 +1,7 @@
 // 【媒体库界面】展示收藏、续播或最近添加等完整分区。
 // 查询状态由通用查询组件与 Provider 协作管理。
 
+import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
@@ -79,13 +80,13 @@ class _SectionPageContent extends StatelessWidget {
         query: (r, limit) => r.watchContinueWatching(limit: limit),
         builder: (context, items) => _buildSection(context, items, (item) => ContinueWatchingCard(item: item)),
       ),
-      LibrarySection.movies => _titles('movie'),
-      LibrarySection.tvShows => _titles('show'),
+      LibrarySection.movies => _titles(LibraryTitleKind.movie),
+      LibrarySection.tvShows => _titles(LibraryTitleKind.tvShow),
       LibrarySection.recentlyAdded => _titles(null),
     };
   }
 
-  Widget _titles(String? kind) => PagedLibraryQueryView<LibraryItem>(
+  Widget _titles(LibraryTitleKind? kind) => PagedLibraryQueryView<LibraryItem>(
     queryKey: section,
     query: (r, limit) => r.watchTitles(kind: kind, recent: section == LibrarySection.recentlyAdded, limit: limit),
     builder: (context, items) => _buildSection(context, items, (item) => LibraryItemPosterCard(item: item)),

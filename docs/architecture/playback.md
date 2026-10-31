@@ -29,7 +29,7 @@ sequenceDiagram
 - 播放队列：由 `MediaLibraryProvider.getPlaybackQueue` 生成——剧集按剧集分组、排序、去重；电影等为单元素队列。
 - 请求对象：[player_window_request.dart](../../lib/features/playback/domain/player_window_request.dart)，在同一 isolate 内传递 `MediaFile`、队列和请求 ID。
 - [PlayerWindowCoordinator](../../lib/features/playback/application/player_window_coordinator.dart) 通过 Provider 注入，串行创建 / 替换单个会话；播放入口直接调用协调器。[player_window_factory.dart](../../lib/app/bootstrap/player_window_factory.dart) 创建独立视图并协调窗口生命周期；[PlayerWindowController](../../lib/features/playback/application/player_window_controller.dart) 保存启动数据与窗口展示状态；[player_window_app.dart](../../lib/features/playback/ui/player_window_app.dart) 负责界面，共享设置、语言与主题。引擎工厂、数据库播放适配和目标解析器均由组装入口注入。
-- [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 是应用契约；[DatabasePlaybackMediaRepository](../../lib/features/playback/data/database_playback_media_repository.dart) 是基础设施实现，使用注入的共享数据库。播放会话不自行创建数据库服务或媒体源解析器。
+- [PlaybackMediaRepository](../../lib/features/playback/application/playback_media_repository.dart) 是应用契约；[PlaybackMediaRepositoryImpl](../../lib/features/playback/data/playback_media_repository_impl.dart) 是基础设施实现，使用注入的共享数据库。播放会话不自行创建数据库服务或媒体源解析器。
 - 播放器优先按 `sourceId + path` 读取已入库记录；查不到时使用临时快照继续解析媒体源。因此文件浏览器播放不依赖扫描或 TMDB 刮削。未入库媒体的播放进度不会写入媒体库，扫描入库后才支持续播。
 
 ## 播放目标解析
@@ -175,7 +175,7 @@ macOS 退出原生通道将 Cmd+Q / Dock 退出导向同一退出协调器；窗
 | 位移阈值 | 与上次保存位置相差不足 5000ms 时跳过（`PlaybackSessionController.saveProgress`） |
 | 强制保存 | 切换剧集、播放完成、关闭窗口前、组件销毁兜底 |
 | 写入顺序 | `PlaybackProgressWriter` 串行化，避免旧快照覆盖新位置 |
-| 落库 | `DatabasePlaybackMediaRepository` → `AppDatabase.updateProgress`（同时推导观看状态，见 [data-model.md](data-model.md)） |
+| 落库 | `PlaybackMediaRepositoryImpl` → `AppDatabase.updateProgress`（同时推导观看状态，见 [data-model.md](data-model.md)） |
 | 续播策略 | 位置回退 5 秒后开始；位置为 0 不续播；已完成（≥95%）不续播（[playback_resume_policy.dart](../../lib/features/playback/domain/playback_resume_policy.dart)） |
 
 ## 设计限制

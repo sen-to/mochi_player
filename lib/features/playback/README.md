@@ -13,7 +13,7 @@
 | 控制栏、选轨菜单 | [ui/widgets/player_controls.dart](ui/widgets/player_controls.dart) | 通过状态与回调工作，不创建会话或解析播放地址 |
 | 进度条拖动、悬浮时间预览 | [ui/widgets/player_seek_bar.dart](ui/widgets/player_seek_bar.dart) | 组件持有位置 / 时长 / 缓冲订阅及预览 Overlay；替换引擎时重新绑定，移除时释放订阅和 Overlay，不释放引擎 |
 | mini / 全屏与窗口恢复 | [ui/controllers/player_window_mode_controller.dart](ui/controllers/player_window_mode_controller.dart) | 使用所属视图的 WindowService；不转移播放会话所有权 |
-| 最终进度写入、串行保存 | [application/playback_progress_writer.dart](application/playback_progress_writer.dart) | 会话决定何时写入；数据库适配在 `data/database_playback_media_repository.dart`，业务只依赖 application 契约 |
+| 最终进度写入、串行保存 | [application/playback_progress_writer.dart](application/playback_progress_writer.dart) | 会话决定何时写入；数据库适配在 `data/playback_media_repository_impl.dart`，业务只依赖 application 契约 |
 | media_kit / mpv 参数 | [data/media_kit_playback_engine.dart](data/media_kit_playback_engine.dart) | 后端细节限于此实现，调用方使用 `application/playback_engine.dart` |
 
 ## 状态与关闭

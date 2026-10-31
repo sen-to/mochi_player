@@ -7,10 +7,10 @@ import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/domain/storage/storage_source_repository.dart';
 
 /// 通过 AppDatabase 将媒体源配置保存到 SQLite。
-class DatabaseStorageSourceRepository implements StorageSourceRepository {
+class StorageSourceRepositoryImpl implements StorageSourceRepository {
   final AppDatabase _database;
 
-  DatabaseStorageSourceRepository({required AppDatabase database}) : _database = database;
+  StorageSourceRepositoryImpl({required AppDatabase database}) : _database = database;
 
   @override
   Future<List<StorageSource>> getAll() async {

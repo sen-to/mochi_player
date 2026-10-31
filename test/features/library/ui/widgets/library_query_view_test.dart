@@ -16,7 +16,7 @@ import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
 import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/ui/widgets/library_query_view.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +30,7 @@ void main() {
       database: db,
       tmdb: TmdbApi(),
       storageRegistry: StorageAdapterRegistry([LocalStorageAdapter(), WebDavStorageAdapter(), SmbStorageAdapter()]),
-      settingsRepository: PreferencesAppSettingsRepository(),
+      settingsRepository: AppSettingsRepositoryImpl(),
     ).mediaLibrary;
   });
   tearDown(() async {

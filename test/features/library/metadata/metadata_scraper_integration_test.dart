@@ -13,7 +13,7 @@ import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_matcher.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_scraper.dart';
 import 'package:mochi_player/features/library/metadata/application/scrape_candidate_mapper.dart';
-import 'package:mochi_player/features/library/metadata/data/database_metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/data/metadata_repository_impl.dart';
 import 'package:mochi_player/features/library/metadata/data/tmdb_metadata_source.dart';
 import 'package:mochi_player/features/library/metadata/domain/metadata_match.dart';
 import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
@@ -60,10 +60,10 @@ void main() {
         );
       });
       final scraper = MetadataScraper(
-        repository: DatabaseMetadataRepository(database: db),
+        repository: MetadataRepositoryImpl(database: db),
         matcher: MetadataMatcher(
           source: TmdbMetadataSource(api: tmdb),
-          repository: DatabaseMetadataRepository(database: db),
+          repository: MetadataRepositoryImpl(database: db),
         ),
       );
       final result = await scraper.scrapeBatch([file]);
@@ -102,10 +102,10 @@ void main() {
       (request, handler) => handler.resolve(Response<dynamic>(requestOptions: request, statusCode: 404)),
     );
     final result = await MetadataScraper(
-      repository: DatabaseMetadataRepository(database: db),
+      repository: MetadataRepositoryImpl(database: db),
       matcher: MetadataMatcher(
         source: TmdbMetadataSource(api: tmdb),
-        repository: DatabaseMetadataRepository(database: db),
+        repository: MetadataRepositoryImpl(database: db),
       ),
     ).scrapeBatch([file]);
     expect(result.requestFailures.single.statusCode, 404);
@@ -139,10 +139,10 @@ void main() {
       ),
     );
     final result = await MetadataScraper(
-      repository: DatabaseMetadataRepository(database: db),
+      repository: MetadataRepositoryImpl(database: db),
       matcher: MetadataMatcher(
         source: TmdbMetadataSource(api: tmdb),
-        repository: DatabaseMetadataRepository(database: db),
+        repository: MetadataRepositoryImpl(database: db),
       ),
     ).scrapeBatch([file]);
     expect(result.failCount, 1);
@@ -194,10 +194,10 @@ void main() {
       }
     });
     final result = await MetadataScraper(
-      repository: DatabaseMetadataRepository(database: db),
+      repository: MetadataRepositoryImpl(database: db),
       matcher: MetadataMatcher(
         source: TmdbMetadataSource(api: tmdb),
-        repository: DatabaseMetadataRepository(database: db),
+        repository: MetadataRepositoryImpl(database: db),
       ),
     ).scrapeBatch(files);
     expect(result.successCount, 1);
@@ -233,7 +233,7 @@ void main() {
     await db.updateProgress(files.first, 40, duration: 100);
     await db.setTitleFavorite(const TVShow(tmdbId: '999', title: 'Show'), true);
     final result = await MetadataScraper(
-      repository: DatabaseMetadataRepository(database: db),
+      repository: MetadataRepositoryImpl(database: db),
       matcher: _EpisodeResolver(db),
     ).scrapeBatch(files);
     expect(result.successCount, 1);
@@ -265,7 +265,7 @@ void main() {
     );
     final resolver = MetadataMatcher(
       source: TmdbMetadataSource(api: TmdbApi()),
-      repository: DatabaseMetadataRepository(database: db),
+      repository: MetadataRepositoryImpl(database: db),
     );
     final candidate = ScrapeCandidateMapper.fromMediaFile(file);
     expect((await resolver.resolveMovie(candidate)).metadata!.tmdbId, '2');
@@ -277,7 +277,7 @@ class _EpisodeResolver extends MetadataMatcher {
   _EpisodeResolver(AppDatabase database)
     : super(
         source: TmdbMetadataSource(api: TmdbApi()),
-        repository: DatabaseMetadataRepository(database: database),
+        repository: MetadataRepositoryImpl(database: database),
       );
   @override
   bool get isConfigured => true;

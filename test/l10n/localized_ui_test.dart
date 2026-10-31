@@ -10,7 +10,7 @@ import 'package:mochi_player/features/library/browser/ui/file_browser_entry_disp
 import 'package:mochi_player/features/library/domain/media_file_kind.dart';
 import 'package:mochi_player/features/settings/ui/widgets/language_preference_control.dart';
 import 'package:mochi_player/l10n/application/app_locale_provider.dart';
-import 'package:mochi_player/l10n/data/preferences_language_repository.dart';
+import 'package:mochi_player/l10n/data/language_preferences_repository_impl.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,7 +42,7 @@ void main() {
   });
 
   testWidgets('language picker switches UI and preserves mounted playback state', (tester) async {
-    final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
+    final locales = AppLocaleProvider(repository: LanguagePreferencesRepositoryImpl());
     await locales.load();
     await locales.setLanguage(AppLanguage.zh);
     var mounts = 0;
@@ -92,7 +92,7 @@ void main() {
   });
 
   testWidgets('dates, plural counts and structured errors follow the current locale', (tester) async {
-    final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
+    final locales = AppLocaleProvider(repository: LanguagePreferencesRepositoryImpl());
     await locales.setLanguage(AppLanguage.en);
     final item = FileBrowserEntry(
       sourceId: 'test',

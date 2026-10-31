@@ -5,7 +5,7 @@ import 'package:mochi_player/l10n/application/language_preferences_repository.da
 import 'package:mochi_player/l10n/domain/app_language.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class PreferencesLanguageRepository implements LanguagePreferencesRepository {
+class LanguagePreferencesRepositoryImpl implements LanguagePreferencesRepository {
   static const preferenceKey = 'app_language';
   @override
   Future<AppLanguage> load() async {

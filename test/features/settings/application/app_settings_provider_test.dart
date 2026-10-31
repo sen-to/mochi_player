@@ -10,7 +10,7 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/app_settings_repository.dart';
 import 'package:mochi_player/features/settings/application/app_settings_runtime.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
 import 'package:mochi_player/features/settings/data/tmdb_settings_runtime.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -68,7 +68,7 @@ void main() {
         ),
       );
       final provider = AppSettingsProvider(
-        settingsRepository: PreferencesAppSettingsRepository(),
+        settingsRepository: AppSettingsRepositoryImpl(),
         runtime: TmdbSettingsRuntime(tmdbApi: tmdb),
       );
       addTearDown(provider.dispose);
@@ -85,7 +85,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     var changes = 0;
     final provider = AppSettingsProvider(
-      settingsRepository: PreferencesAppSettingsRepository(),
+      settingsRepository: AppSettingsRepositoryImpl(),
       runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
       onTmdbConfigurationChanged: () => changes++,
     );
@@ -122,7 +122,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     var changes = 0;
     final provider = AppSettingsProvider(
-      settingsRepository: PreferencesAppSettingsRepository(),
+      settingsRepository: AppSettingsRepositoryImpl(),
       runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
       onTmdbConfigurationChanged: () => changes++,
     );
@@ -138,7 +138,7 @@ void main() {
   test('exit drains accepted settings saves and rejects new drafts', () async {
     SharedPreferences.setMockInitialValues({});
     final provider = AppSettingsProvider(
-      settingsRepository: PreferencesAppSettingsRepository(),
+      settingsRepository: AppSettingsRepositoryImpl(),
       runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
     );
     await provider.load();
@@ -155,7 +155,7 @@ void main() {
   test('persists drafts without applying network runtime configuration', () async {
     SharedPreferences.setMockInitialValues({});
     final provider = AppSettingsProvider(
-      settingsRepository: PreferencesAppSettingsRepository(),
+      settingsRepository: AppSettingsRepositoryImpl(),
       runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
     );
     await provider.load();
@@ -187,7 +187,7 @@ Future<void> _save(AppSettingsProvider provider, {required String tmdbApiKey, bo
   );
 }
 
-class _FailingSettingsRepository extends PreferencesAppSettingsRepository {
+class _FailingSettingsRepository extends AppSettingsRepositoryImpl {
   @override
   Future<AppSettings> save(AppSettings settings) async => throw StateError('settings write failed');
 }

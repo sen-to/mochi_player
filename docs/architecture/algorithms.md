@@ -24,7 +24,7 @@
 
 [normalizeLibrarySearchText](../../lib/core/domain/media/library_search_text.dart) 将文本小写并移除规定的空格 / 分隔符；它不是完整的 Unicode NFKC、拼音或繁简转换。
 
-[LibraryCatalogRepository](../../lib/features/library/catalog/data/database_library_catalog_repository.dart) 在 SQL 中对标题 / 原标题取两者评分的最大值：
+[LibraryCatalogRepository](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) 在 SQL 中对标题 / 原标题取两者评分的最大值：
 
 | 匹配 | 标题得分 | 原标题得分 |
 | --- | --- | --- |

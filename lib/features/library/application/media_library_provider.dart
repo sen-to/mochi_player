@@ -25,29 +25,35 @@ class MediaLibraryProvider extends ChangeNotifier {
   Future<void>? _loading;
   bool _initialized = false;
   bool _disposed = false;
+  final _stopping = Completer<void>();
+  final _streamErrors = <Object>{};
 
   void beginShutdown() {
     _disposed = true;
+    if (!_stopping.isCompleted) _stopping.complete();
     _sync.beginShutdown();
   }
 
   Future<void> shutdown() async {
     beginShutdown();
     await _loading;
-    await Future.wait(_subscriptions.map((subscription) => subscription.cancel()));
-    _subscriptions.clear();
+    await _cancelSubscriptions();
     await _sync.shutdown();
   }
 
   AppFailure? _loadError;
-  int totalFiles = 0;
-  List<LibraryItem> recentlyAddedContent = const [];
-  List<MediaCardVO> continueWatchingItems = const [];
+  int _totalFiles = 0;
+  List<LibraryItem> _recentlyAddedContent = const [];
+  List<MediaCardVO> _continueWatchingItems = const [];
+
+  int get totalFiles => _totalFiles;
+  List<LibraryItem> get recentlyAddedContent => _recentlyAddedContent;
+  List<MediaCardVO> get continueWatchingItems => _continueWatchingItems;
   LibraryItem? _hero;
 
   bool get isLoading => !_initialized || _sync.isLoading;
 
-  AppFailure? get error => _loadError ?? _sync.error;
+  AppFailure? get error => _loadError ?? (_streamErrors.isNotEmpty ? AppFailure.contentLoad : null) ?? _sync.error;
 
   double? get scrapeProgress => _sync.scrapeProgress;
 
@@ -57,50 +63,88 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   LibraryItem? get heroItem => _hero;
 
-  Future<void> loadFromDatabase() => _loading ??= _load();
+  /// 正常订阅建立后重复调用不重建；有加载错误时取消旧订阅并重新加载。
+  Future<void> loadFromDatabase() {
+    if (_disposed) return Future<void>.value();
+    if (_loading != null) return _loading!;
+    if (_initialized && _loadError == null && _streamErrors.isEmpty) return Future<void>.value();
+    return _loading = _load().whenComplete(() => _loading = null);
+  }
+
+  Future<void> _cancelSubscriptions() async {
+    final subscriptions = List.of(_subscriptions);
+    _subscriptions.clear();
+    await Future.wait(subscriptions.map((subscription) => subscription.cancel()));
+  }
 
   Future<void> _load() async {
+    _initialized = false;
+    _loadError = null;
     try {
+      await _cancelSubscriptions();
+      _streamErrors.clear();
+      if (_disposed) return;
+      _relay();
       await _repository.initialize();
       if (_disposed) return;
       final initial = <Future<void>>[];
       void subscribe<T>(Stream<T> stream, void Function(T) apply) {
         final ready = Completer<void>();
+        final token = Object();
         initial.add(ready.future);
         _subscriptions.add(
           stream.listen(
             (value) {
+              if (_disposed) return;
               apply(value);
+              // 只清除此订阅的错误，不能掩盖另一个尚未恢复的查询。
+              _streamErrors.remove(token);
               if (!ready.isCompleted) ready.complete();
               _relay();
             },
             onError: (Object error, StackTrace stack) {
-              _loadError = AppFailure.contentLoad;
-              if (!ready.isCompleted) ready.completeError(error, stack);
+              if (_disposed) return;
+              _streamErrors.add(token);
+              if (!ready.isCompleted) ready.complete();
+              _relay();
+            },
+            onDone: () {
+              if (_disposed || ready.isCompleted) return;
+              _streamErrors.add(token);
+              ready.complete();
               _relay();
             },
           ),
         );
       }
 
-      subscribe(_repository.watchFileCount(), (value) => totalFiles = value);
-      subscribe(_repository.watchTitles(recent: true, limit: 15), (value) => recentlyAddedContent = value);
+      subscribe(_repository.watchFileCount(), (value) => _totalFiles = value);
+      subscribe(
+        _repository.watchTitles(recent: true, limit: 15),
+        (value) => _recentlyAddedContent = List.unmodifiable(value),
+      );
       subscribe(
         _repository.watchContinueWatching(limit: 15),
-        (value) => continueWatchingItems = List.unmodifiable(value),
+        (value) => _continueWatchingItems = List.unmodifiable(value),
       );
       subscribe(_repository.watchHero(), (value) => _hero = value);
-      await Future.wait(initial);
+      // 退出时不等待永不返回首条数据的流；正常加载仍等待全部首页投影。
+      await Future.any([Future.wait(initial), _stopping.future]);
     } catch (error) {
       _loadError = AppFailure.contentLoad;
+      await _cancelSubscriptions();
     } finally {
       _initialized = true;
       _relay();
     }
   }
 
-  Stream<List<LibraryItem>> watchTitles({String? kind, String query = '', bool recent = false, int limit = 100}) =>
-      _repository.watchTitles(kind: kind, query: query, recent: recent, limit: limit);
+  Stream<List<LibraryItem>> watchTitles({
+    LibraryTitleKind? kind,
+    String query = '',
+    bool recent = false,
+    int limit = 100,
+  }) => _repository.watchTitles(kind: kind, query: query, recent: recent, limit: limit);
 
   Stream<LibraryItem?> watchDetail(LibraryItem item) => _repository.watchDetail(item);
 
@@ -115,7 +159,7 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   Future<List<MediaFile>> getPlaybackQueue(MediaFile file) => _repository.getPlaybackQueue(file);
 
-  Future<MediaFile?> getEpisodeFile(String id) => _repository.getEpisodeFile(id);
+  Future<MediaFile?> getEpisodeFile(String episodeKey) => _repository.getEpisodeFile(episodeKey);
 
   Future<MediaSourceScanSummary?> scanMediaSources() => _sync.scanEnabledMediaSources();
 
@@ -133,7 +177,7 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _disposed = true;
+    beginShutdown();
     for (final subscription in _subscriptions) {
       unawaited(subscription.cancel());
     }

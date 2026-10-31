@@ -9,19 +9,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/features/library/catalog/data/database_library_catalog_repository.dart';
+import 'package:mochi_player/features/library/catalog/data/library_catalog_repository_impl.dart';
 
 import '../../../../support/database_fixture.dart';
 
 void main() {
   late AppDatabase database;
-  late DatabaseLibraryCatalogRepository repository;
+  late LibraryCatalogRepositoryImpl repository;
   late _SelectRecorder recorder;
   setUp(() async {
     recorder = _SelectRecorder();
     database = AppDatabase(NativeDatabase.memory(setup: configureSqlite).interceptWith(recorder));
     await database.init();
-    repository = DatabaseLibraryCatalogRepository(database);
+    repository = LibraryCatalogRepositoryImpl(database: database);
   });
   tearDown(() => database.close());
 

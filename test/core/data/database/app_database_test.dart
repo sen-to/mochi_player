@@ -11,7 +11,7 @@ import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
-import 'package:mochi_player/features/library/metadata/data/database_metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/data/metadata_repository_impl.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 
 MediaFile file(String path, {String source = 'nas'}) => MediaFile(
@@ -113,7 +113,7 @@ void main() {
   test('source deletion cascades while referenced metadata is protected', () async {
     final entry = file('/a');
     await service.saveScannedFiles([entry]);
-    await DatabaseMetadataRepository(database: service).importMovie(const Movie(tmdbId: '1', title: 'Movie'), entry);
+    await MetadataRepositoryImpl(database: service).importMovie(const Movie(tmdbId: '1', title: 'Movie'), entry);
     await expectLater(service.delete(service.movies).go(), throwsA(isA<sqlite.SqliteException>()));
     expect(await service.deleteStorageSource('nas'), isTrue);
     expect(await service.getMediaFile('nas', '/a'), isNull);
@@ -182,9 +182,7 @@ void main() {
   test('repeated stale scans cannot reset progress, favorite or metadata', () async {
     final stale = file('/a');
     await service.saveScannedFiles([stale]);
-    await DatabaseMetadataRepository(
-      database: service,
-    ).importMovie(const Movie(tmdbId: '123', title: 'Example'), stale);
+    await MetadataRepositoryImpl(database: service).importMovie(const Movie(tmdbId: '123', title: 'Example'), stale);
     await service.updateProgress(stale, 42000, duration: 100000);
     await service.setTitleFavorite(const Movie(tmdbId: '123', title: 'Movie'), true);
     await service.saveScannedFiles([stale.copyWith(size: 999, parsedTitle: 'Updated')]);
@@ -205,7 +203,7 @@ void main() {
     final stale = file('/a');
     await service.saveScannedFiles([stale]);
     await service.updateProgress(stale, 99000, duration: 100000);
-    final importer = DatabaseMetadataRepository(database: service);
+    final importer = MetadataRepositoryImpl(database: service);
     await importer.importMovie(const Movie(tmdbId: '123', title: 'Example'), stale);
     await service.setTitleFavorite(const Movie(tmdbId: '123', title: 'Movie'), true);
     await importer.markUnmatched([stale]);
@@ -290,7 +288,7 @@ void main() {
     await service.saveScannedFiles(files);
     await service.updateProgress(files.first, 30, duration: 100);
     await service.saveTVShowMetadata(const TVShow(tmdbId: '123', title: 'Show'));
-    final keys = await DatabaseMetadataRepository(database: service).importSeasonEpisodes(
+    final keys = await MetadataRepositoryImpl(database: service).importSeasonEpisodes(
       const SeasonMetadata(
         season: Season(tvShowTmdbId: '123', seasonNumber: 1, title: 'Season'),
         episodes: [Episode(tvShowTmdbId: '123', seasonNumber: 1, episodeNumber: 1, title: 'One')],

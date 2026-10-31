@@ -59,7 +59,7 @@ lib/
 | 职责 | 当前类 | 是否执行 I/O |
 | --- | --- | --- |
 | SQLite 定义、连接及持久化入口 | `AppDatabase` | 是 |
-| 实现特定流程的数据契约 | `DatabaseLibraryCatalogRepository`、`PreferencesAppSettingsRepository` | 是 |
+| 实现特定流程的数据契约 | `LibraryCatalogRepositoryImpl`、`AppSettingsRepositoryImpl` | 是 |
 | 外部 API 端点及 HTTP 传输 | `TmdbApi`、`TmdbHttpClient` | 是 |
 | 协议连接及后端实现 | `SmbStorageAdapter`、`SmbStorageConnection`、`MediaKitPlaybackEngine` | 是 |
 | 数据边界转换 | `MediaFileMapper`、`TmdbMetadataMapper` | 否 |
@@ -77,7 +77,7 @@ lib/
 | DTO / 外部响应 | 外部边界的数据形态；当前 TMDB 原始 JSON 留在 data 内 | `TmdbMetadataMapper` 显式从 JSON 转换，不让 JSON 进入 Provider 或业务模型 |
 | 用例输入、结果与进度 | `ScrapeCandidate / ScrapeResult / ScrapeProgress / PlayerWindowRequest` 等，名称直接说明用途 | 独立输入由 Mapper 创建；同一契约的伴随数据可与契约就近放置 |
 
-DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不再额外并列 `dal`。Repository 是能力契约，`Database...Repository / Preferences...Repository` 是具体实现。
+DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不再额外并列 `dal`。Repository 是能力契约，当前每个仓库只有一个生产实现，统一使用 `接口名Impl`，文件为 `*_repository_impl.dart`。
 
 数据库不再复用业务模型。DO 只保存数据库字段、枚举字符串和 JSON 文本；Mapper 在边界转换为业务枚举及列表。数据库关系数据分别加载后组装，不能为每个卡片新增一条 SQL。VO 字段可以携带操作上下文的业务对象，但不能持有 Widget、连接、订阅或请求。
 
@@ -91,6 +91,8 @@ DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不
 
 ## 命名约定
 
+Repository 接口保留能力名称，实现采用同名主干加 `Impl`；存储技术在实现文件的中文说明和代码中明确。只有实际出现多个生产实现时，才使用技术前缀区分，不提前为可能的后端增加名称。测试替身按 Fake / Stub 的实际用途命名。
+
 文件名与主要公开类型对应，使用 `snake_case`；后缀表达职责，不按继承关系机械命名。
 
 | 名称 | 使用场景 | 示例 |
@@ -99,7 +101,8 @@ DAL 是“数据访问层”的职责称呼，本仓库统一使用 `data`，不
 | `Controller` | 界面交互或会话状态机；按职责放 ui 或 application | `PlayerSubtitleController`、`PlaybackSessionController` |
 | `Service / Coordinator` | 具体用例编排、多个参与者的顺序协调 | `LibrarySyncService`、`PlayerWindowCoordinator` |
 | `Repository / Source / Engine` | 调用方所需能力契约 | `LibraryCatalogRepository`、`TrendingMediaSource`、`PlaybackEngine` |
-| 后端前缀 | 契约的具体数据 / SDK 实现 | `DatabaseLibraryCatalogRepository`、`PreferencesAppSettingsRepository`、`TmdbTrendingMediaSource` |
+| `RepositoryImpl` | 与仓库接口同名主干的唯一生产实现，统一放 data | `LibraryCatalogRepositoryImpl`、`ThemePreferencesRepositoryImpl` |
+| 后端前缀 | 协议、外部数据源或播放引擎适配 | `TmdbTrendingMediaSource`、`MediaKitPlaybackEngine` |
 | `Api / HttpClient` | 外部服务端点 / 底层 HTTP 传输 | `TmdbApi / TmdbHttpClient` |
 | `Mapper` | 边界转换，不查询、不保存、不通知界面 | `MediaFileMapper.toDomain / toDO`、`MediaDetailMapper.toVO`、`TmdbMetadataMapper.movieFromJson` |
 | `Page / Panel / Dialog` | 完整页面、可嵌入面板、弹窗 | `FileBrowserPage`、`StorageSourcesPanel`、`showSmbSourceDialog` |
@@ -118,6 +121,8 @@ Provider 包只是一种注入机制，不要求每个服务都套一层 Provide
 生成的本地化、drift 数据库与 schema 测试夹具由生成工具维护，不手工添加注释。机器识别的指令、许可证和外部地址保持原样。
 
 ## 新增功能与评审
+
+接口文档必须让调用方不读实现也能正确使用：说明 ID 身份、数值单位、空值与布尔结果含义、排序、失败方式及写入副作用。说明依据当前行为，不承诺实现没有提供的校验或事务；实现专属的 SQL、存储键和插件细节留在 data。组装处创建具体实现，对外字段优先声明为调用方所需的接口类型。
 
 先确定入口和数据流，再沿统一层次扩展。例如手动修正匹配：界面弹窗放 `metadata/ui`，操作编排和外部能力契约放 `metadata/application`，匹配输入与规则放 `metadata/domain`，TMDB / 数据库实现及边界 Mapper 放 `metadata/data`；实例由应用组装。此示例是落位规则，不代表手动匹配已经实现。
 

@@ -1,6 +1,7 @@
 // 【媒体库界面】展示电影或剧集目录并连接搜索与分页。
 // 通过媒体库 Provider 查询，界面不直接访问目录仓库。
 
+import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
@@ -44,12 +45,12 @@ class _LibraryPageState extends State<LibraryPage> {
     return switch (widget.category) {
       LibraryCategory.movies => PagedLibraryQueryView<LibraryItem>(
         queryKey: (widget.category, widget.searchQuery),
-        query: (r, limit) => r.watchTitles(kind: 'movie', query: widget.searchQuery, limit: limit),
+        query: (r, limit) => r.watchTitles(kind: LibraryTitleKind.movie, query: widget.searchQuery, limit: limit),
         builder: (context, items) => _buildMovieGrid(context, items),
       ),
       LibraryCategory.series => PagedLibraryQueryView<LibraryItem>(
         queryKey: (widget.category, widget.searchQuery),
-        query: (r, limit) => r.watchTitles(kind: 'show', query: widget.searchQuery, limit: limit),
+        query: (r, limit) => r.watchTitles(kind: LibraryTitleKind.tvShow, query: widget.searchQuery, limit: limit),
         builder: (context, items) => _buildTVShowGrid(context, items),
       ),
       LibraryCategory.favorites => PagedLibraryQueryView<MediaCardVO>(

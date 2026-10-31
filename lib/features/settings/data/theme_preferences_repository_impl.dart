@@ -5,7 +5,7 @@ import 'package:mochi_player/features/settings/application/theme_preferences_rep
 import 'package:mochi_player/features/settings/domain/theme_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class PreferencesThemeRepository implements ThemePreferencesRepository {
+class ThemePreferencesRepositoryImpl implements ThemePreferencesRepository {
   static const _modeKey = 'theme_mode';
   static const _accentKey = 'accent_color';
   @override

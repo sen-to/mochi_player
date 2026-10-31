@@ -5,8 +5,8 @@ import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/domain/media/media_file.dart';
 import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 
-class DatabasePlaybackMediaRepository implements PlaybackMediaRepository {
-  DatabasePlaybackMediaRepository({required AppDatabase database}) : _database = database;
+class PlaybackMediaRepositoryImpl implements PlaybackMediaRepository {
+  PlaybackMediaRepositoryImpl({required AppDatabase database}) : _database = database;
 
   final AppDatabase _database;
   @override

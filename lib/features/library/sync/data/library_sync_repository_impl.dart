@@ -7,8 +7,8 @@ import 'package:mochi_player/core/data/database/mappers/media_file_mapper.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/sync/application/library_sync_repository.dart';
 
-class DatabaseLibrarySyncRepository implements LibrarySyncRepository {
-  DatabaseLibrarySyncRepository({required AppDatabase database}) : _database = database;
+class LibrarySyncRepositoryImpl implements LibrarySyncRepository {
+  LibrarySyncRepositoryImpl({required AppDatabase database}) : _database = database;
 
   final AppDatabase _database;
 

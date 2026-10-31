@@ -2,10 +2,10 @@
 // 使用正式 runner 与隔离素材，不替代长期真实媒体验收。
 
 import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
-import 'package:mochi_player/features/settings/data/preferences_theme_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
+import 'package:mochi_player/features/settings/data/theme_preferences_repository_impl.dart';
 import 'package:mochi_player/features/settings/data/tmdb_settings_runtime.dart';
-import 'package:mochi_player/l10n/data/preferences_language_repository.dart';
+import 'package:mochi_player/l10n/data/language_preferences_repository_impl.dart';
 
 // 执行方式：fvm flutter run -d macos -t integration_test/windowing_smoke.dart
 // 使用正式 runner、真实 media_kit 及沙箱内生成的视频。
@@ -26,7 +26,7 @@ import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/platform/desktop_window_service.dart';
 import 'package:mochi_player/core/platform/window_service.dart';
-import 'package:mochi_player/features/playback/data/database_playback_media_repository.dart';
+import 'package:mochi_player/features/playback/data/playback_media_repository_impl.dart';
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/domain/player_window_request.dart';
 import 'package:mochi_player/features/playback/data/media_kit_playback_engine.dart';
@@ -92,14 +92,14 @@ void main() async {
   ]);
   final media = (await database.getMediaFile('smoke', mediaPath))!;
   final host = DesktopWindowHost();
-  final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
+  final locales = AppLocaleProvider(repository: LanguagePreferencesRepositoryImpl());
   await locales.load();
   final settings = AppSettingsProvider(
-    settingsRepository: PreferencesAppSettingsRepository(),
+    settingsRepository: AppSettingsRepositoryImpl(),
     runtime: TmdbSettingsRuntime(tmdbApi: TmdbApi()),
   );
   await settings.load();
-  final theme = ThemeProvider(repository: PreferencesThemeRepository());
+  final theme = ThemeProvider(repository: ThemePreferencesRepositoryImpl());
   final mainWindow = host.create(
     setup: const WindowSetup(size: Size(960, 640), minimumSize: Size(800, 500)),
     builder: (_) => Consumer<AppLocaleProvider>(
@@ -120,7 +120,7 @@ void main() async {
     createSession: (request) async => playerSession = await createPlayerWindow(
       host: host,
       request: request,
-      mediaRepository: DatabasePlaybackMediaRepository(database: database),
+      mediaRepository: PlaybackMediaRepositoryImpl(database: database),
       resolver: LocalTarget(),
       engineFactory: MediaKitPlaybackEngine.new,
     ),

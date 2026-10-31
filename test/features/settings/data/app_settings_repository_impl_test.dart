@@ -2,7 +2,7 @@
 // 使用内存偏好存储替身，不调用原生插件或真实网络。
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
@@ -13,7 +13,7 @@ void main() {
     addTearDown(() => SharedPreferences.setMockInitialValues({}));
     final store = _FailOncePreferencesStore();
     SharedPreferencesStorePlatform.instance = store;
-    final repository = PreferencesAppSettingsRepository();
+    final repository = AppSettingsRepositoryImpl();
     const input = AppSettings(tmdbApiKey: 'new-key');
     await expectLater(repository.save(input), throwsStateError);
     expect(store.attempts, 1);

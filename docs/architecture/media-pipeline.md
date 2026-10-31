@@ -31,7 +31,7 @@ flowchart TD
 - 视频判定依赖扩展名白名单（[media_file_kind.dart](../../lib/features/library/domain/media_file_kind.dart)）：`mp4 mkv avi mov wmv flv webm ts m2ts mpg mpeg m4v`。
 - **幂等键**：数据库使用 `(sourceId, path)` 组合唯一约束；派生 `storageKey` 仅用于任务集合。新路径插入，已有路径仅更新大小与解析属性，保留匹配、进度、收藏与添加时间。
 - 清理：扫描成功时，删除属于该来源但本次未出现的记录。
-- `LibrarySyncRepository` 由 `DatabaseLibrarySyncRepository` 实现，负责已知路径、扫描文件写入、失效清理和候选查询，与展示查询仓库分开。扫描过程中按 128 个文件分批写入；扫描结束后，若配置了 TMDB，SQL 筛选缺少元数据或显式数字 ID 覆盖原匹配的文件，再进入刮削。写入失败中止该来源，不在收尾阶段隐式重试；来源完整扫描和关闭均成功才计入成功，避免重复计数；关闭失败不丢弃已完成入库 / 清理的文件数量。运行中的任务不允许通过状态重置绕过互斥。
+- `LibrarySyncRepository` 由 `LibrarySyncRepositoryImpl` 实现，负责已知路径、扫描文件写入、失效清理和候选查询，与展示查询仓库分开。扫描过程中按 128 个文件分批写入；扫描结束后，若配置了 TMDB，SQL 筛选缺少元数据或显式数字 ID 覆盖原匹配的文件，再进入刮削。写入失败中止该来源，不在收尾阶段隐式重试；来源完整扫描和关闭均成功才计入成功，避免重复计数；关闭失败不丢弃已完成入库 / 清理的文件数量。运行中的任务不允许通过状态重置绕过互斥。
 
 ## 阶段 2：文件名解析
 
@@ -60,7 +60,7 @@ flowchart TD
 1. 用 SQL EXISTS 筛选缺少元数据或显式 ID 发生变化的文件；没有候选时不发请求。
 2. `ScrapeSearchPlan.forCandidate` 构造查询，`MetadataMatcher` 匹配目标；搜索顺序、剧集分组与并发限制见 [算法说明](algorithms.md#刮削计划与有界并发)。
 3. 编排通过 `MetadataSource` 获取元数据；`TmdbMetadataSource` 使用共享 `TmdbApi` 请求详情（电影附带 `credits,release_dates,images`，剧集使用对应参数；`language=zh-CN`），`TmdbMetadataMapper` 转为领域模型。
-4. `MetadataRepository` 由 `DatabaseMetadataRepository` 实现，原子写入元数据与文件关联；季集通过共享领域值 `SeasonMetadata` 传递，集 ID 形如 `show_s1e1`。任务回调报告完成数、总数、成功 / 失败与当前标题。部分季已提交后其他持久化步骤失败时，已确认文件仍计为成功，每个文件仅统计一次。
+4. `MetadataRepository` 由 `MetadataRepositoryImpl` 实现，原子写入元数据与文件关联；季集通过共享领域值 `SeasonMetadata` 传递，集 ID 形如 `show_s1e1`。任务回调报告完成数、总数、成功 / 失败与当前标题。部分季已提交后其他持久化步骤失败时，已确认文件仍计为成功，每个文件仅统计一次。
 5. 成功查询后无候选或详情 / 季不存在（404）时，标记未匹配并清空对应 ID。请求失败不属于未匹配，不修改受影响文件的匹配状态、原有 ID、进度或收藏。
 
 ### 请求失败与未匹配
@@ -77,9 +77,9 @@ flowchart TD
 
 | 能力 | 实现位置 | 说明 |
 | --- | --- | --- |
-| 查询投影 | [library_catalog_repository.dart](../../lib/features/library/catalog/data/database_library_catalog_repository.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
+| 查询投影 | [library_catalog_repository.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | SQL 电影、剧集、收藏、续看、多版本与队列查询 |
 | 订阅与分页 | [library_query_view.dart](../../lib/features/library/ui/widgets/library_query_view.dart) | 页面维持稳定查询订阅，网格按需扩展 LIMIT |
-| 继续观看 | [library_catalog_repository.dart](../../lib/features/library/catalog/data/database_library_catalog_repository.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
+| 继续观看 | [library_catalog_repository.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | SQL 先选每标题续播目标再分页；用领域 Resolver 测试验证策略一致性 |
 | 搜索 | [library_search_text.dart](../../lib/core/domain/media/library_search_text.dart) | 小写并移除指定空格 / 分隔符；评分与排序见 [算法说明](algorithms.md#本地搜索评分) |
 | 收藏 | [media_library_provider.dart](../../lib/features/library/application/media_library_provider.dart) | 标题级批量切换，作用于该标题下全部版本 |
 

@@ -191,7 +191,7 @@ CHECK (episode_key = tv_show_tmdb_id || '_s' || season_number || 'e' || episode_
 
 ### StorageSources → `storage_sources`
 
-定义：[StorageSources](../../lib/core/data/database/app_database.dart)。生成行模型 `StorageSourceDO` 经 [存储源仓库](../../lib/core/data/storage/database_storage_source_repository.dart) 转为领域对象。
+定义：[StorageSources](../../lib/core/data/database/app_database.dart)。生成行模型 `StorageSourceDO` 经 [存储源仓库](../../lib/core/data/storage/storage_source_repository_impl.dart) 转为领域对象。
 
 | SQL 列 | Dart 属性 / 类型 | SQLite 类型 | NULL | 含义与约束 |
 | --- | --- | --- | --- | --- |
@@ -335,7 +335,7 @@ erDiagram
 | [app_database.dart](../../lib/core/data/database/app_database.dart) | 表定义、共享连接、迁移、字段级写入、事务与公共类型化查询 |
 | [media_tables.drift](../../lib/core/data/database/media_tables.drift) | 文件与单集表、组合外键、CHECK、索引及 SQL 行模型映射 |
 | [app_database.g.dart](../../lib/core/data/database/app_database.g.dart) | drift 生成的列、映射、Companion 与数据库实现，不手工修改 |
-| [database_library_catalog_repository.dart](../../lib/features/library/catalog/data/database_library_catalog_repository.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
+| [database_library_catalog_repository.dart](../../lib/features/library/catalog/data/library_catalog_repository_impl.dart) | 类型化查询与复杂 SQL，关联、聚合、排序、页面投影及订阅 |
 | [数据库 Mapper](../../lib/core/data/database/mappers/media_file_mapper.dart)、[JSON Mapper](../../lib/core/data/database/mappers/stored_json_mapper.dart) | DO、业务类型与 JSON 字段边界转换 |
 
 ## 写入边界

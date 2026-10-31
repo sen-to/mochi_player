@@ -16,7 +16,7 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
 
 import '../../../support/tmdb_fixture.dart';
 
@@ -39,7 +39,7 @@ void main() {
         database: database,
         tmdb: tmdb,
         storageRegistry: StorageAdapterRegistry([LocalStorageAdapter(), WebDavStorageAdapter(), SmbStorageAdapter()]),
-        settingsRepository: PreferencesAppSettingsRepository(),
+        settingsRepository: AppSettingsRepositoryImpl(),
       );
       addTearDown(() async {
         await dependencies.mediaLibrary.shutdown();

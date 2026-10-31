@@ -12,7 +12,7 @@ import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
 import 'package:mochi_player/features/settings/domain/app_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,7 +31,7 @@ void main() {
       database: database,
       tmdb: tmdb,
       storageRegistry: StorageAdapterRegistry([_StorageAdapter()]),
-      settingsRepository: PreferencesAppSettingsRepository(),
+      settingsRepository: AppSettingsRepositoryImpl(),
     );
   });
   tearDown(() async {

@@ -1,6 +1,7 @@
 // 【行为测试】验证用 SQL 完成目录筛选、排序、分页及卡片元数据批量投影。
 // 测试对象的职责边界：只返回有限展示结果和订阅，不处理弹窗或页面状态。
 
+import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -9,9 +10,9 @@ import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/mappers/media_file_mapper.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
-import 'package:mochi_player/features/library/catalog/data/database_library_catalog_repository.dart';
-import 'package:mochi_player/features/library/sync/data/database_library_sync_repository.dart';
-import 'package:mochi_player/features/playback/data/database_playback_media_repository.dart';
+import 'package:mochi_player/features/library/catalog/data/library_catalog_repository_impl.dart';
+import 'package:mochi_player/features/library/sync/data/library_sync_repository_impl.dart';
+import 'package:mochi_player/features/playback/data/playback_media_repository_impl.dart';
 
 import '../../../../support/database_fixture.dart';
 import '../../../../support/library_continue_watching_reference.dart';
@@ -47,11 +48,11 @@ MediaFile file(
 
 void main() {
   late AppDatabase db;
-  late DatabaseLibraryCatalogRepository repository;
+  late LibraryCatalogRepositoryImpl repository;
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory(setup: configureSqlite));
     await db.init();
-    repository = DatabaseLibraryCatalogRepository(db);
+    repository = LibraryCatalogRepositoryImpl(database: db);
   });
   tearDown(() => db.close());
 
@@ -62,6 +63,9 @@ void main() {
       file('/movie', movieId: '123'),
       file('/episode', showId: '123', season: 1, episode: 1),
     ]);
+    expect((await repository.watchTitles(kind: LibraryTitleKind.movie).first).single, isA<Movie>());
+    expect((await repository.watchTitles(kind: LibraryTitleKind.tvShow).first).single, isA<TVShow>());
+    expect(await repository.watchTitles().first, hasLength(2));
     expect((await repository.getVersions(movie)).map((f) => f.path), ['/movie']);
     expect((await repository.getVersions(show)).map((f) => f.path), ['/episode']);
     await db.setTitleFavorite(movie, true);
@@ -92,11 +96,11 @@ void main() {
       await db.saveMovieMetadata(Movie(tmdbId: '$i', title: 'Movie $i'));
     }
     await saveMediaFixture(db, [for (var i = 0; i < 124; i++) file('/$i', movieId: '$i')]);
-    expect(await repository.watchTitles(kind: 'movie', limit: 100).first, hasLength(100));
-    expect(await repository.watchTitles(kind: 'movie', limit: 200).first, hasLength(124));
+    expect(await repository.watchTitles(kind: LibraryTitleKind.movie, limit: 100).first, hasLength(100));
+    expect(await repository.watchTitles(kind: LibraryTitleKind.movie, limit: 200).first, hasLength(124));
     expect((await repository.watchTitles(query: 'Movie 123').first).single.tmdbId, '123');
     expect(await repository.watchTitles(query: 'Movie 124').first, isEmpty);
-    await DatabaseLibrarySyncRepository(database: db).removeMissingFiles('nas', {'/123'});
+    await LibrarySyncRepositoryImpl(database: db).removeMissingFiles('nas', {'/123'});
     expect((await repository.watchTitles().first).single.tmdbId, '123');
     expect((await repository.watchHero().first)!.tmdbId, '123');
   });
@@ -242,7 +246,7 @@ void main() {
       await db.setTitleFavorite(const Movie(tmdbId: '1', title: 'Movie'), true);
       expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
       expect(stream.current.single.isFavorite, isTrue);
-      await DatabasePlaybackMediaRepository(database: db).updateProgress(entry, 42000, duration: 100000);
+      await PlaybackMediaRepositoryImpl(database: db).updateProgress(entry, 42000, duration: 100000);
       expect(await stream.moveNext().timeout(const Duration(seconds: 2)), isTrue);
       expect(stream.current.single.position, 42000);
       expect(stream.current.single.duration, 100000);
@@ -260,7 +264,7 @@ void main() {
       file('/override', movieId: '1').copyWith(explicitTmdbId: '3'),
       file('/nonnumeric', movieId: '1').copyWith(explicitTmdbId: '1_s1e1'),
     ]);
-    expect((await DatabaseLibrarySyncRepository(database: db).scrapeCandidates()).map((f) => f.path), [
+    expect((await LibrarySyncRepositoryImpl(database: db).scrapeCandidates()).map((f) => f.path), [
       '/missing',
       '/override',
     ]);

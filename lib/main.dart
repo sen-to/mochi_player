@@ -25,10 +25,10 @@ import 'package:mochi_player/features/library/sources/application/storage_source
 import 'package:mochi_player/features/playback/application/player_window_coordinator.dart';
 import 'package:mochi_player/features/playback/data/media_kit_playback_engine.dart';
 import 'package:mochi_player/features/settings/application/theme_provider.dart';
-import 'package:mochi_player/features/settings/data/preferences_app_settings_repository.dart';
-import 'package:mochi_player/features/settings/data/preferences_theme_repository.dart';
+import 'package:mochi_player/features/settings/data/app_settings_repository_impl.dart';
+import 'package:mochi_player/features/settings/data/theme_preferences_repository_impl.dart';
 import 'package:mochi_player/l10n/application/app_locale_provider.dart';
-import 'package:mochi_player/l10n/data/preferences_language_repository.dart';
+import 'package:mochi_player/l10n/data/language_preferences_repository_impl.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
@@ -42,11 +42,11 @@ void main() async {
     database: AppDatabase.open(),
     tmdb: TmdbApi(),
     storageRegistry: StorageAdapterRegistry([LocalStorageAdapter(), WebDavStorageAdapter(), SmbStorageAdapter()]),
-    settingsRepository: PreferencesAppSettingsRepository(),
+    settingsRepository: AppSettingsRepositoryImpl(),
   );
   await dependencies.database.init();
 
-  final locales = AppLocaleProvider(repository: PreferencesLanguageRepository());
+  final locales = AppLocaleProvider(repository: LanguagePreferencesRepositoryImpl());
   await locales.load();
   final appSettingsProvider = dependencies.settings;
   await appSettingsProvider.load();
@@ -80,7 +80,7 @@ void main() async {
   );
   windowControlsController = WindowControlsController(viewId: windows.viewId);
 
-  final themeProvider = ThemeProvider(repository: PreferencesThemeRepository());
+  final themeProvider = ThemeProvider(repository: ThemePreferencesRepositoryImpl());
   final exitCoordinator = ApplicationExitCoordinator(
     beginShutdown: () {
       exiting.value = true;

@@ -7,8 +7,8 @@ import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_repository.dart';
 
 /// 原子导入服务商元数据和匹配关系，不写入用户状态。
-class DatabaseMetadataRepository implements MetadataRepository {
-  DatabaseMetadataRepository({required AppDatabase database}) : _database = database;
+class MetadataRepositoryImpl implements MetadataRepository {
+  MetadataRepositoryImpl({required AppDatabase database}) : _database = database;
   final AppDatabase _database;
 
   @override

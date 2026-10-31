@@ -15,8 +15,8 @@ import 'package:mochi_player/features/library/catalog/application/media_card_map
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 
 /// SQL 负责可用性、排序及分页，数据库只返回当前范围内的投影。
-class DatabaseLibraryCatalogRepository implements LibraryCatalogRepository {
-  DatabaseLibraryCatalogRepository(this._database);
+class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
+  LibraryCatalogRepositoryImpl({required AppDatabase database}) : _database = database;
 
   final AppDatabase _database;
 
@@ -46,7 +46,12 @@ class DatabaseLibraryCatalogRepository implements LibraryCatalogRepository {
 
   /// 排序与共享标题规则一致，包括 Unicode 和标点处理。
   @override
-  Stream<List<LibraryItem>> watchTitles({String? kind, String query = '', bool recent = false, int limit = 100}) {
+  Stream<List<LibraryItem>> watchTitles({
+    LibraryTitleKind? kind,
+    String query = '',
+    bool recent = false,
+    int limit = 100,
+  }) {
     final normalized = normalizeLibrarySearchText(query);
     final sql = '''WITH titles AS ($_titles), ranked AS (
       SELECT *, MAX(
@@ -60,7 +65,15 @@ class DatabaseLibraryCatalogRepository implements LibraryCatalogRepository {
     return _database
         .customSelect(
           sql,
-          variables: [Variable(normalized), Variable(kind ?? ''), Variable(limit)],
+          variables: [
+            Variable(normalized),
+            Variable(switch (kind) {
+              LibraryTitleKind.movie => 'movie',
+              LibraryTitleKind.tvShow => 'show',
+              null => '',
+            }),
+            Variable(limit),
+          ],
           readsFrom: {_database.mediaFiles, _database.movies, _database.tVShows},
         )
         .watch()
@@ -171,10 +184,10 @@ class DatabaseLibraryCatalogRepository implements LibraryCatalogRepository {
       _versions(item).watch().map((rows) => rows.map(MediaFileMapper.toDomain).toList(growable: false));
 
   @override
-  Future<MediaFile?> getEpisodeFile(String id) async {
+  Future<MediaFile?> getEpisodeFile(String episodeKey) async {
     final row =
         (await (_database.select(_database.mediaFiles)
-              ..where((t) => t.episodeKey.equals(id))
+              ..where((t) => t.episodeKey.equals(episodeKey))
               ..orderBy([(t) => OrderingTerm.asc(t.id)])
               ..limit(1))
             .getSingleOrNull());

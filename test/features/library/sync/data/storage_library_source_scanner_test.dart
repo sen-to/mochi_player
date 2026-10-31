@@ -5,21 +5,21 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
-import 'package:mochi_player/core/data/storage/database_storage_source_repository.dart';
+import 'package:mochi_player/core/data/storage/storage_source_repository_impl.dart';
 import 'package:mochi_player/core/domain/storage/models.dart';
 import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/library/sync/data/storage_library_source_scanner.dart';
 
 void main() {
   late AppDatabase database;
-  late DatabaseStorageSourceRepository repository;
+  late StorageSourceRepositoryImpl repository;
   late _Adapter adapter;
   late StorageLibrarySourceScanner scanner;
   const source = StorageSource(id: 'local', name: 'Local', type: StorageSourceType.local, endpoint: '/media');
   setUp(() async {
     database = AppDatabase(NativeDatabase.memory(setup: configureSqlite));
     await database.init();
-    repository = DatabaseStorageSourceRepository(database: database);
+    repository = StorageSourceRepositoryImpl(database: database);
     adapter = _Adapter();
     scanner = StorageLibrarySourceScanner(repository: repository, registry: StorageAdapterRegistry([adapter]));
   });

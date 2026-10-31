@@ -7,18 +7,18 @@ import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
-import 'package:mochi_player/features/library/metadata/data/database_metadata_repository.dart';
+import 'package:mochi_player/features/library/metadata/data/metadata_repository_impl.dart';
 
 import '../../../../support/database_fixture.dart';
 import '../../../../support/library_sync_fakes.dart';
 
 void main() {
   late AppDatabase database;
-  late DatabaseMetadataRepository repository;
+  late MetadataRepositoryImpl repository;
   setUp(() async {
     database = AppDatabase(NativeDatabase.memory(setup: configureSqlite));
     await database.init();
-    repository = DatabaseMetadataRepository(database: database);
+    repository = MetadataRepositoryImpl(database: database);
   });
   tearDown(() => database.close());
 
