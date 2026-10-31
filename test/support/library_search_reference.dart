@@ -3,7 +3,6 @@
 
 import 'package:mochi_player/core/domain/media/library_item.dart';
 import 'package:mochi_player/core/domain/media/library_search_text.dart';
-import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 
 /// 独立的参考评分，用于验证 SQL 搜索排序。
 ///
@@ -11,10 +10,6 @@ import 'package:mochi_player/features/library/catalog/application/media_card_vo.
 abstract final class LibrarySearchReference {
   static List<T> libraryItems<T extends LibraryItem>(Iterable<T> items, String query) {
     return _rank(items, query, _libraryItemScore);
-  }
-
-  static List<MediaCardVO> mediaCards(Iterable<MediaCardVO> items, String query) {
-    return _rank(items, query, _mediaCardScore);
   }
 
   static List<T> _rank<T>(Iterable<T> items, String query, int Function(T item, String normalizedQuery) score) {
@@ -40,11 +35,6 @@ abstract final class LibrarySearchReference {
   static int _libraryItemScore(LibraryItem item, String normalizedQuery) {
     final score = _textScore(item.title, normalizedQuery, exact: 120);
     return _max(score, _textScore(item.originalTitle, normalizedQuery, exact: 110));
-  }
-
-  static int _mediaCardScore(MediaCardVO item, String normalizedQuery) {
-    final score = item.libraryItem == null ? 0 : _libraryItemScore(item.libraryItem!, normalizedQuery);
-    return _max(score, _textScore(item.title, normalizedQuery, exact: 120));
   }
 
   static int _textScore(String? value, String query, {required int exact}) {

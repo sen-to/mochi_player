@@ -126,7 +126,7 @@ class _Repository implements LibraryCatalogRepository {
     count = StreamController<int>.broadcast(
       onListen: () {
         countListens++;
-        if (emitInitial)
+        if (emitInitial) {
           scheduleMicrotask(() {
             if (failFirstCount) {
               count.addError(StateError('first count failed'));
@@ -134,6 +134,7 @@ class _Repository implements LibraryCatalogRepository {
               count.add(0);
             }
           });
+        }
       },
       onCancel: () => countCancels++,
     );
