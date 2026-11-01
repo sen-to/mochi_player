@@ -31,5 +31,5 @@ gallery.addEventListener('click', (event) => {
   next.onerror = () => {
     if (currentRequest === requestId) caption.textContent = '截图加载失败，请稍后重新选择。';
   };
-  next.src = `./assets/screenshots/${selected}.webp`;
+  next.src = button.dataset.src;
 });

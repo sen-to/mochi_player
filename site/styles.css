@@ -80,7 +80,7 @@ a:hover {
   color:var(--muted)
 }
 .hero {
-  padding-top:81px;
+  padding-top:72px;
   text-align:center
 }
 .eyebrow {
@@ -91,7 +91,15 @@ a:hover {
   margin:0 0 25px
 }
 .hero .eyebrow {
-  letter-spacing:3px
+  letter-spacing:2.5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px
+}
+.hero .status-dot {
+  margin:0;
+  flex-shrink:0
 }
 .status-dot {
   display:inline-block;
@@ -103,11 +111,25 @@ a:hover {
   vertical-align:middle
 }
 h1 {
-  font-size:clamp(48px,5.6vw,76px);
-  line-height:1.22;
-  letter-spacing:-3px;
+  font-size:clamp(46px,6.2vw,80px);
+  line-height:1.18;
+  letter-spacing:-1.5px;
   font-weight:650;
   margin:0 0 26px
+}
+.hero-line {
+  display:block;
+  width:max-content;
+  margin-inline:auto;
+  white-space:nowrap
+}
+.hero-punctuation {
+  display:inline-block;
+  width:.55em;
+  text-align:left
+}
+.hero-line+.hero-line {
+  margin-top:8px
 }
 .accent {
   color:var(--accent)
@@ -122,8 +144,12 @@ h1 {
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:28px;
+  gap:14px;
   margin-top:30px
+}
+.hero .actions .button {
+  min-width:196px;
+  min-height:50px
 }
 .button {
   display:inline-flex;
@@ -163,21 +189,29 @@ h1 {
   color:var(--accent)
 }
 .hero-meta {
-  color:#898591;
-  font-size:11px;
-  margin-top:19px
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+  gap:10px 24px;
+  list-style:none;
+  padding:0;
+  margin:22px 0 0;
+  color:#a7a0b3;
+  font-size:11px
 }
-.hero-meta span {
-  padding:0 10px
+.hero-meta li+li::before {
+  content:'·';
+  margin-right:24px;
+  color:#706779
 }
 .hero-preview {
   position:relative;
-  margin:53px 0 0;
-  padding:8px;
-  border:1px solid #ffffff24;
+  margin:48px 0 0;
+  padding:0;
   border-radius:16px;
-  background:#24212b;
-  box-shadow:0 0 100px -30px #9b7cd03b
+  background:transparent;
+  box-shadow:0 28px 80px -24px #0009,0 0 90px -45px #b9a4ed50
 }
 .hero-preview img {
   border-radius:10px;
@@ -189,15 +223,15 @@ h1 {
   bottom:0;
   left:0;
   right:0;
-  padding:75px 20px 25px;
+  padding:48px 20px 18px;
   background:linear-gradient(transparent,#101013e8);
   border-radius:0 0 15px 15px;
   font-size:10px;
   letter-spacing:3px
 }
 .section {
-  padding-top:122px;
-  padding-bottom:112px
+  padding-top:100px;
+  padding-bottom:96px
 }
 .section-heading {
   display:flex;
@@ -221,15 +255,17 @@ h2 {
 }
 .gallery {
   border:1px solid var(--line);
-  border-radius:12px;
-  background:var(--panel);
-  overflow:hidden
+  border-radius:18px;
+  background:#151419;
+  overflow:hidden;
+  box-shadow:0 24px 64px -40px #000c
 }
 .gallery-tabs {
   padding:15px 23px;
   display:flex;
   gap:7px;
   border-bottom:1px solid var(--line);
+  justify-content:center;
   overflow:auto
 }
 .gallery-tabs[hidden] {
@@ -253,7 +289,8 @@ h2 {
   color:white
 }
 .gallery figure {
-  margin:0
+  margin:0;
+  padding:14px 14px 0
 }
 .gallery figure img {
   width:100%;
@@ -270,8 +307,14 @@ h2 {
 .feature-row {
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:48px;
-  padding-top:44px
+  gap:18px;
+  padding-top:24px
+}
+.feature-row article {
+  padding:26px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#ffffff02
 }
 .feature-number {
   font-size:11px;
@@ -383,9 +426,15 @@ h2 {
 .download-options {
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:50px;
-  max-width:650px;
+  gap:18px;
+  max-width:720px;
   margin:37px auto 28px
+}
+.download-options article {
+  padding:24px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#10101370
 }
 .download-options h3 {
   font-size:20px;
@@ -480,6 +529,11 @@ h2 {
   color:var(--muted);
   padding-top:10px
 }
+.credits a {
+  color:var(--accent);
+  text-decoration:underline;
+  text-underline-offset:3px
+}
 .credits {
   width:100%;
   font-size:10px;
@@ -504,11 +558,7 @@ h2 {
     max-width:1000px;
     margin-inline:auto
   }
-  .hero-preview img {
-    max-height:590px;
-    object-fit:cover;
-    object-position:top
-  }
+
 }
 @media(max-width:760px) {
   .wrap {
@@ -542,7 +592,7 @@ h2 {
     font-size:14px
   }
   .hero-preview {
-    padding:4px;
+    padding:0;
     margin-top:37px;
     border-radius:10px
   }
@@ -575,6 +625,7 @@ h2 {
     font-size:12px
   }
   .gallery-tabs {
+    justify-content:flex-start;
     padding:10px
   }
   .gallery-tabs button {
@@ -624,7 +675,15 @@ h2 {
     font-size:10px
   }
   .actions {
-    gap:18px
+    gap:10px
+  }
+  .hero .actions .button {
+    min-width:0;
+    flex:1;
+    max-width:190px;
+    gap:10px;
+    padding:12px 10px;
+    font-size:12px
   }
   .button {
     padding:12px 17px
@@ -665,8 +724,17 @@ h2 {
   .hero-meta {
     font-size:10px
   }
-  .hero-meta span {
-    padding-inline:6px
+  .hero-meta {
+    gap:8px 12px
+  }
+  .hero-meta li+li::before {
+    margin-right:12px
+  }
+  .feature-row article {
+    padding:22px
+  }
+  .gallery figure {
+    padding:6px 6px 0
   }
 }
 @media(prefers-reduced-motion:reduce) {

@@ -54,11 +54,7 @@
           </span>
           为你的私人影片库而生
         </p>
-        <h1>
-          你的收藏，
-          <br>
-          <span class="accent">你的影院。</span>
-        </h1>
+        <h1><span class="hero-line">你的收藏<span class="hero-punctuation">，</span></span><span class="hero-line accent">你的影院<span class="hero-punctuation">。</span></span></h1>
         <p class="hero-description">
           连接本地与网络存储，
           <br>
@@ -71,24 +67,18 @@
             </span>
             获取 Mochi Player
           </a>
-          <a class="text-link" href="#experience">
+          <a class="button secondary" href="#experience">
             先看一看
             <span aria-hidden="true">
               ↘
             </span>
           </a>
         </div>
-        <p class="hero-meta">
-          macOS & Windows
-          <span>
-            ·
-          </span>
-          本地与网络影片
-          <span>
-            ·
-          </span>
-          开源
-        </p>
+        <ul class="hero-meta" aria-label="产品特点">
+          <li>macOS &amp; Windows</li>
+          <li>本地与网络影片</li>
+          <li>开源</li>
+        </ul>
         <figure class="hero-preview">
           <img src="./assets/screenshots/home.webp" width="2400" height="1600" alt="Mochi Player 首页，展示影片推荐、继续观看与最近添加的收藏" fetchpriority="high">
           <figcaption>
@@ -118,19 +108,19 @@
         </div>
         <div class="gallery" data-gallery>
           <div class="gallery-tabs" aria-label="选择界面预览" hidden>
-            <button type="button" data-image="movies" aria-pressed="true">
+            <button type="button" data-image="movies" data-src="./assets/screenshots/movies.webp" aria-pressed="true">
               电影海报墙
             </button>
-            <button type="button" data-image="detail" aria-pressed="false">
+            <button type="button" data-image="detail" data-src="./assets/screenshots/detail.webp" aria-pressed="false">
               影片详情
             </button>
-            <button type="button" data-image="playback" aria-pressed="false">
+            <button type="button" data-image="playback" data-src="./assets/screenshots/playback.webp" aria-pressed="false">
               专注播放
             </button>
-            <button type="button" data-image="file-browser" aria-pressed="false">
+            <button type="button" data-image="file-browser" data-src="./assets/screenshots/file-browser.webp" aria-pressed="false">
               文件浏览
             </button>
-            <button type="button" data-image="settings" aria-pressed="false">
+            <button type="button" data-image="settings" data-src="./assets/screenshots/settings.webp" aria-pressed="false">
               个性设置
             </button>
           </div>
@@ -439,7 +429,7 @@
         </a>
       </div>
       <p class="credits">
-        本产品使用 TMDB API，但未获得 TMDB 的认可或认证。
+        影片元数据由 <a href="https://www.themoviedb.org/">TMDB</a> 提供。
         <br>
         页面中的影片图像来自应用界面截图，仅用于展示产品体验。
       </p>
