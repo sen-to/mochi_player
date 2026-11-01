@@ -15,7 +15,7 @@
     <img src="https://github.com/sen-to/mochi_player/actions/workflows/windows.yml/badge.svg" alt="Windows CI">
   </a>
   <a href="LICENSE">
-    <img src="https://img.shields.io/badge/license-GPL--3.0--only-7A6AB3" alt="GPL-3.0-only 许可证">
+    <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-7A6AB3" alt="GPL-3.0-or-later 许可证">
   </a>
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-5B6B8C" alt="支持 macOS 和 Windows">
 </p>
@@ -222,7 +222,6 @@ windows/ macos/ 各平台 runner
 
 ## 📄 许可证
 
-本项目代码采用 [GNU GPL v3.0](LICENSE) 许可证发布。
+除另有许可声明的第三方代码与素材外，本项目代码按自由软件基金会发布的 GNU GPL 第 3 版或其后续版本授权（`GPL-3.0-or-later`）。软件不提供任何担保，完整条款见 [LICENSE](LICENSE)。
 
-`Mochi Player` 名称与 Logo 不随代码许可证授权；Fork 或衍生发行版请使用不同的名称和
-视觉标识。详见 [品牌使用政策](TRADEMARKS.md)。
+名称、Logo 与第三方发行版的标识约定见 [品牌使用说明](TRADEMARKS.md)。
