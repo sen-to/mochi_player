@@ -35,6 +35,15 @@ metadata/application/metadata_matcher.dart        ID 与标题匹配用例
 | TMDB 结果与错误                    | [TMDB 数据适配](metadata/data/tmdb_metadata_source.dart)            | [获取契约](metadata/application/metadata_source.dart)；共享 JSON Mapper 只留在 core/data                                                                                         |
 | 元数据与关联的原子导入             | [元数据数据库适配](metadata/data/metadata_repository_impl.dart)     | [持久化契约](metadata/application/metadata_repository.dart)；DO 与业务模型通过 core/data/database/mappers 转换                                                                   |
 
+## 首页推荐
+
+入口为 [LibraryRecommendationService](catalog/application/library_recommendation_service.dart)，通过现有目录仓库的
+`watchRecommendationCandidates()` 批量读取全库标题信号，再调用
+[LibraryRecommendation](catalog/domain/library_recommendation.dart) 计算内容偏好和 MMR 多样性。
+推荐输入独立于数据库 DO，由 [推荐 Mapper](catalog/data/library_recommendation_mapper.dart) 转换；
+`MediaLibraryProvider.heroItems` 发布结果，首页不拼接最近添加列表。
+修改权重、冷启动或刷新策略前阅读[推荐算法](../../../docs/architecture/algorithms.md#首页内容推荐与每日精选)。
+
 ## 约束与验证
 
 - Provider 不导入具体数据实现；新增数据库或协议实现只在组装处选择。

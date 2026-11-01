@@ -11,6 +11,7 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
+import 'package:mochi_player/features/library/catalog/domain/library_recommendation_candidate.dart';
 import 'package:mochi_player/features/library/sync/application/library_sync_service.dart';
 
 void main() {
@@ -25,21 +26,35 @@ void main() {
     await repository.close();
   });
 
-  test('首页轮播优先推荐、按类型及 ID 去重，候选最多五项且只读', () async {
+  test('首页只发布推荐结果，候选按类型去重、最多五项且只读，清空后收起', () async {
     await provider.loadFromDatabase();
-    const featured = Movie(tmdbId: '1', title: 'Featured');
-    const sameIdShow = TVShow(tmdbId: '1', title: 'Show');
-    repository.hero.add(featured);
-    repository.titles.add([
-      const Movie(tmdbId: '1', title: 'Duplicate'),
-      sameIdShow,
-      for (var i = 2; i <= 7; i++) Movie(tmdbId: '$i', title: 'Movie $i'),
+    final added = DateTime(2026);
+    repository.hero.add([
+      LibraryRecommendationCandidate(
+        item: const Movie(tmdbId: '1', title: 'Movie'),
+        addedAt: added,
+      ),
+      LibraryRecommendationCandidate(
+        item: const Movie(tmdbId: '1', title: 'Duplicate'),
+        addedAt: added,
+      ),
+      LibraryRecommendationCandidate(
+        item: const TVShow(tmdbId: '1', title: 'Show'),
+        addedAt: added,
+      ),
+      for (var i = 2; i <= 3; i++)
+        LibraryRecommendationCandidate(
+          item: Movie(tmdbId: '$i', title: 'Movie $i'),
+          addedAt: added,
+        ),
     ]);
+    repository.titles.add([const Movie(tmdbId: 'other', title: 'Not a recommendation')]);
     await _flush();
-    expect(provider.heroItems.map((item) => item.title), ['Featured', 'Show', 'Movie 2', 'Movie 3', 'Movie 4']);
+    expect(provider.heroItems, hasLength(4));
+    expect(provider.heroItems.whereType<TVShow>(), hasLength(1));
+    expect(provider.heroItems.any((item) => item.tmdbId == 'other'), isFalse);
     expect(() => provider.heroItems.clear(), throwsUnsupportedError);
-    repository.hero.add(null);
-    repository.titles.add([]);
+    repository.hero.add([]);
     await _flush();
     expect(provider.heroItems, isEmpty);
   });
@@ -167,9 +182,9 @@ class _Repository implements LibraryCatalogRepository {
         if (emitInitial) scheduleMicrotask(() => cards.add([]));
       },
     );
-    hero = StreamController<LibraryItem?>.broadcast(
+    hero = StreamController<List<LibraryRecommendationCandidate>>.broadcast(
       onListen: () {
-        if (emitInitial) scheduleMicrotask(() => hero.add(null));
+        if (emitInitial) scheduleMicrotask(() => hero.add([]));
       },
     );
   }
@@ -177,7 +192,7 @@ class _Repository implements LibraryCatalogRepository {
   late final StreamController<int> count;
   late final StreamController<List<LibraryItem>> titles;
   late final StreamController<List<MediaCardVO>> cards;
-  late final StreamController<LibraryItem?> hero;
+  late final StreamController<List<LibraryRecommendationCandidate>> hero;
   final initialTitles = <LibraryItem>[];
   bool failInitialization = false;
   bool failFirstCount = false;
@@ -208,7 +223,7 @@ class _Repository implements LibraryCatalogRepository {
   Stream<List<MediaCardVO>> watchContinueWatching({int limit = 100}) => cards.stream;
 
   @override
-  Stream<LibraryItem?> watchHero() => hero.stream;
+  Stream<List<LibraryRecommendationCandidate>> watchRecommendationCandidates() => hero.stream;
 
   Future<void> close() async => Future.wait([count.close(), titles.close(), cards.close(), hero.close()]);
 

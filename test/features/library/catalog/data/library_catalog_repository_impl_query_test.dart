@@ -25,6 +25,21 @@ void main() {
   });
   tearDown(() => database.close());
 
+  test('全库推荐超过最近添加前缀仍按标题聚合，混合媒体只需三次查询', () async {
+    await saveMediaFixture(database, [
+      for (var i = 0; i < 60; i++) ...[
+        _file('/movie/$i', movieId: '$i', order: i * 2),
+        _file('/movie/version/$i', movieId: '$i', order: i * 2),
+        _file('/show/$i', showId: '$i', order: i * 2 + 1),
+      ],
+    ]);
+    recorder.selects.clear();
+    final candidates = await repository.watchRecommendationCandidates().first;
+    expect(candidates, hasLength(120));
+    expect(candidates.map((candidate) => candidate.identity).toSet(), hasLength(120));
+    expect(recorder.selects, hasLength(3));
+  });
+
   for (final favorites in [true, false]) {
     test('100 mixed ${favorites ? 'favorite' : 'continue watching'} cards use three queries', () async {
       final files = [

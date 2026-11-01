@@ -44,7 +44,8 @@ class _HomeHeroSectionState extends State<HomeHeroSection> {
         ? -1
         : widget.items.indexWhere((item) => item.runtimeType == previous.runtimeType && item.tmdbId == previous.tmdbId);
     _activeIndex = nextIndex < 0 ? 0 : nextIndex;
-    _scheduleRotation();
+    // 进度写入带来的同标题快照更新不重置轮播等待时间。
+    if (nextIndex < 0 || oldWidget.items.length != widget.items.length) _scheduleRotation();
   }
 
   void _scheduleRotation() {

@@ -3,6 +3,7 @@
 
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
+import 'package:mochi_player/features/library/catalog/domain/library_recommendation_candidate.dart';
 
 /// 逻辑标题类型；剧集标题不同于物理文件的 episode 类型。
 enum LibraryTitleKind { movie, tvShow }
@@ -28,8 +29,10 @@ abstract interface class LibraryCatalogRepository {
     int limit = 100,
   });
 
-  /// 订阅首页推荐标题；按创建数据流时的日期选取，媒体库为空时返回 null。
-  Stream<LibraryItem?> watchHero();
+  /// 订阅整个本地目录的推荐输入；只返回有关联电影 / 单集文件且有元数据的标题。
+  /// 按类型及 TMDB ID 去重，多版本收藏取任一、已开始 / 看完取任一文件，
+  /// 添加时间取最早、观看时间取最近；不限制为最近添加的前缀，不请求网络。
+  Stream<List<LibraryRecommendationCandidate>> watchRecommendationCandidates();
 
   /// 按标题类型和 TMDB ID 订阅详情；剧集按季号、集号组装，标题不存在时返回 null。
   Stream<LibraryItem?> watchDetail(LibraryItem item);

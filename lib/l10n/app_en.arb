@@ -702,9 +702,9 @@
   "@recentlyAdded": {
     "description": "Application UI: Recently added"
   },
-  "tmdbTrending": "Trending on TMDB",
-  "@tmdbTrending": {
-    "description": "Application UI: Trending on TMDB"
+  "discover": "Discover",
+  "@discover": {
+    "description": "Home section title: Discover"
   },
   "noMatchingMedia": "No matching media",
   "@noMatchingMedia": {

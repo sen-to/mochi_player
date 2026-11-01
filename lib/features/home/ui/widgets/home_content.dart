@@ -136,7 +136,7 @@ class _HomeContentState extends State<HomeContent> {
 
                 return SliverMainAxisGroup(
                   slivers: [
-                    _buildSectionHeaderSliver(context, context.l10n.tmdbTrending),
+                    _buildSectionHeaderSliver(context, context.l10n.discover),
                     SliverToBoxAdapter(child: _buildTrendingCards(provider)),
                     const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
                   ],

@@ -1,5 +1,5 @@
 // 【数据访问】用 SQL 完成目录筛选、排序、分页及卡片元数据批量投影。
-// 只返回有限展示结果和订阅，不处理弹窗或页面状态。
+// 分页展示查询与全库推荐输入通过订阅发布，不处理弹窗或页面状态。
 
 import 'package:drift/drift.dart';
 import 'package:mochi_player/core/data/database/app_database.dart';
@@ -13,8 +13,10 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_mapper.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
+import 'package:mochi_player/features/library/catalog/data/library_recommendation_mapper.dart';
+import 'package:mochi_player/features/library/catalog/domain/library_recommendation_candidate.dart';
 
-/// SQL 负责可用性、排序及分页，数据库只返回当前范围内的投影。
+/// SQL 负责可用性、聚合与分页；推荐输入覆盖全库，普通展示只读取当前页。
 class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
   LibraryCatalogRepositoryImpl({required AppDatabase database}) : _database = database;
 
@@ -120,26 +122,31 @@ class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
   }
 
   @override
-  Stream<LibraryItem?> watchHero() {
-    final today = DateTime.now();
-    final seed = today.year * 10000 + today.month * 100 + today.day;
-    return _database
-        .customSelect(
-          '''WITH titles AS ($_titles)
-      SELECT kind,key FROM titles ORDER BY kind,key LIMIT 1
-      OFFSET (?1 % MAX((SELECT COUNT(*) FROM titles),1))''',
-          variables: [Variable(seed)],
-          readsFrom: {_database.mediaFiles, _database.movies, _database.tVShows},
-        )
-        .watch()
-        .asyncMap(
-          (rows) async =>
-              rows.isEmpty ? null : _title(rows.single.read<String>('kind'), rows.single.read<String>('key')),
+  Stream<List<LibraryRecommendationCandidate>> watchRecommendationCandidates() => _database
+      .customSelect(
+        """WITH linked AS (
+          SELECT 'movie' AS kind,movie_tmdb_id AS key,is_favorite,watch_status,added_at,last_watched_at
+          FROM media_files WHERE media_type='movie' AND movie_tmdb_id IS NOT NULL
+          UNION ALL
+          SELECT 'show',tv_show_tmdb_id,is_favorite,watch_status,added_at,last_watched_at
+          FROM media_files WHERE media_type='episode' AND tv_show_tmdb_id IS NOT NULL)
+        SELECT kind,key,MAX(is_favorite) AS favorite,MAX(watch_status<>'notStarted') AS started,
+          MAX(watch_status='completed') AS completed,MIN(added_at) AS added_at,
+          MAX(last_watched_at) AS watched_at FROM linked GROUP BY kind,key ORDER BY kind,key""",
+        readsFrom: {_database.mediaFiles, _database.movies, _database.tVShows},
+      )
+      .watch()
+      .asyncMap((rows) async {
+        final items = await _loadTitles(
+          movieIds: rows.where((row) => row.read<String>('kind') == 'movie').map((row) => row.read<String>('key')),
+          showIds: rows.where((row) => row.read<String>('kind') == 'show').map((row) => row.read<String>('key')),
         );
-  }
-
-  Future<LibraryItem?> _title(String kind, String id) =>
-      kind == 'movie' ? _database.getMovieByTmdbId(id) : _database.getTVShowByTmdbId(id);
+        return List.unmodifiable([
+          for (final row in rows)
+            if (items['${row.read<String>('kind')}:${row.read<String>('key')}'] case final item?)
+              LibraryRecommendationMapper.fromRow(row, item),
+        ]);
+      });
 
   @override
   Stream<LibraryItem?> watchDetail(LibraryItem item) => _database

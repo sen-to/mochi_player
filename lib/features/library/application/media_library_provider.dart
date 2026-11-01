@@ -8,6 +8,7 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/library_activity.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
+import 'package:mochi_player/features/library/catalog/application/library_recommendation_service.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/sync/application/library_sync_service.dart';
 
@@ -51,7 +52,7 @@ class MediaLibraryProvider extends ChangeNotifier {
   List<LibraryItem> get recentlyAddedContent => _recentlyAddedContent;
 
   List<MediaCardVO> get continueWatchingItems => _continueWatchingItems;
-  LibraryItem? _hero;
+  List<LibraryItem> _heroItems = const [];
 
   bool get isLoading => !_initialized || _sync.isLoading;
 
@@ -63,16 +64,8 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   bool get hasLibraryContent => recentlyAddedContent.isNotEmpty || continueWatchingItems.isNotEmpty;
 
-  /// 首页推荐优先展示当日条目，再以最近添加补足五项；电影与剧集分别去重。
-  List<LibraryItem> get heroItems {
-    final seen = <(Type, String)>{};
-    return List.unmodifiable(
-      [
-        if (_hero != null) _hero!,
-        ..._recentlyAddedContent,
-      ].where((item) => seen.add((item.runtimeType, item.tmdbId))).take(5),
-    );
-  }
+  /// 内容偏好与 MMR 选出的每日推荐，只读且最多五项。
+  List<LibraryItem> get heroItems => _heroItems;
 
   /// 正常订阅建立后重复调用不重建；有加载错误时取消旧订阅并重新加载。
   Future<void> loadFromDatabase() {
@@ -138,7 +131,10 @@ class MediaLibraryProvider extends ChangeNotifier {
         _repository.watchContinueWatching(limit: 15),
         (value) => _continueWatchingItems = List.unmodifiable(value),
       );
-      subscribe(_repository.watchHero(), (value) => _hero = value);
+      subscribe(
+        LibraryRecommendationService(repository: _repository).watch(),
+        (value) => _heroItems = List.unmodifiable(value),
+      );
       // 退出时不等待永不返回首条数据的流；正常加载仍等待全部首页投影。
       await Future.any([Future.wait(initial), _stopping.future]);
     } catch (error) {

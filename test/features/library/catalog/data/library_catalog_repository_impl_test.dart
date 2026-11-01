@@ -76,6 +76,36 @@ void main() {
     expect((await repository.watchVersions(show).first).single.isFavorite, isTrue);
   });
 
+  test('推荐按标题合并版本及单集信号，同 ID 类型隔离且元数据变化可刷新', () async {
+    final first = DateTime.utc(2026, 1, 1);
+    final latest = DateTime.utc(2026, 10, 31);
+    await saveMediaFixture(db, [
+      file('/movie-1', movieId: '1', favorite: true, added: first),
+      file('/movie-2', movieId: '1', status: WatchStatus.completed, watched: latest, added: latest),
+      file('/show-1', showId: '1', season: 1, episode: 1, status: WatchStatus.completed, watched: first),
+      file('/show-2', showId: '1', season: 1, episode: 2),
+      file('/unmatched'),
+    ]);
+    await db.saveMovieMetadata(const Movie(tmdbId: 'orphan', title: 'No file'));
+    final result = await repository.watchRecommendationCandidates().first;
+    expect(result, hasLength(2));
+    final movie = result.firstWhere((candidate) => candidate.item is Movie);
+    final show = result.firstWhere((candidate) => candidate.item is TVShow);
+    expect(movie.isFavorite, isTrue);
+    expect(movie.hasStarted, isTrue);
+    expect(movie.hasCompleted, isTrue);
+    expect(movie.addedAt, first);
+    expect(movie.lastWatchedAt, latest);
+    expect(show.isFavorite, isFalse);
+    expect(show.hasCompleted, isTrue);
+    expect(show.hasStarted, isTrue);
+    final updates = repository.watchRecommendationCandidates().firstWhere(
+      (items) => items.any((candidate) => candidate.item.title == 'Updated'),
+    );
+    await db.saveMovieMetadata(const Movie(tmdbId: '1', title: 'Updated', genres: ['Drama']));
+    expect((await updates).firstWhere((candidate) => candidate.item is Movie).item.genres, ['Drama']);
+  });
+
   test('show and season queries use composite indexes without a sort buffer', () async {
     for (final sql in [
       "SELECT * FROM seasons WHERE tv_show_tmdb_id='123' ORDER BY season_number",
@@ -91,7 +121,7 @@ void main() {
   });
 
   test('titles use physical availability, filtering and paging in SQL', () async {
-    expect(await repository.watchHero().first, isNull);
+    expect(await repository.watchRecommendationCandidates().first, isEmpty);
     for (var i = 0; i < 125; i++) {
       await db.saveMovieMetadata(Movie(tmdbId: '$i', title: 'Movie $i'));
     }
@@ -102,7 +132,7 @@ void main() {
     expect(await repository.watchTitles(query: 'Movie 124').first, isEmpty);
     await LibrarySyncRepositoryImpl(database: db).removeMissingFiles('nas', {'/123'});
     expect((await repository.watchTitles().first).single.tmdbId, '123');
-    expect((await repository.watchHero().first)!.tmdbId, '123');
+    expect((await repository.watchRecommendationCandidates().first).single.item.tmdbId, '123');
   });
 
   test('Unicode and punctuation search ranks display and original titles like the matcher', () async {

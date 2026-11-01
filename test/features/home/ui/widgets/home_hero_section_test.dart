@@ -92,6 +92,16 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  testWidgets('同标题快照刷新不重置二十秒轮播', (tester) async {
+    await showHero(tester, [_first, _second]);
+    await tester.pump(const Duration(seconds: 19));
+    await showHero(tester, [_first, _second]);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+    expect(find.text(_second.title), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('二十秒自动切换，鼠标悬停暂停，离开后继续，卸载时释放计时器', (tester) async {
     await showHero(tester, [_first, _second]);
     await tester.pump(const Duration(seconds: 19));
