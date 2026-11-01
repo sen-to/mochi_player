@@ -56,8 +56,10 @@ void main() {
 
 class _Repository implements PlaybackMediaRepository {
   _Repository(this.file, {this.fail = false});
+
   final MediaFile? file;
   final bool fail;
+
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async {
     if (fail) throw StateError('read failed');
@@ -70,8 +72,10 @@ class _Repository implements PlaybackMediaRepository {
 
 class _Resolver implements PlaybackTargetResolver {
   _Resolver({this.available = true});
+
   final bool available;
   MediaFile? resolved;
+
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) async {
     resolved = file;

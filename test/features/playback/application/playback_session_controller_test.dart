@@ -246,6 +246,7 @@ class _Fixture {
       resolver: _Resolver((file) => resolve(file)),
     );
   }
+
   bool expectCloseFailure = false;
   final events = <String>[];
   final resources = <int, _Resource>{};
@@ -267,6 +268,7 @@ class _Fixture {
 
 class _Engine extends FakePlaybackEngine {
   _Engine(this.trace);
+
   final List<String> trace;
   Completer<void>? openGate;
   Completer<void>? disposeGate;
@@ -306,11 +308,13 @@ class _Engine extends FakePlaybackEngine {
 
 class _Repository implements PlaybackMediaRepository {
   _Repository(this.trace);
+
   final List<String> trace;
   final writes = <({String path, int position})>[];
   bool failWrites = false;
   bool failReads = false;
   final files = <String, MediaFile>{};
+
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async {
     if (failReads) throw StateError('read failed');
@@ -327,17 +331,21 @@ class _Repository implements PlaybackMediaRepository {
 
 class _Resolver implements PlaybackTargetResolver {
   _Resolver(this.resolveFile);
+
   final Future<PlaybackTarget?> Function(MediaFile) resolveFile;
+
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) => resolveFile(file);
 }
 
 class _Resource implements PlaybackTargetResource {
   _Resource(this.id, this.trace);
+
   final int id;
   final List<String> trace;
   int closes = 0;
   bool fail = false;
+
   @override
   Future<void> close() async {
     closes++;

@@ -9,6 +9,7 @@ class PlaybackMediaRepositoryImpl implements PlaybackMediaRepository {
   PlaybackMediaRepositoryImpl({required AppDatabase database}) : _database = database;
 
   final AppDatabase _database;
+
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) =>
       _database.getMediaFile(sourceId, path);

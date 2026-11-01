@@ -6,10 +6,12 @@ import 'package:mochi_player/features/settings/domain/app_settings.dart';
 
 abstract interface class AppSettingsRuntime {
   void apply(AppSettings settings);
+
   Future<bool> testTmdbConnection();
 }
 
 class SettingsConnectionFailure implements Exception {
   const SettingsConnectionFailure(this.failure);
+
   final AppFailure failure;
 }

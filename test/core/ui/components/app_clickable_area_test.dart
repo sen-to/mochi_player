@@ -9,7 +9,8 @@ import 'package:mochi_player/core/ui/app_ui.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
-  testWidgets('uses the hover color space for transparent areas', (tester) async {
+  testWidgets(
+      'uses the hover color space for transparent areas', (tester) async {
     const areaKey = Key('clickable-area');
 
     await tester.pumpWidget(
@@ -20,15 +21,16 @@ void main() {
         theme: AppTheme.darkTheme,
         home: Scaffold(
           body: Builder(
-            builder: (context) => Center(
-              child: AppClickableArea(
-                key: areaKey,
-                onTap: () {},
-                borderRadius: BorderRadius.zero,
-                hoverColor: AppColors.hoverSurface(context),
-                child: const SizedBox(width: 80, height: 40),
-              ),
-            ),
+            builder: (context) =>
+                Center(
+                  child: AppClickableArea(
+                    key: areaKey,
+                    onTap: () {},
+                    borderRadius: BorderRadius.zero,
+                    hoverColor: AppColors.hoverSurface(context),
+                    child: const SizedBox(width: 80, height: 40),
+                  ),
+                ),
           ),
         ),
       ),
@@ -37,7 +39,8 @@ void main() {
     final context = tester.element(find.byKey(areaKey));
     final hoverColor = AppColors.hoverSurface(context);
     final container = tester.widget<Container>(
-      find.descendant(of: find.byKey(areaKey), matching: find.byType(Container)),
+      find.descendant(
+          of: find.byKey(areaKey), matching: find.byType(Container)),
     );
     final decoration = container.decoration! as BoxDecoration;
 
@@ -77,12 +80,14 @@ void main() {
 
     Color areaColor() {
       final container = tester.widget<Container>(
-        find.descendant(of: find.byKey(areaKey), matching: find.byType(Container)),
+        find.descendant(
+            of: find.byKey(areaKey), matching: find.byType(Container)),
       );
       return (container.decoration! as BoxDecoration).color!;
     }
 
-    final expectedHoverColor = Color.alphaBlend(const Color(0x16F5F5F7), backgroundColor);
+    final expectedHoverColor = Color.alphaBlend(
+        const Color(0x16F5F5F7), backgroundColor);
     expect(areaColor(), expectedHoverColor);
 
     await gesture.down(center);
@@ -93,7 +98,8 @@ void main() {
     await gesture.removePointer();
   });
 
-  testWidgets('applies external state colors without an implicit transition', (tester) async {
+  testWidgets('applies external state colors without an implicit transition', (
+      tester) async {
     const areaKey = Key('stateful-clickable-area');
     const selectedColor = Color(0xFF35323F);
     late StateSetter updateState;
@@ -114,7 +120,8 @@ void main() {
                 onTap: () {},
                 borderRadius: BorderRadius.zero,
                 backgroundColor: selected ? selectedColor : Colors.transparent,
-                hoverColor: selected ? Colors.transparent : AppColors.hoverSurface(context),
+                hoverColor: selected ? Colors.transparent : AppColors
+                    .hoverSurface(context),
                 child: const SizedBox(width: 80, height: 40),
               );
             },
@@ -132,7 +139,8 @@ void main() {
     await tester.pump();
 
     final container = tester.widget<Container>(
-      find.descendant(of: find.byKey(areaKey), matching: find.byType(Container)),
+      find.descendant(
+          of: find.byKey(areaKey), matching: find.byType(Container)),
     );
     expect((container.decoration! as BoxDecoration).color, selectedColor);
 

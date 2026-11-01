@@ -253,7 +253,9 @@ void main() {
 
 class _Resolver implements PlaybackTargetResolver {
   _Resolver(this.target);
+
   final PlaybackTarget target;
+
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) async => target;
 }
@@ -265,6 +267,7 @@ class _FailingOpenEngine extends FakePlaybackEngine {
 
 class _TargetResource implements PlaybackTargetResource {
   int closeCalls = 0;
+
   @override
   Future<void> close() async => closeCalls++;
 }
@@ -276,6 +279,7 @@ class _FailingStopEngine extends _FailingOpenEngine {
 
 class _FinalStyleFailingEngine extends FakePlaybackEngine {
   int styleCalls = 0;
+
   @override
   Future<void> setSubtitleStyleOverride(bool override) async {
     if (++styleCalls == 4) throw StateError('subtitle update failed');

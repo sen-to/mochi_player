@@ -223,9 +223,12 @@ class _TrackingStorageConnection implements StorageConnection {
 
 class _DelayedProvider implements StorageAdapter {
   _DelayedProvider(this.pending);
+
   final Future<StorageConnection> pending;
+
   @override
   StorageSourceType get type => StorageSourceType.webDav;
+
   @override
   Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) => pending;
 }

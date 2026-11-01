@@ -26,6 +26,7 @@ class FakeSession implements PlayerWindowSession {
   Completer<void>? replacement;
   @override
   bool isClosing = false;
+
   @override
   Future<void> replace(PlayerWindowRequest request) async {
     events.add(request.requestId);
@@ -34,6 +35,7 @@ class FakeSession implements PlayerWindowSession {
 
   @override
   Future<void> activate() async => events.add('activate');
+
   @override
   Future<void> close() async {
     isClosing = true;

@@ -23,6 +23,7 @@ class ThemeProvider with ChangeNotifier {
   bool _themeChanged = false;
   bool _accentChanged = false;
   AppFailure? _error;
+
   AppFailure? get error => _error;
   Future<void> _pendingSave = Future<void>.value();
 

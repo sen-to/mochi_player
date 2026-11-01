@@ -151,6 +151,7 @@ class FakeMetadataRepository implements MetadataRepository {
 
   @override
   Future<Movie?> findMovie(String id) async => movies[id];
+
   @override
   Future<TVShow?> findTVShow(String id) async => shows[id];
 

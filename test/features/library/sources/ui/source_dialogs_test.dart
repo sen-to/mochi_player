@@ -211,13 +211,17 @@ class _SourceRepository implements StorageSourceRepository {
   final items = <String, StorageSource>{};
   final credentials = <String, StorageCredentials>{};
   Future<StorageCredentials?> Function(String)? loadCredentials;
+
   @override
   Future<List<StorageSource>> getAll() async => items.values.toList();
+
   @override
   Future<StorageSource?> getById(String sourceId) async => items[sourceId];
+
   @override
   Future<StorageCredentials?> readCredentials(String sourceId) async =>
       loadCredentials == null ? credentials[sourceId] : await loadCredentials!(sourceId);
+
   @override
   Future<void> save(StorageSource source, {StorageCredentials? credentials}) async {
     items[source.id] = source;
@@ -236,10 +240,12 @@ class _SourceRepository implements StorageSourceRepository {
 
 class _Adapter implements StorageAdapter {
   _Adapter({this.type = StorageSourceType.smb});
+
   final connection = _Connection();
   @override
   final StorageSourceType type;
   StorageSource? connectedSource;
+
   @override
   Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async {
     connectedSource = source;
@@ -257,8 +263,10 @@ class _Connection implements StorageConnection {
     type: StorageSourceType.smb,
     endpoint: 'smb://nas/Media',
   );
+
   @override
   Future<List<StorageEntry>> readDirectory(String path) => read ?? Future.value([]);
+
   @override
   Future<void> close() async {
     closes++;

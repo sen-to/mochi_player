@@ -83,8 +83,10 @@ void main() {
 class _TrendingService implements TrendingMediaSource {
   bool configured = true;
   final requests = <Completer<List<TrendingItem>>>[];
+
   @override
   bool get isConfigured => configured;
+
   Future<List<TrendingItem>> _load() {
     final request = Completer<List<TrendingItem>>();
     requests.add(request);
@@ -99,8 +101,10 @@ class _TrendingService implements TrendingMediaSource {
 
   @override
   Future<List<TrendingItem>> fetchTrendingMovies({int limit = 3}) => _load();
+
   @override
   Future<List<TrendingItem>> fetchTrendingTV({int limit = 3}) => _load();
+
   @override
   Future<List<TrendingItem>> fetchTopRated({int limit = 3}) => _load();
 }

@@ -43,11 +43,17 @@ class PlaybackSessionController {
   bool _mediaLoaded = false;
 
   MediaFile get currentItem => _queue.current;
+
   PlaybackTarget get currentTarget => _currentTarget ?? (throw StateError('Playback target is not prepared.'));
+
   String? get currentUrl => _currentTarget?.url;
+
   bool get hasPrevious => _queue.hasPrevious;
+
   bool get hasNext => _queue.hasNext;
+
   bool get isSwitching => _busy;
+
   bool get isClosed => _closeFuture != null;
 
   PlaybackEngine attachEngine(PlaybackEngine Function(PlaybackOptions) factory, PlaybackOptions options) {
@@ -251,13 +257,16 @@ class PlaybackSessionController {
 
 class PlaybackQueueMoveResult {
   const PlaybackQueueMoveResult._(this.item, this.failure, this.resumePosition);
+
   factory PlaybackQueueMoveResult.ready(MediaFile item, Duration? start) =>
       PlaybackQueueMoveResult._(item, null, start);
+
   factory PlaybackQueueMoveResult.failed(MediaFile item, AppFailure failure) =>
       PlaybackQueueMoveResult._(item, failure, null);
 
   final MediaFile item;
   final AppFailure? failure;
   final Duration? resumePosition;
+
   bool get isReady => failure == null;
 }

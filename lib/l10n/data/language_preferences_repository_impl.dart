@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguagePreferencesRepositoryImpl implements LanguagePreferencesRepository {
   static const preferenceKey = 'app_language';
+
   @override
   Future<AppLanguage> load() async {
     final prefs = await SharedPreferences.getInstance();

@@ -44,13 +44,16 @@ class _FailingHost extends DesktopWindowHost {
 class _Repository implements PlaybackMediaRepository {
   @override
   Future<MediaFile?> readMediaFile({required String sourceId, required String path}) async => null;
+
   @override
   Future<void> updateProgress(MediaFile file, int position, {int? duration}) async {}
 }
 
 class _Resolver implements PlaybackTargetResolver {
   _Resolver(this.resource);
+
   final _Resource resource;
+
   @override
   Future<PlaybackTarget?> resolve(MediaFile file) async =>
       PlaybackTarget(url: 'http://127.0.0.1/video', resource: resource);
@@ -58,6 +61,7 @@ class _Resolver implements PlaybackTargetResolver {
 
 class _Resource implements PlaybackTargetResource {
   int closeCalls = 0;
+
   @override
   Future<void> close() async => closeCalls++;
 }

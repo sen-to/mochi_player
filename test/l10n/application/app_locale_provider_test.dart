@@ -151,8 +151,10 @@ class _FailOncePreferencesStore extends InMemorySharedPreferencesStore {
 class _DelayedLanguageRepository implements LanguagePreferencesRepository {
   final loading = Completer<AppLanguage>();
   final saved = <AppLanguage>[];
+
   @override
   Future<AppLanguage> load() => loading.future;
+
   @override
   Future<void> save(AppLanguage language) async {
     saved.add(language);

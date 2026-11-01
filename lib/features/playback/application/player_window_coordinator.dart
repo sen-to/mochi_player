@@ -6,8 +6,11 @@ import 'package:mochi_player/features/playback/domain/player_window_request.dart
 /// 与媒体库处于同一 isolate 的活动播放器视图。
 abstract interface class PlayerWindowSession {
   bool get isClosing;
+
   Future<void> replace(PlayerWindowRequest request);
+
   Future<void> activate();
+
   Future<void> close();
 }
 
@@ -61,6 +64,7 @@ class PlayerWindowCoordinator {
 /// 启动错误由播放器视图自行展示，避免主窗口再次弹出提示。
 class PlayerWindowLaunchFailure implements Exception {
   const PlayerWindowLaunchFailure();
+
   @override
   String toString() => 'Player view presents the launch failure.';
 }

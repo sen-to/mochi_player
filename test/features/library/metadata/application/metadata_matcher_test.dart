@@ -6,8 +6,8 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_matcher.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_source.dart';
-import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 import 'package:mochi_player/features/library/metadata/domain/metadata_match.dart';
+import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 
 import '../../../../support/library_sync_fakes.dart';
 

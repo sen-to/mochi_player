@@ -92,7 +92,9 @@ class _AppMessageHostState extends State<AppMessageHost> {
 
 class _MessageScope extends InheritedWidget {
   const _MessageScope({required this.controller, required super.child});
+
   final _MessageQueueController controller;
+
   @override
   bool updateShouldNotify(_MessageScope oldWidget) => oldWidget.controller != controller;
 }

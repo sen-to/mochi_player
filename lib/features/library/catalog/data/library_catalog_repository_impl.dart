@@ -22,9 +22,11 @@ class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
 
   @override
   Future<void> initialize() => _database.init();
+
   @override
   Future<bool> setFavorite(LibraryItem item, {required bool isFavorite}) =>
       _database.setTitleFavorite(item, isFavorite);
+
   @override
   Future<void> clearLibrary() => _database.clearLibrary();
 

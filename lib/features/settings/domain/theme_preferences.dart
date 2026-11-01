@@ -3,6 +3,7 @@
 
 class ThemePreferences {
   const ThemePreferences({this.modeIndex, this.accentIndex});
+
   final int? modeIndex;
   final int? accentIndex;
 }

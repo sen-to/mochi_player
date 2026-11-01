@@ -58,9 +58,13 @@ class PlayerSubtitleController extends ChangeNotifier {
   PlaybackSubtitleTrack _selectedSubtitleTrack = const PlaybackSubtitleTrack.automatic();
 
   bool get canControlPlayback => !_isDisposed && _shutdown == null && _canControlPlayback();
+
   List<String> get subtitle => _subtitle;
+
   List<PlaybackSubtitleTrack> get subtitleTracks => _subtitleTracks;
+
   PlaybackSubtitleTrack get selectedSubtitleTrack => _selectedSubtitleTrack;
+
   bool get overrideEmbeddedSubtitleStyle => _overrideEmbeddedSubtitleStyle;
 
   /// 准备其他媒体前，使旧异步操作失效。

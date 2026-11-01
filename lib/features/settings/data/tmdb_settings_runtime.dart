@@ -10,6 +10,7 @@ import 'package:mochi_player/features/settings/domain/app_settings.dart';
 class TmdbSettingsRuntime implements AppSettingsRuntime {
   TmdbSettingsRuntime({required TmdbApi tmdbApi}) : _api = tmdbApi;
   final TmdbApi _api;
+
   @override
   void apply(AppSettings settings) {
     _api.configure(

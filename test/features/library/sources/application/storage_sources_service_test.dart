@@ -178,21 +178,27 @@ class _MemorySourceRepository implements StorageSourceRepository {
 
 class _Provider implements StorageAdapter {
   _Provider(this.connection);
+
   final _Connection connection;
+
   @override
   StorageSourceType get type => StorageSourceType.local;
+
   @override
   Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async => connection;
 }
 
 class _Connection implements StorageConnection {
   _Connection({this.fails = false, this.pending});
+
   final bool fails;
   final Future<List<StorageEntry>>? pending;
   bool closed = false;
+
   @override
   StorageSource get source =>
       const StorageSource(id: 'local', name: 'Local', type: StorageSourceType.local, endpoint: '/media');
+
   @override
   Future<List<StorageEntry>> readDirectory(String path) async {
     if (fails) throw StateError('unreadable');

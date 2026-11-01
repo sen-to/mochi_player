@@ -1,10 +1,10 @@
 // 【媒体库界面】展示电影或剧集目录并连接搜索与分页。
 // 通过媒体库 Provider 查询，界面不直接访问目录仓库。
 
-import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/detail/ui/media_detail_page.dart';
 import 'package:mochi_player/features/library/ui/widgets/library_item_poster_card.dart';

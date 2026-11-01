@@ -40,6 +40,7 @@ class StorageSource {
   }
 
   static String requireId(String value) => _required(value, 'sourceId');
+
   static String _required(String value, String name) {
     final normalized = value.trim();
     if (normalized.isEmpty) throw ArgumentError.value(value, name, 'must not be empty');

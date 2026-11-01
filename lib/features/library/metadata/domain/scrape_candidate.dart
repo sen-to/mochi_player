@@ -9,14 +9,23 @@ class ScrapeCandidate {
   final MediaFile file;
 
   String get title => file.parsedTitle;
+
   int? get year => file.parsedYear;
+
   int? get seasonNumber => file.parsedSeason;
+
   int? get episodeNumber => file.parsedEpisode;
+
   String? get explicitTmdbId => file.explicitTmdbId;
+
   String? get movieTmdbId => file.movieTmdbId;
+
   String? get tvShowTmdbId => file.tvShowTmdbId;
+
   String? get episodeKey => file.episodeKey;
+
   bool get isMovie => file.mediaType == MediaType.movie;
+
   bool get isEpisode => file.mediaType == MediaType.episode;
 
   /// 显式 ID 只接受完整数字，其他解析结果不能作为服务商资源 ID。

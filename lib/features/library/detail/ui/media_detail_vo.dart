@@ -39,6 +39,8 @@ class MediaDetailVO {
   final List<Artist> cast;
   final int? totalSeasonCount;
   final List<Season> seasons;
+
   bool get isMovie => movie != null;
+
   bool get isTVShow => tvShow != null;
 }

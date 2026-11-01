@@ -108,28 +108,39 @@ class _DesktopWindowService extends WindowService with official.WindowController
 
   @override
   void addListener(WindowEvents listener) => _listeners.add(listener);
+
   @override
   void removeListener(WindowEvents listener) => _listeners.remove(listener);
+
   @override
   Future<void> setPreventClose(bool prevent) async => _preventClose = prevent;
+
   @override
   Future<void> activate() async => _controller.activate();
+
   @override
   Future<void> close() => _closing ??= _host._close(this);
+
   @override
   Future<void> startDragging() => _invoke<void>('startDragging');
+
   @override
   Future<String?> pickDirectory({String? initialDirectory}) =>
       _invoke<String>('pickPath', {'directory': true, 'initialDirectory': initialDirectory});
+
   @override
   Future<String?> pickFile({required List<String> extensions, required String label}) =>
       _invoke<String>('pickPath', {'directory': false, 'extensions': extensions, 'label': label});
+
   @override
   Future<bool> isMaximized() async => _controller.isMaximized;
+
   @override
   Future<void> maximize() async => _controller.setMaximized(true);
+
   @override
   Future<void> unmaximize() async => _controller.setMaximized(false);
+
   @override
   Future<Rect> getBounds() async {
     final bounds = (await _invoke<List<Object?>>('getBounds'))!;
@@ -149,15 +160,20 @@ class _DesktopWindowService extends WindowService with official.WindowController
     'height': bounds.height,
     'animate': animate,
   });
+
   @override
   Future<void> setMinimumSize(Size size) async =>
       _controller.setConstraints(BoxConstraints(minWidth: size.width, minHeight: size.height));
+
   @override
   Future<bool> isAlwaysOnTop() async => (await _invoke<bool>('isAlwaysOnTop'))!;
+
   @override
   Future<void> setAlwaysOnTop(bool value) => _invoke<void>('setAlwaysOnTop', {'enabled': value});
+
   @override
   Future<bool> isFullScreen() async => _controller.isFullscreen;
+
   @override
   Future<void> setFullScreen(bool value) async {
     if (_controller.isFullscreen != value) _controller.setFullscreen(value);

@@ -5,7 +5,10 @@ import 'package:mochi_player/core/domain/media/trending_item.dart';
 
 abstract interface class TrendingMediaSource {
   bool get isConfigured;
+
   Future<List<TrendingItem>> fetchTrendingMovies({int limit = 3});
+
   Future<List<TrendingItem>> fetchTrendingTV({int limit = 3});
+
   Future<List<TrendingItem>> fetchTopRated({int limit = 3});
 }

@@ -86,8 +86,10 @@ class _Repository implements ThemePreferencesRepository {
   final loading = Completer<ThemePreferences>();
   final writes = <int>[];
   final accentWrites = <int>[];
+
   @override
   Future<ThemePreferences> load() => loading.future;
+
   @override
   Future<void> saveMode(int index) async {
     writes.add(index);

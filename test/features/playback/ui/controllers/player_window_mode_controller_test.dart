@@ -16,12 +16,16 @@ class PendingFullscreenWindow extends WindowService {
 
   @override
   int get viewId => 1;
+
   @override
   void addListener(WindowEvents listener) {}
+
   @override
   void removeListener(WindowEvents listener) {}
+
   @override
   Future<bool> isFullScreen() async => fullscreen;
+
   @override
   Future<void> setFullScreen(bool value) async {
     requests.add(value);
@@ -46,10 +50,13 @@ class MiniWindow extends PendingFullscreenWindow {
 
   @override
   Future<bool> isMaximized() async => false;
+
   @override
   Future<Rect> getBounds() async => bounds;
+
   @override
   Future<bool> isAlwaysOnTop() async => onTop;
+
   @override
   Future<void> setAlwaysOnTop(bool value) async {
     if (failTop > 0) {

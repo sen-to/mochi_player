@@ -152,6 +152,7 @@ class SmbHttpPlaybackProxy implements PlaybackTargetResource {
 
 class _HttpTransfer {
   _HttpTransfer(this.response);
+
   final HttpResponse response;
   bool cancelled = false;
 
@@ -170,6 +171,7 @@ class _HttpTransfer {
 
 class _ByteRange {
   const _ByteRange(this.start, this.end);
+
   final int start;
   final int end;
 

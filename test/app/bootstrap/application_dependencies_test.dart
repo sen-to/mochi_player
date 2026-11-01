@@ -120,6 +120,7 @@ void main() {
 
 class _TmdbApi extends TmdbApi {
   int collectionRequests = 0;
+
   Future<List<TrendingItem>> _collection() async {
     collectionRequests++;
     return const [TrendingItem(tmdbId: '1', title: 'Updated', isMovie: true)];
@@ -127,8 +128,10 @@ class _TmdbApi extends TmdbApi {
 
   @override
   Future<List<TrendingItem>> fetchTrendingMovies({int limit = 3}) => _collection();
+
   @override
   Future<List<TrendingItem>> fetchTrendingTV({int limit = 3}) => _collection();
+
   @override
   Future<List<TrendingItem>> fetchTopRated({int limit = 3}) => _collection();
 }
@@ -136,16 +139,20 @@ class _TmdbApi extends TmdbApi {
 class _StorageAdapter implements StorageAdapter {
   @override
   StorageSourceType get type => StorageSourceType.local;
+
   @override
   Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async => _Connection(source);
 }
 
 class _Connection implements StorageConnection {
   _Connection(this.source);
+
   @override
   final StorageSource source;
+
   @override
   Future<List<StorageEntry>> readDirectory(String path) async => [];
+
   @override
   Future<void> close() async {}
 }

@@ -7,6 +7,7 @@ import 'package:mochi_player/core/domain/media/artist.dart';
 
 abstract final class StoredJsonMapper {
   static List<String> decodeStrings(String value) => (jsonDecode(value) as List).cast<String>();
+
   static String encodeStrings(List<String> value) => jsonEncode(value);
 
   static List<Artist> decodeArtists(String value) => (jsonDecode(value) as List)

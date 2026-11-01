@@ -12,7 +12,9 @@ import 'package:mochi_player/core/domain/storage/storage_credentials.dart';
 /// 表示一个已打开的 SMB 文件；使用绝对偏移读取，不改变共享游标。
 abstract interface class SmbMediaReader {
   int get length;
+
   Future<Uint8List> read(int offset, int length, {bool Function()? isCancelled});
+
   Future<void> close();
 }
 

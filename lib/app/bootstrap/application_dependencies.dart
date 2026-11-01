@@ -4,11 +4,10 @@
 import 'dart:async';
 
 import 'package:mochi_player/core/data/database/app_database.dart';
-import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
-import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
-import 'package:mochi_player/core/data/storage/storage_source_repository_impl.dart';
 import 'package:mochi_player/core/data/storage/storage_source_playback_resolver.dart';
+import 'package:mochi_player/core/data/storage/storage_source_repository_impl.dart';
 import 'package:mochi_player/core/data/tmdb/tmdb_api.dart';
+import 'package:mochi_player/core/domain/playback/playback_target_resolver.dart';
 import 'package:mochi_player/core/domain/storage/storage_adapter_registry.dart';
 import 'package:mochi_player/features/home/application/trending_media_provider.dart';
 import 'package:mochi_player/features/home/data/tmdb_trending_media_source.dart';
@@ -23,6 +22,7 @@ import 'package:mochi_player/features/library/sources/application/storage_source
 import 'package:mochi_player/features/library/sync/application/library_sync_service.dart';
 import 'package:mochi_player/features/library/sync/data/library_sync_repository_impl.dart';
 import 'package:mochi_player/features/library/sync/data/storage_library_source_scanner.dart';
+import 'package:mochi_player/features/playback/application/playback_media_repository.dart';
 import 'package:mochi_player/features/playback/data/playback_media_repository_impl.dart';
 import 'package:mochi_player/features/settings/application/app_settings_provider.dart';
 import 'package:mochi_player/features/settings/application/app_settings_repository.dart';

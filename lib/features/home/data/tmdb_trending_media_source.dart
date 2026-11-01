@@ -7,13 +7,18 @@ import 'package:mochi_player/features/home/application/trending_media_source.dar
 
 class TmdbTrendingMediaSource implements TrendingMediaSource {
   TmdbTrendingMediaSource(this._api);
+
   final TmdbApi _api;
+
   @override
   bool get isConfigured => _api.isConfigured;
+
   @override
   Future<List<TrendingItem>> fetchTrendingMovies({int limit = 3}) => _api.fetchTrendingMovies(limit: limit);
+
   @override
   Future<List<TrendingItem>> fetchTrendingTV({int limit = 3}) => _api.fetchTrendingTV(limit: limit);
+
   @override
   Future<List<TrendingItem>> fetchTopRated({int limit = 3}) => _api.fetchTopRated(limit: limit);
 }

@@ -10,9 +10,13 @@ abstract interface class MetadataSource {
   bool get isConfigured;
 
   Future<Movie?> fetchMovieById(String id);
+
   Future<TVShow?> fetchTVShowById(String id);
+
   Future<Movie?> searchMovie(String title, {int? year});
+
   Future<TVShow?> searchTVShow(String title, {int? year});
+
   Future<SeasonMetadata?> fetchSeason(String showId, int seasonNumber);
 }
 

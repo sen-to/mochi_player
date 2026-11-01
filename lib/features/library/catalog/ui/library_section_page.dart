@@ -1,12 +1,12 @@
 // 【媒体库界面】展示收藏、续播或最近添加等完整分区。
 // 查询状态由通用查询组件与 Provider 协作管理。
 
-import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/routing/app_route_paths.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/ui/app_ui.dart';
+import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/ui/widgets/continue_watching_card.dart';
 import 'package:mochi_player/features/library/ui/widgets/library_item_poster_card.dart';

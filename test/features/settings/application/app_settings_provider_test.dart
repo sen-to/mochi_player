@@ -225,8 +225,10 @@ class _DelayedSettingsRepository implements AppSettingsRepository {
   final loading = Completer<AppSettings>();
   final saving = Completer<AppSettings>();
   final saved = <AppSettings>[];
+
   @override
   Future<AppSettings> load() => loading.future;
+
   @override
   Future<AppSettings> save(AppSettings settings) {
     saved.add(settings);
@@ -237,8 +239,10 @@ class _DelayedSettingsRepository implements AppSettingsRepository {
 class _RecordingRuntime implements AppSettingsRuntime {
   final applied = <AppSettings>[];
   int connectionChecks = 0;
+
   @override
   void apply(AppSettings settings) => applied.add(settings);
+
   @override
   Future<bool> testTmdbConnection() async {
     connectionChecks++;

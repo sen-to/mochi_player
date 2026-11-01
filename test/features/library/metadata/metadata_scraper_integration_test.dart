@@ -12,10 +12,10 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/core/domain/media/season_metadata.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_matcher.dart';
 import 'package:mochi_player/features/library/metadata/application/metadata_scraper.dart';
-import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 import 'package:mochi_player/features/library/metadata/data/metadata_repository_impl.dart';
 import 'package:mochi_player/features/library/metadata/data/tmdb_metadata_source.dart';
 import 'package:mochi_player/features/library/metadata/domain/metadata_match.dart';
+import 'package:mochi_player/features/library/metadata/domain/scrape_candidate.dart';
 
 import '../../../support/database_fixture.dart';
 import '../../../support/tmdb_fixture.dart';
@@ -278,6 +278,7 @@ class _EpisodeResolver extends MetadataMatcher {
         source: TmdbMetadataSource(api: TmdbApi()),
         repository: MetadataRepositoryImpl(database: database),
       );
+
   @override
   bool get isConfigured => true;
 

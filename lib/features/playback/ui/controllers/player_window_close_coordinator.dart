@@ -90,6 +90,7 @@ class PlayerWindowCloseCoordinator {
 
 class PlayerWindowCloseReport {
   const PlayerWindowCloseReport({required this.saved, required this.released, required this.failedStages});
+
   final bool saved;
   final bool released;
   final List<String> failedStages;

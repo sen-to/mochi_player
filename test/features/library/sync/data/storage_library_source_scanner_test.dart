@@ -91,6 +91,7 @@ class _Adapter implements StorageAdapter {
 
 class _Connection implements StorageConnection {
   _Connection(this.source, {required this.failReads});
+
   @override
   final StorageSource source;
   final bool failReads;

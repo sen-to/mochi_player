@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemePreferencesRepositoryImpl implements ThemePreferencesRepository {
   static const _modeKey = 'theme_mode';
   static const _accentKey = 'accent_color';
+
   @override
   Future<ThemePreferences> load() async {
     final prefs = await SharedPreferences.getInstance();

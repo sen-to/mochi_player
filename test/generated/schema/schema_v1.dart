@@ -8,7 +8,9 @@ class MediaFiles extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   MediaFiles(this.attachedDatabase, [this._alias]);
+
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
     'id',
     aliasedName,
@@ -259,6 +261,7 @@ class MediaFiles extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -293,13 +296,17 @@ class MediaFiles extends Table with TableInfo {
     isFavorite,
     addedAt,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'media_files';
+
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+
   @override
   Never map(Map<String, dynamic> data, {String? tablePrefix}) {
     throw UnsupportedError('TableInfo.map in schema verification code');
@@ -318,7 +325,9 @@ class Movies extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   Movies(this.attachedDatabase, [this._alias]);
+
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
     'tmdb_id',
     aliasedName,
@@ -423,6 +432,7 @@ class Movies extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     tmdbId,
@@ -439,13 +449,17 @@ class Movies extends Table with TableInfo {
     genres,
     cast,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'movies';
+
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
+
   @override
   Never map(Map<String, dynamic> data, {String? tablePrefix}) {
     throw UnsupportedError('TableInfo.map in schema verification code');
@@ -458,6 +472,7 @@ class Movies extends Table with TableInfo {
 
   @override
   List<String> get customConstraints => const ['PRIMARY KEY(tmdb_id)'];
+
   @override
   bool get dontWriteConstraints => true;
 }
@@ -466,7 +481,9 @@ class TVShows extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   TVShows(this.attachedDatabase, [this._alias]);
+
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
     'tmdb_id',
     aliasedName,
@@ -595,6 +612,7 @@ class TVShows extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     tmdbId,
@@ -614,13 +632,17 @@ class TVShows extends Table with TableInfo {
     numberOfSeasons,
     numberOfEpisodes,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 't_v_shows';
+
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
+
   @override
   Never map(Map<String, dynamic> data, {String? tablePrefix}) {
     throw UnsupportedError('TableInfo.map in schema verification code');
@@ -633,6 +655,7 @@ class TVShows extends Table with TableInfo {
 
   @override
   List<String> get customConstraints => const ['PRIMARY KEY(tmdb_id)'];
+
   @override
   bool get dontWriteConstraints => true;
 }
@@ -641,7 +664,9 @@ class Seasons extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   Seasons(this.attachedDatabase, [this._alias]);
+
   late final GeneratedColumn<String> seasonKey = GeneratedColumn<String>(
     'season_key',
     aliasedName,
@@ -690,6 +715,7 @@ class Seasons extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     seasonKey,
@@ -699,13 +725,17 @@ class Seasons extends Table with TableInfo {
     overview,
     numberOfEpisodes,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'seasons';
+
   @override
   Set<GeneratedColumn> get $primaryKey => {seasonKey};
+
   @override
   Never map(Map<String, dynamic> data, {String? tablePrefix}) {
     throw UnsupportedError('TableInfo.map in schema verification code');
@@ -718,6 +748,7 @@ class Seasons extends Table with TableInfo {
 
   @override
   List<String> get customConstraints => const ['PRIMARY KEY(season_key)'];
+
   @override
   bool get dontWriteConstraints => true;
 }
@@ -726,7 +757,9 @@ class Episodes extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   Episodes(this.attachedDatabase, [this._alias]);
+
   late final GeneratedColumn<String> tmdbId = GeneratedColumn<String>(
     'tmdb_id',
     aliasedName,
@@ -783,6 +816,7 @@ class Episodes extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     tmdbId,
@@ -793,13 +827,17 @@ class Episodes extends Table with TableInfo {
     stillUrl,
     guestStars,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'episodes';
+
   @override
   Set<GeneratedColumn> get $primaryKey => {tmdbId};
+
   @override
   Never map(Map<String, dynamic> data, {String? tablePrefix}) {
     throw UnsupportedError('TableInfo.map in schema verification code');
@@ -812,6 +850,7 @@ class Episodes extends Table with TableInfo {
 
   @override
   List<String> get customConstraints => const ['PRIMARY KEY(tmdb_id)'];
+
   @override
   bool get dontWriteConstraints => true;
 }
@@ -820,7 +859,9 @@ class StorageSources extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
+
   StorageSources(this.attachedDatabase, [this._alias]);
+
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
     'id',
     aliasedName,
@@ -894,6 +935,7 @@ class StorageSources extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -906,13 +948,17 @@ class StorageSources extends Table with TableInfo {
     username,
     password,
   ];
+
   @override
   String get aliasedName => _alias ?? actualTableName;
+
   @override
   String get actualTableName => $name;
   static const String $name = 'storage_sources';
+
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+
   @override
   Never map(Map<String, dynamic> data, {String? tablePrefix}) {
     throw UnsupportedError('TableInfo.map in schema verification code');
@@ -971,9 +1017,11 @@ class DatabaseAtV1 extends GeneratedDatabase {
     'media_files_added_at_idx',
     'CREATE INDEX media_files_added_at_idx ON media_files (added_at)',
   );
+
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     mediaFiles,
@@ -992,8 +1040,10 @@ class DatabaseAtV1 extends GeneratedDatabase {
     mediaFilesIsFavoriteIdx,
     mediaFilesAddedAtIdx,
   ];
+
   @override
   int get schemaVersion => 1;
+
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

@@ -1,7 +1,6 @@
 // 【行为测试】验证用 SQL 完成目录筛选、排序、分页及卡片元数据批量投影。
 // 测试对象的职责边界：只返回有限展示结果和订阅，不处理弹窗或页面状态。
 
-import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -10,6 +9,7 @@ import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/mappers/media_file_mapper.dart';
 import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
+import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:mochi_player/features/library/catalog/data/library_catalog_repository_impl.dart';
 import 'package:mochi_player/features/library/sync/data/library_sync_repository_impl.dart';
 import 'package:mochi_player/features/playback/data/playback_media_repository_impl.dart';
