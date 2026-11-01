@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#101013">
-    <meta name="description" content="Mochi Player，本地优先的 macOS 与 Windows 媒体库播放器。连接本地、WebDAV 与 SMB，把收藏变成你的私人影院。">
-    <meta property="og:title" content="Mochi Player · 好电影，值得好好收藏。">
-    <meta property="og:description" content="从散落的文件，到想一看再看的私人影片库。探索 Mochi Player。">
+    <meta name="description" content="Mochi Player 是一款面向 macOS 与 Windows 的媒体库播放器，支持本地、WebDAV 与 SMB 媒体源，通过 TMDB 整理电影与剧集，让整理、挑选和观看影片更舒服。">
+    <meta property="og:title" content="Mochi Player · 你的收藏，你的影院。">
+    <meta property="og:description" content="连接本地与网络存储，让整理、挑选和观看影片更舒服。探索 macOS 与 Windows 媒体库播放器 Mochi Player。">
     <meta property="og:type" content="website">
-    <title>Mochi Player · 你的收藏，你的影院</title>
+    <meta property="og:url" content="https://sen-to.github.io/mochi_player/">
+    <title>Mochi Player｜macOS 与 Windows 媒体库播放器</title>
+    <link rel="canonical" href="https://sen-to.github.io/mochi_player/">
+    <link rel="sitemap" type="application/xml" href="./sitemap.xml">
     <link rel="icon" type="image/svg+xml" href="./assets/mochi_app_icon.svg">
     <link rel="stylesheet" href="./styles.css">
     <script src="./main.js" defer></script>
@@ -51,14 +54,14 @@
           为你的私人影片库而生
         </p>
         <h1>
-          好电影，
+          你的收藏，
           <br>
-          值得<span class="accent">好好收藏。</span>
+          <span class="accent">你的影院。</span>
         </h1>
         <p class="hero-description">
-          把散落的影片，变成想一看再看的收藏。
+          连接本地与网络存储，
           <br>
-          一个舒服的媒体库，一段属于你的放映时间。
+          让整理、挑选和观看影片更舒服。
         </p>
         <div class="actions">
           <a class="button primary" href="#download">
@@ -79,7 +82,7 @@
           <span>
             ·
           </span>
-          本地优先
+          本地与网络影片
           <span>
             ·
           </span>
@@ -381,7 +384,7 @@
             我的媒体库数据存在哪里？
           </summary>
           <p>
-            媒体库、进度与设置保存在本机。启用 TMDB 后，匹配所需的影片名称等信息会发往配置的 TMDB 服务。当前媒体源凭据保存在本机数据库，尚未接入系统钥匙串。
+            媒体库索引、收藏、播放进度与设置保存在你的电脑上，无需搭建 Mochi 服务端。影片可以来自本地目录或联网访问的 WebDAV / SMB 服务；启用 TMDB 后，匹配信息会发往配置的 TMDB 服务，并联网获取元数据和海报。当前媒体源凭据保存在本机数据库，尚未接入系统钥匙串。
           </p>
         </details>
         <details>

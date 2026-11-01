@@ -2,6 +2,8 @@
 
 项目网站是独立于 Flutter 应用的静态展示页，源码入口为 [`site/index.html`](../../site/index.html)，样式与截图交互在同目录。内容以根 README 的用户功能与限制为依据；发布状态变化时同步下载区。网站不包含播放器运行环境或用户数据。
 
+主 slogan 统一为“你的收藏，你的影院。”，网站与 README 使用“连接本地与网络存储，让整理、挑选和观看影片更舒服”解释产品能力。数据保存在本机与联网访问媒体源 / TMDB 的边界放在隐私说明中。
+
 ## 本地维护
 
 只需要 Python 3；无需安装前端依赖或运行 Flutter：
@@ -36,3 +38,11 @@ git diff --check
 4. 以 `github-pages` 环境返回的部署地址为准。默认项目地址预计为 `https://sen-to.github.io/mochi_player/`；配置文件存在不代表已经启用或部署成功。
 
 工作流只授予部署任务 `pages: write` 与 `id-token: write`，PR 不执行部署。配置依据 [GitHub 官方自定义工作流文档](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)（2026-11-01 核对）。
+
+## 搜索引擎
+
+页面标题包含产品名称、支持平台与产品类型，description 描述实际能力；canonical 与 `og:url` 均指向 `https://sen-to.github.io/mochi_player/`。[`site/sitemap.xml`](../../site/sitemap.xml) 只列出首页，组装时复制到 `build/site/sitemap.xml`，不将页内锚点列成独立页面。更换网站域名时同步这三个绝对网址。
+
+发布后可在 Google Search Console 添加网址前缀资源 `https://sen-to.github.io/mochi_player/`，完成所有权验证后提交 `sitemap.xml` 并检查首页网址。所有权验证需使用站点管理者的 Google 账号；当前仅完成页面与站点地图配置，尚未提交 Search Console，也未确认搜索引擎收录。上述配置帮助搜索引擎理解网站，不保证收录或排名。
+
+规范网址与站点地图依据 Google 的[规范网址说明](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)与[站点地图说明](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)（2026-11-01 核对）。
