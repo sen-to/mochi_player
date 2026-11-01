@@ -3,7 +3,9 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mochi_player/app/application/application_exit_coordinator.dart';
 import 'package:mochi_player/app/application/main_window_lifecycle.dart';
@@ -34,6 +36,12 @@ import 'package:provider/provider.dart';
 
 void main() async {
   MochiWidgetsBinding();
+  // 随应用分发字体许可，供 Flutter 许可证界面按需读取。
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks([
+      'Source Han Serif',
+    ], await rootBundle.loadString('assets/fonts/source_han_serif/LICENSE.txt'));
+  });
   MediaKitPlaybackEngine.initialize();
   final host = DesktopWindowHost();
 
@@ -141,6 +149,7 @@ class MochiPlayerApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp.router(
+      scrollBehavior: const MaterialScrollBehavior().copyWith(scrollbars: false),
       routerConfig: router,
       title: 'Mochi Player',
       locale: context.watch<AppLocaleProvider>().locale,

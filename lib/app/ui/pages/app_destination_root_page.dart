@@ -46,24 +46,13 @@ class _HomeDestinationPage extends StatefulWidget {
 }
 
 class _HomeDestinationPageState extends State<_HomeDestinationPage> {
-  double _scrollOffset = 0;
   String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
-    final headerOpacity = (_scrollOffset / 200).clamp(0.0, 1.0);
-
     return Stack(
       children: [
-        Positioned.fill(
-          child: HomeContent(
-            searchQuery: _searchQuery,
-            onScroll: (offset) {
-              if (offset == _scrollOffset) return;
-              setState(() => _scrollOffset = offset);
-            },
-          ),
-        ),
+        Positioned.fill(child: HomeContent(searchQuery: _searchQuery)),
         Positioned(
           top: 0,
           left: 0,
@@ -81,7 +70,6 @@ class _HomeDestinationPageState extends State<_HomeDestinationPage> {
                 },
               ),
             ),
-            visibility: headerOpacity,
           ),
         ),
       ],

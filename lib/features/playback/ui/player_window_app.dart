@@ -40,6 +40,7 @@ class PlayerWindowApp extends StatelessWidget {
       child: Consumer2<ThemeProvider, AppLocaleProvider>(
         builder: (context, themeProvider, locales, _) {
           return MaterialApp(
+            scrollBehavior: const MaterialScrollBehavior().copyWith(scrollbars: false),
             title: 'Mochi Player',
             locale: locales.locale,
             localeListResolutionCallback: AppLocaleProvider.resolve,

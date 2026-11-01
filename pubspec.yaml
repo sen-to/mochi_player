@@ -95,6 +95,13 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/theme_previews/
+    - assets/fonts/source_han_serif/LICENSE.txt
+
+  fonts:
+    - family: SourceHanSerif
+      fonts:
+        - asset: assets/fonts/source_han_serif/SourceHanSerifSC-SemiBold.otf
+          weight: 600
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

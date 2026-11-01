@@ -18,39 +18,27 @@ import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class HomeContent extends StatefulWidget {
-  final void Function(double offset)? onScroll;
   final String searchQuery;
 
-  const HomeContent({super.key, this.onScroll, this.searchQuery = ''});
+  const HomeContent({super.key, this.searchQuery = ''});
 
   @override
   State<HomeContent> createState() => _HomeContentState();
 }
 
 class _HomeContentState extends State<HomeContent> {
-  late final ScrollController _mainScrollController;
   late final ScrollController _continueWatchingCtrl;
   late final ScrollController _recentlyAddedCtrl;
 
   @override
   void initState() {
     super.initState();
-    _mainScrollController = ScrollController();
     _continueWatchingCtrl = ScrollController();
     _recentlyAddedCtrl = ScrollController();
-    _mainScrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
-  }
-
-  void _onScroll() {
-    if (!_mainScrollController.hasClients) return;
-    widget.onScroll?.call(_mainScrollController.offset);
   }
 
   @override
   void dispose() {
-    _mainScrollController.removeListener(_onScroll);
-    _mainScrollController.dispose();
     _continueWatchingCtrl.dispose();
     _recentlyAddedCtrl.dispose();
     super.dispose();
@@ -85,15 +73,11 @@ class _HomeContentState extends State<HomeContent> {
 
         return CustomScrollView(
           key: const PageStorageKey('home-main-scroll'),
-          controller: _mainScrollController,
           slivers: [
-            // Hero Section (无 padding，直接到顶部)
-            Selector<MediaLibraryProvider, LibraryItem?>(
-              selector: (context, provider) => provider.heroItem,
-              builder: (context, revision, child) {
-                final heroItem = context.read<MediaLibraryProvider>().heroItem;
-                return SliverToBoxAdapter(child: HomeHeroSection(heroItem: heroItem));
-              },
+            const SliverToBoxAdapter(child: SizedBox(height: AppHeader.height)),
+            Selector<MediaLibraryProvider, List<LibraryItem>>(
+              selector: (context, provider) => provider.heroItems,
+              builder: (context, items, child) => SliverToBoxAdapter(child: HomeHeroSection(items: items)),
             ),
 
             // 继续观看
@@ -114,7 +98,7 @@ class _HomeContentState extends State<HomeContent> {
                       onSeeAll: () => openLibrarySectionPage(context, LibrarySection.continueWatching),
                     ),
                     SliverToBoxAdapter(child: _buildContinueWatchingList(continueWatchingItems)),
-                    const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                    const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
                   ],
                 );
               },
@@ -137,7 +121,7 @@ class _HomeContentState extends State<HomeContent> {
                       onSeeAll: () => openLibrarySectionPage(context, LibrarySection.recentlyAdded),
                     ),
                     SliverToBoxAdapter(child: _buildRecentlyAddedList(recentlyAddedItems)),
-                    const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                    const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
                   ],
                 );
               },
@@ -154,7 +138,7 @@ class _HomeContentState extends State<HomeContent> {
                   slivers: [
                     _buildSectionHeaderSliver(context, context.l10n.tmdbTrending),
                     SliverToBoxAdapter(child: _buildTrendingCards(provider)),
-                    const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                    const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
                   ],
                 );
               },
@@ -194,7 +178,7 @@ class _HomeContentState extends State<HomeContent> {
   SliverToBoxAdapter _buildSectionHeaderSliver(BuildContext context, String title, {VoidCallback? onSeeAll}) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, 15),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, AppSpacing.md),
         child: Row(
           children: [
             Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -223,8 +207,8 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildContinueWatchingList(List<MediaCardVO> items) {
-    const double wideImageWidth = 280;
-    const double wideImageHeight = 158;
+    const double wideImageWidth = 220;
+    const double wideImageHeight = wideImageWidth * 9 / 16;
     const double textSectionHeight = 48;
     final double listHeight = wideImageHeight + textSectionHeight;
 
@@ -241,9 +225,9 @@ class _HomeContentState extends State<HomeContent> {
           itemCount: items.length,
           itemBuilder: (context, index) {
             return SizedBox(
-              width: wideImageWidth,
+              width: wideImageWidth + AppSpacing.lg,
               child: Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.xl),
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
                 child: ContinueWatchingCard(item: items[index]),
               ),
             );
@@ -254,8 +238,8 @@ class _HomeContentState extends State<HomeContent> {
   }
 
   Widget _buildRecentlyAddedList(List<LibraryItem> items) {
-    const double posterWidth = 160;
-    const double posterHeight = 200;
+    const double posterWidth = 120;
+    const double posterHeight = posterWidth * 3 / 2;
     const double textSectionHeight = 48;
     final double listHeight = posterHeight + textSectionHeight;
 
@@ -272,9 +256,9 @@ class _HomeContentState extends State<HomeContent> {
           itemCount: items.length,
           itemBuilder: (context, index) {
             return SizedBox(
-              width: posterWidth,
+              width: posterWidth + AppSpacing.lg,
               child: Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.xl),
+                padding: const EdgeInsets.only(right: AppSpacing.lg),
                 child: LibraryItemPosterCard(item: items[index]),
               ),
             );

@@ -57,54 +57,55 @@ class _MediaCardState extends State<MediaCard> {
           curve: Curves.easeOutQuart,
           builder: (context, hoverProgress, child) {
             final titleColor = theme.textTheme.bodyMedium!.color!;
+            final artwork = Container(
+              transform: Matrix4.identity()
+                ..scaleByDouble(1 + (0.025 * hoverProgress), 1 + (0.025 * hoverProgress), 1, 1),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadii.card),
+                boxShadow: [
+                  BoxShadow(
+                    color: shadowColor.withAlpha((4 + (6 * hoverProgress)).round()),
+                    blurRadius: 3 + (37 * hoverProgress),
+                    offset: Offset(0, 1 + (19 * hoverProgress)),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadii.card),
+                child: Stack(
+                  children: [
+                    Positioned.fill(child: _buildImage(theme)),
+                    if (widget.rating > 0)
+                      Positioned(
+                        top: AppSpacing.xs,
+                        left: AppSpacing.xs,
+                        child: _RatingBadge(rating: widget.rating),
+                      ),
+                    if (widget.progress != null)
+                      Positioned(bottom: 0, left: 0, right: 0, child: _PlaybackProgress(progress: widget.progress!)),
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: 0.05 * hoverProgress,
+                        child: ColoredBox(color: AppColors.mediaHoverOverlay(context)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Container(
-                    transform: Matrix4.identity()
-                      ..scaleByDouble(1 + (0.025 * hoverProgress), 1 + (0.025 * hoverProgress), 1, 1),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppRadii.card),
-                      boxShadow: [
-                        BoxShadow(
-                          color: shadowColor.withAlpha((4 + (6 * hoverProgress)).round()),
-                          blurRadius: 3 + (37 * hoverProgress),
-                          offset: Offset(0, 1 + (19 * hoverProgress)),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppRadii.card),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(child: _buildImage(theme)),
-                          if (widget.rating > 0)
-                            Positioned(
-                              top: AppSpacing.xs,
-                              left: AppSpacing.xs,
-                              child: _RatingBadge(rating: widget.rating),
-                            ),
-                          if (widget.progress != null)
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: _PlaybackProgress(progress: widget.progress!),
-                            ),
-                          Positioned.fill(
-                            child: Opacity(
-                              opacity: 0.05 * hoverProgress,
-                              child: ColoredBox(color: AppColors.mediaHoverOverlay(context)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: widget.artworkType == MediaArtworkType.backdrop
+                      ? Align(
+                          alignment: Alignment.topLeft,
+                          child: AspectRatio(aspectRatio: 16 / 9, child: artwork),
+                        )
+                      : artwork,
                 ),
-                const SizedBox(height: AppSpacing.compact),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   widget.title,
                   maxLines: 1,

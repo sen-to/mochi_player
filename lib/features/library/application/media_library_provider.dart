@@ -47,7 +47,9 @@ class MediaLibraryProvider extends ChangeNotifier {
   List<MediaCardVO> _continueWatchingItems = const [];
 
   int get totalFiles => _totalFiles;
+
   List<LibraryItem> get recentlyAddedContent => _recentlyAddedContent;
+
   List<MediaCardVO> get continueWatchingItems => _continueWatchingItems;
   LibraryItem? _hero;
 
@@ -61,7 +63,16 @@ class MediaLibraryProvider extends ChangeNotifier {
 
   bool get hasLibraryContent => recentlyAddedContent.isNotEmpty || continueWatchingItems.isNotEmpty;
 
-  LibraryItem? get heroItem => _hero;
+  /// 首页推荐优先展示当日条目，再以最近添加补足五项；电影与剧集分别去重。
+  List<LibraryItem> get heroItems {
+    final seen = <(Type, String)>{};
+    return List.unmodifiable(
+      [
+        if (_hero != null) _hero!,
+        ..._recentlyAddedContent,
+      ].where((item) => seen.add((item.runtimeType, item.tmdbId))).take(5),
+    );
+  }
 
   /// 正常订阅建立后重复调用不重建；有加载错误时取消旧订阅并重新加载。
   Future<void> loadFromDatabase() {

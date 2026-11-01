@@ -1,5 +1,7 @@
-// 【首页界面】展示推荐媒体的背景、标题、评分及播放和详情操作。
-// 媒体由调用方提供，播放请求交给媒体库播放入口。
+// 【首页推荐界面】展示横幅推荐、影片信息和播放／详情操作。
+// 候选由媒体库入口提供；组件持有轮播计时器，悬停、聚焦和隐藏时暂停，销毁时取消。
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -10,82 +12,299 @@ import 'package:mochi_player/features/library/ui/library_playback_launcher.dart'
 import 'package:mochi_player/features/library/ui/widgets/media_rating_tag.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
-/// 首页 Hero Section
-/// 展示随机选择的一部电影或剧集，带有背景图、标题和操作按钮
-class HomeHeroSection extends StatelessWidget {
-  final LibraryItem? heroItem;
-  final VoidCallback? onRefresh;
+/// 首页推荐横幅；候选顺序由调用方确定，播放和详情始终作用于当前条目。
+class HomeHeroSection extends StatefulWidget {
+  const HomeHeroSection({super.key, required this.items});
 
-  const HomeHeroSection({super.key, required this.heroItem, this.onRefresh});
+  final List<LibraryItem> items;
+
+  @override
+  State<HomeHeroSection> createState() => _HomeHeroSectionState();
+}
+
+class _HomeHeroSectionState extends State<HomeHeroSection> {
+  static const _rotationInterval = Duration(seconds: 20);
+  Timer? _rotation;
+  int _activeIndex = 0;
+  bool _hovered = false;
+  bool _focused = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scheduleRotation();
+  }
+
+  @override
+  void didUpdateWidget(HomeHeroSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 库刷新或候选重排时保留当前影片；影片被移除才回到首项。
+    final previous = oldWidget.items.isEmpty ? null : oldWidget.items[_activeIndex];
+    final nextIndex = previous == null
+        ? -1
+        : widget.items.indexWhere((item) => item.runtimeType == previous.runtimeType && item.tmdbId == previous.tmdbId);
+    _activeIndex = nextIndex < 0 ? 0 : nextIndex;
+    _scheduleRotation();
+  }
+
+  void _scheduleRotation() {
+    _rotation?.cancel();
+    _rotation = null;
+    if (widget.items.length < 2 ||
+        _hovered ||
+        _focused ||
+        !TickerMode.of(context) ||
+        MediaQuery.disableAnimationsOf(context)) {
+      return;
+    }
+    _rotation = Timer(_rotationInterval, () => _select((_activeIndex + 1) % widget.items.length));
+  }
+
+  void _select(int index) {
+    if (_activeIndex != index) setState(() => _activeIndex = index);
+    _scheduleRotation();
+  }
+
+  @override
+  void dispose() {
+    _rotation?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (heroItem == null) {
-      return const SizedBox(height: 420);
-    }
-
-    final item = heroItem!;
-
-    return SizedBox(
-      height: 420,
-      width: double.infinity,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 背景图
-          _buildBackdropImage(item.backdropUrl, item.posterUrl),
-
-          // 渐变遮罩
-          _buildGradientOverlay(context),
-
-          // 内容
-          Positioned(
-            bottom: 48,
-            left: 40,
-            right: 40,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 评分 + 年份 + 类型
-                _buildMetaRow(item.rating, item.releaseYear, item.genres),
-                const SizedBox(height: 16),
-
-                // 标题
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 44,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1.1,
-                    shadows: [Shadow(offset: Offset(0, 4), blurRadius: 20, color: Colors.black54)],
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-
-                // 简介
-                if (item.overview case final overview? when overview.isNotEmpty)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Text(
-                      overview,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white.withAlpha(210),
-                        height: 1.5,
-                        shadows: const [Shadow(blurRadius: 10, color: Colors.black54)],
+    if (widget.items.isEmpty) return const SizedBox.shrink();
+    final duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 450);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: MouseRegion(
+        onEnter: (_) {
+          _hovered = true;
+          _scheduleRotation();
+        },
+        onExit: (_) {
+          _hovered = false;
+          _scheduleRotation();
+        },
+        child: Focus(
+          onFocusChange: (focused) {
+            _focused = focused;
+            _scheduleRotation();
+          },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 700;
+              final minHeight = (constraints.maxWidth / 4.2 + 20).clamp(260.0, 300.0).toDouble();
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRect(
+                    child: AnimatedSwitcher(
+                      duration: duration,
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      layoutBuilder: (current, previous) => Stack(
+                        children: [
+                          for (final child in previous)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: ExcludeFocus(child: ExcludeSemantics(child: child)),
+                              ),
+                            ),
+                          ?current,
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      child: _HeroSlide(
+                        key: ValueKey((widget.items[_activeIndex].runtimeType, widget.items[_activeIndex].tmdbId)),
+                        item: widget.items[_activeIndex],
+                        compact: compact,
+                        minHeight: minHeight,
+                      ),
                     ),
                   ),
-                const SizedBox(height: 24),
+                  if (widget.items.length > 1)
+                    SizedBox(
+                      height: 20,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          for (var index = 0; index < widget.items.length; index++)
+                            Semantics(
+                              selected: index == _activeIndex,
+                              label: widget.items[index].title,
+                              button: true,
+                              child: AppClickableArea(
+                                key: ValueKey('home-hero-indicator-$index'),
+                                onTap: () => _select(index),
+                                width: 24,
+                                height: 20,
+                                borderRadius: BorderRadius.circular(AppRadii.full),
+                                hoverColor: AppColors.hoverSurface(context),
+                                child: Center(
+                                  child: AnimatedContainer(
+                                    duration: duration,
+                                    width: index == _activeIndex ? 18 : 6,
+                                    height: index == _activeIndex ? 8 : 6,
+                                    decoration: BoxDecoration(
+                                      color: index == _activeIndex
+                                          ? AppColors.primary(context).withAlpha(220)
+                                          : AppColors.textSecondary(context),
+                                      borderRadius: BorderRadius.circular(AppRadii.full),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                // 操作按钮
-                _buildActionButtons(context),
-              ],
+class _HeroSlide extends StatelessWidget {
+  const _HeroSlide({super.key, required this.item, required this.compact, required this.minHeight});
+
+  static const _verticalInset = 24.0;
+
+  final LibraryItem item;
+  final bool compact;
+  final double minHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final surface = Theme.of(context).scaffoldBackgroundColor;
+    final overview = item.overview?.trim();
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Stack(
+        children: [
+          Positioned.fill(child: _backdrop()),
+          // 左侧遮罩向下逐渐展宽；底部遮罩将横幅接入首页背景。
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withAlpha(240),
+                    Colors.black.withAlpha(215),
+                    Colors.black.withAlpha(85),
+                    Colors.transparent,
+                    Colors.transparent,
+                  ],
+                  stops: const [0, 0.2, 0.43, 0.65, 1],
+                  transform: const _HeroMaskTransform(),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.transparent, surface],
+                  stops: const [0, 0.62, 1],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.page, _verticalInset, AppSpacing.page, _verticalInset),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              heightFactor: 1,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 420, minHeight: minHeight - 2 * _verticalInset),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'SourceHanSerif',
+                            fontSize: compact ? 28 : 32,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            height: 1.15,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        LayoutBuilder(
+                          builder: (context, constraints) => Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (item.rating > 0) MediaRatingTag(rating: item.rating),
+                              if (item.releaseYear != null)
+                                AppTag(text: '${item.releaseYear}', appearance: AppAppearance.overlay),
+                              ...item.genres
+                                  .take(3)
+                                  .map(
+                                    (genre) => ConstrainedBox(
+                                      constraints: BoxConstraints(maxWidth: constraints.maxWidth),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: AppTag(text: genre, appearance: AppAppearance.overlay),
+                                      ),
+                                    ),
+                                  ),
+                            ],
+                          ),
+                        ),
+                        if (overview != null && overview.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            overview,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14, color: Color(0xBFFFFFFF), height: 1.5),
+                          ),
+                        ],
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        children: [
+                          AppButton(
+                            onPressed: () => LibraryPlaybackLauncher.playLibraryItem(context, item),
+                            icon: Icons.play_arrow_rounded,
+                            label: context.l10n.playback,
+                            size: AppButtonSize.regular,
+                          ),
+                          AppButton(
+                            onPressed: () => openMediaDetailPage(context, item),
+                            icon: Icons.info_outline_rounded,
+                            label: context.l10n.details,
+                            variant: AppButtonVariant.secondary,
+                            appearance: AppAppearance.overlay,
+                            size: AppButtonSize.regular,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -93,92 +312,25 @@ class HomeHeroSection extends StatelessWidget {
     );
   }
 
-  Widget _buildBackdropImage(String? backdropUrl, String? posterUrl) {
-    final imageUrl = backdropUrl ?? posterUrl;
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Container(
-        color: const Color(0xFF1C1C1E),
-        child: const Center(child: Icon(Icons.movie, color: Colors.white24, size: 120)),
-      );
-    }
-
+  Widget _backdrop() {
+    final backdrop = item.backdropUrl?.trim();
+    final poster = item.posterUrl?.trim();
+    final url = backdrop != null && backdrop.isNotEmpty ? backdrop : poster;
+    if (url == null || url.isEmpty) return const ColoredBox(color: Color(0xFF242426));
     return MediaNetworkImage(
-      imageUrl: imageUrl,
+      imageUrl: url,
       fit: BoxFit.cover,
-      alignment: Alignment.topCenter,
-      placeholder: (context, url) => Container(color: const Color(0xFF1C1C1E)),
-      errorWidget: (context, url, error) => Container(color: const Color(0xFF1C1C1E)),
+      alignment: Alignment.topRight,
+      placeholder: (_, _) => const ColoredBox(color: Color(0xFF242426)),
+      errorWidget: (_, _, _) => const ColoredBox(color: Color(0xFF242426)),
     );
   }
+}
 
-  Widget _buildGradientOverlay(BuildContext context) {
-    final theme = Theme.of(context);
-    final bgColor = theme.scaffoldBackgroundColor;
+// 将渐变随高度向右延展，形成上窄下宽的柔和遮罩。
+class _HeroMaskTransform extends GradientTransform {
+  const _HeroMaskTransform();
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            Colors.black.withAlpha(44),
-            Colors.black.withAlpha(140),
-            bgColor.withAlpha(218),
-            bgColor,
-          ],
-          stops: const [0.0, 0.32, 0.56, 0.86, 1.0],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetaRow(double rating, int? year, List<String> genres) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        // 评分
-        if (rating > 0) MediaRatingTag(rating: rating),
-
-        // 年份
-        if (year != null) AppTag(text: year.toString(), appearance: AppAppearance.overlay),
-
-        // 类型标签
-        ...genres.take(3).map((genre) => AppTag(text: genre, appearance: AppAppearance.overlay)),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        AppButton(
-          onPressed: () => _handlePlay(context),
-          icon: Icons.play_arrow_rounded,
-          label: context.l10n.playback,
-          size: AppButtonSize.regular,
-        ),
-        const SizedBox(width: 12),
-
-        AppButton(
-          onPressed: () => _handleMoreInfo(context),
-          icon: Icons.info_outline_rounded,
-          label: context.l10n.details,
-          variant: AppButtonVariant.secondary,
-          appearance: AppAppearance.overlay,
-          size: AppButtonSize.regular,
-        ),
-      ],
-    );
-  }
-
-  void _handlePlay(BuildContext context) {
-    LibraryPlaybackLauncher.playLibraryItem(context, heroItem!);
-  }
-
-  void _handleMoreInfo(BuildContext context) {
-    openMediaDetailPage(context, heroItem!);
-  }
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) => Matrix4.identity()..setEntry(0, 1, 0.6);
 }

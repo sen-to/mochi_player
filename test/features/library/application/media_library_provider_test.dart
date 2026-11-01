@@ -25,6 +25,25 @@ void main() {
     await repository.close();
   });
 
+  test('首页轮播优先推荐、按类型及 ID 去重，候选最多五项且只读', () async {
+    await provider.loadFromDatabase();
+    const featured = Movie(tmdbId: '1', title: 'Featured');
+    const sameIdShow = TVShow(tmdbId: '1', title: 'Show');
+    repository.hero.add(featured);
+    repository.titles.add([
+      const Movie(tmdbId: '1', title: 'Duplicate'),
+      sameIdShow,
+      for (var i = 2; i <= 7; i++) Movie(tmdbId: '$i', title: 'Movie $i'),
+    ]);
+    await _flush();
+    expect(provider.heroItems.map((item) => item.title), ['Featured', 'Show', 'Movie 2', 'Movie 3', 'Movie 4']);
+    expect(() => provider.heroItems.clear(), throwsUnsupportedError);
+    repository.hero.add(null);
+    repository.titles.add([]);
+    await _flush();
+    expect(provider.heroItems, isEmpty);
+  });
+
   test('failed initialization can retry and concurrent loads share one operation', () async {
     repository.failInitialization = true;
     final first = provider.loadFromDatabase();
@@ -154,6 +173,7 @@ class _Repository implements LibraryCatalogRepository {
       },
     );
   }
+
   late final StreamController<int> count;
   late final StreamController<List<LibraryItem>> titles;
   late final StreamController<List<MediaCardVO>> cards;
@@ -175,6 +195,7 @@ class _Repository implements LibraryCatalogRepository {
 
   @override
   Stream<int> watchFileCount() => emptyCount ? const Stream<int>.empty() : count.stream;
+
   @override
   Stream<List<LibraryItem>> watchTitles({
     LibraryTitleKind? kind,
@@ -182,11 +203,15 @@ class _Repository implements LibraryCatalogRepository {
     bool recent = false,
     int limit = 100,
   }) => titles.stream;
+
   @override
   Stream<List<MediaCardVO>> watchContinueWatching({int limit = 100}) => cards.stream;
+
   @override
   Stream<LibraryItem?> watchHero() => hero.stream;
+
   Future<void> close() async => Future.wait([count.close(), titles.close(), cards.close(), hero.close()]);
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -194,16 +219,22 @@ class _Repository implements LibraryCatalogRepository {
 class _Sync extends ChangeNotifier implements LibrarySyncService {
   @override
   bool get isLoading => false;
+
   @override
   AppFailure? get error => null;
+
   @override
   double? get scrapeProgress => null;
+
   @override
   LibraryActivity? get activity => null;
+
   @override
   void beginShutdown() {}
+
   @override
   Future<void> shutdown() async {}
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
