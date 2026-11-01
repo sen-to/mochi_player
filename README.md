@@ -8,6 +8,8 @@
   让你的私人影片库，拥有接近流媒体服务的浏览与播放体验。
 </p>
 
+<p align="center"><a href="https://sen-to.github.io/mochi_player/">访问项目网站 ↗</a></p>
+
 <p align="center">
   <a href="https://github.com/sen-to/mochi_player/actions/workflows/windows.yml">
     <img src="https://github.com/sen-to/mochi_player/actions/workflows/windows.yml/badge.svg" alt="Windows CI">

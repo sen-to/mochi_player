@@ -24,6 +24,8 @@ git diff --check
 
 ## GitHub Pages
 
+线上地址：[https://sen-to.github.io/mochi_player/](https://sen-to.github.io/mochi_player/)。仓库已启用 GitHub Actions 发布，2026-11-01 [首次部署成功](https://github.com/sen-to/mochi_player/actions/runs/41262628836)，对应提交 `a05d2fc`。后续网站变更推送到 `master` 后自动发布。
+
 [`pages.yml`](../../.github/workflows/pages.yml) 在相关文件的 PR 中组装网站；合入 `master` 或手动运行后部署。网站与应用的双平台构建相互独立，不改动现有应用检查。
 
 首次启用：
