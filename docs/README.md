@@ -16,6 +16,7 @@
 | 修改播放 / 窗口 | [播放](architecture/playback.md)：目标解析、SMB 回源、资源所有权与退出 |
 | 修改语言 / 文案 | [本地化](architecture/localization.md) |
 | 构建与排障 | [macOS](guides/build-macos.md)、[Windows](guides/build-windows.md) |
+| 维护项目网站 | [项目网站](guides/project-website.md)：本地预览、素材组装与 GitHub Pages 发布 |
 | 运行检查 / 验收 | [测试指南](guides/testing.md) |
 | 查设计依据 | 下方 ADR 索引；旧验证与排障见 [验证历史](history/validation-2026-10.md) |
 

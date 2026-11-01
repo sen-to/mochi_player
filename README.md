@@ -208,6 +208,8 @@ windows/ macos/ 各平台 runner
 
 ## 🤝 参与贡献
 
+项目展示网站源码位于 [`site/`](site/)，本地预览与 GitHub Pages 发布方式见[项目网站指南](docs/guides/project-website.md)。
+
 欢迎通过 Issue 反馈问题、提出功能建议，或提交 Pull Request。提交前请确保格式化、静态检查和测试均通过。
 
 架构说明、平台构建与测试指南、技术决策记录见[开发者文档](docs/README.md)。
