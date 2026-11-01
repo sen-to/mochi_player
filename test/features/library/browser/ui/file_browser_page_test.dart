@@ -15,15 +15,13 @@ import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  testWidgets(
-      '选择来源、返回和外部失效不会留下重复的页面选择状态', (tester) async {
+  testWidgets('选择来源、返回和外部失效不会留下重复的页面选择状态', (tester) async {
     tester.view.physicalSize = const Size(1200, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final registry = StorageAdapterRegistry([_Adapter()]);
-    final browser = FileBrowserProvider(
-        storageAdapterRegistry: registry, readCredentials: (_) async => null);
+    final browser = FileBrowserProvider(storageAdapterRegistry: registry, readCredentials: (_) async => null);
     final sources = StorageSourcesService(
       repository: _Repository(),
       registry: registry,
@@ -52,16 +50,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(tester
-        .widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar))
-        .showDirectoryControls, isFalse);
+    expect(tester.widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar)).showDirectoryControls, isFalse);
 
     await tester.tap(find.text(_source.name));
     await tester.pumpAndSettle();
     expect(find.text('Movie.mkv'), findsOneWidget);
-    expect(tester
-        .widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar))
-        .showDirectoryControls, isTrue);
+    expect(tester.widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar)).showDirectoryControls, isTrue);
 
     // 根目录的返回动作应清除 Provider 选择，页面无需下一帧同步一份本地状态。
     tester.widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar)).onBack();
@@ -75,25 +69,19 @@ void main() {
     browser.invalidateSource(_source.id);
     await tester.pumpAndSettle();
     expect(find.text('Movie.mkv'), findsNothing);
-    expect(tester
-        .widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar))
-        .showDirectoryControls, isFalse);
+    expect(tester.widget<FileBrowserToolbar>(find.byType(FileBrowserToolbar)).showDirectoryControls, isFalse);
     expect(tester.takeException(), isNull);
   });
 }
 
-const _source = StorageSource(id: 'nas',
-    name: '测试来源',
-    type: StorageSourceType.smb,
-    endpoint: 'smb://nas/Media');
+const _source = StorageSource(id: 'nas', name: '测试来源', type: StorageSourceType.smb, endpoint: 'smb://nas/Media');
 
 class _Adapter implements StorageAdapter {
   @override
   StorageSourceType get type => StorageSourceType.smb;
 
   @override
-  Future<StorageConnection> connect(StorageSource source,
-      StorageCredentials? credentials) async => _Connection();
+  Future<StorageConnection> connect(StorageSource source, StorageCredentials? credentials) async => _Connection();
 }
 
 class _Connection implements StorageConnection {
@@ -101,13 +89,9 @@ class _Connection implements StorageConnection {
   StorageSource get source => _source;
 
   @override
-  Future<List<StorageEntry>> readDirectory(String path) async =>
-      const [
-        StorageEntry(name: 'Movie.mkv',
-            isDirectory: false,
-            size: 1024,
-            modifiedAt: null),
-      ];
+  Future<List<StorageEntry>> readDirectory(String path) async => const [
+    StorageEntry(name: 'Movie.mkv', isDirectory: false, size: 1024, modifiedAt: null),
+  ];
 
   @override
   Future<void> close() async {}
@@ -118,15 +102,13 @@ class _Repository implements StorageSourceRepository {
   Future<List<StorageSource>> getAll() async => const [_source];
 
   @override
-  Future<StorageSource?> getById(String sourceId) async =>
-      sourceId == _source.id ? _source : null;
+  Future<StorageSource?> getById(String sourceId) async => sourceId == _source.id ? _source : null;
 
   @override
   Future<StorageCredentials?> readCredentials(String sourceId) async => null;
 
   @override
-  Future<void> save(StorageSource source, {StorageCredentials? credentials}) =>
-      throw UnimplementedError();
+  Future<void> save(StorageSource source, {StorageCredentials? credentials}) => throw UnimplementedError();
 
   @override
   Future<bool> delete(String sourceId) => throw UnimplementedError();

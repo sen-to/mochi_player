@@ -10,8 +10,7 @@ import 'package:mochi_player/features/library/domain/media_file_kind.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 
 void main() {
-  testWidgets('handles transient layout heights smaller than the summary', (
-      tester) async {
+  testWidgets('handles transient layout heights smaller than the summary', (tester) async {
     final item = FileBrowserEntry(
       path: '/movie.mkv',
       name: 'movie.mkv',
@@ -36,8 +35,7 @@ void main() {
               totalItemCount: 1,
               isFiltered: false,
               onItemTap: (_) {},
-              scrollStorageKey: const PageStorageKey<String>(
-                  'test-file-browser-list'),
+              scrollStorageKey: const PageStorageKey<String>('test-file-browser-list'),
             ),
           ),
         ),
@@ -62,8 +60,7 @@ void main() {
               totalItemCount: 1,
               isFiltered: false,
               onItemTap: (_) {},
-              scrollStorageKey: const PageStorageKey<String>(
-                  'test-file-browser-list'),
+              scrollStorageKey: const PageStorageKey<String>('test-file-browser-list'),
             ),
           ),
         ),
@@ -76,14 +73,13 @@ void main() {
   testWidgets('accounts for dividers when sizing a short list', (tester) async {
     final items = List.generate(
       2,
-          (index) =>
-          FileBrowserEntry(
-            path: '/folder-$index',
-            name: 'folder-$index',
-            kind: MediaFileKind.directory,
-            size: 0,
-            modifiedAt: null,
-          ),
+      (index) => FileBrowserEntry(
+        path: '/folder-$index',
+        name: 'folder-$index',
+        kind: MediaFileKind.directory,
+        size: 0,
+        modifiedAt: null,
+      ),
     );
 
     await tester.pumpWidget(
@@ -100,17 +96,14 @@ void main() {
             totalItemCount: items.length,
             isFiltered: false,
             onItemTap: (_) {},
-            scrollStorageKey: const PageStorageKey<String>(
-                'test-file-browser-list'),
+            scrollStorageKey: const PageStorageKey<String>('test-file-browser-list'),
           ),
         ),
       ),
     );
 
     expect(
-      tester
-          .getSize(find.byType(FileBrowserList))
-          .height,
+      tester.getSize(find.byType(FileBrowserList)).height,
       FileBrowserList.headerHeight +
           2 * FileBrowserList.borderWidth +
           FileBrowserList.dividerHeight +
