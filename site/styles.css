@@ -257,8 +257,7 @@ h2 {
 }
 .gallery figure img {
   width:100%;
-  height:auto;
-  aspect-ratio:3/2
+  height:auto
 }
 .gallery figcaption {
   font-size:12px;

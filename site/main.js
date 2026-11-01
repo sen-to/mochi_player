@@ -19,6 +19,8 @@ gallery.addEventListener('click', (event) => {
   const next = new Image();
   next.onload = () => {
     if (currentRequest !== requestId) return;
+    image.width = next.naturalWidth;
+    image.height = next.naturalHeight;
     image.src = next.src;
     image.alt = previews[selected][0];
     caption.textContent = previews[selected][1];

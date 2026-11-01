@@ -14,6 +14,6 @@ assets = output / "assets"
 assets.mkdir()
 shutil.copy2(root / "assets/branding/mochi_app_icon.svg", assets)
 shutil.copytree(root / "docs/images/screenshots", assets / "screenshots",
-                ignore=shutil.ignore_patterns(".*"))
+                ignore=shutil.ignore_patterns(".*", "*.png"))
 (output / ".nojekyll").touch()
 print(f"网站已生成：{output}")

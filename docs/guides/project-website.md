@@ -15,6 +15,8 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory build/site
 
 打开 `http://127.0.0.1:8765`。修改后重新执行组装并刷新页面。组装只重建已忽略的 `build/site`，从 `assets/branding/` 与 `docs/images/screenshots/` 复制素材，不维护第二套截图。所有站内资源使用相对路径，适配 GitHub Pages 的仓库子路径。
 
+截图发布使用同名 WebP，PNG 原始截图不复制到网站产物。当前截图保留原始分辨率，以 WebP 质量 90 编码，窗口四角外部使用透明通道；播放截图为 2560×1440，其他截图为 2400×1600，画廊按图片实际比例展示。
+
 验证 JavaScript 语法、差异格式以及生成页面的资源链接：
 
 ```bash
