@@ -157,7 +157,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> close() => _closing ??= super.close();
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -170,16 +170,11 @@ class AppDatabase extends _$AppDatabase {
   );
 
   Future<void> _initializeSchema(Migrator m) async {
-    // 跨独立连接串行执行首次创建与开发库重建。
+    // 跨独立连接串行执行首次创建，并在持锁后复查版本。
     await customStatement('BEGIN IMMEDIATE');
     try {
       final version = (await customSelect('PRAGMA user_version').getSingle()).read<int>('user_version');
-      if (version == 1) {
-        // 尚无已发布的第一版用户数据，因此直接移除旧开发库结构，不复制数据。
-        for (final name in ['media_files', 'episodes', 'seasons', 'movies', 't_v_shows', 'storage_sources']) {
-          await m.deleteTable(name);
-        }
-      } else if (version != 0 && version != schemaVersion) {
+      if (version != 0 && version != schemaVersion) {
         throw StateError('Unsupported database version: $version');
       }
       if (version != schemaVersion) {

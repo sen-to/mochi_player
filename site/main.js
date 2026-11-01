@@ -1,3 +1,27 @@
+// 主题偏好归网站所有；存储不可用时仍可在当前页面切换。
+const themeButton = document.querySelector('.theme-toggle');
+const systemTheme = window.matchMedia('(prefers-color-scheme: light)');
+let savedTheme;
+try { savedTheme = localStorage.getItem('mochi-site-theme'); } catch (_) { /* 使用系统主题。 */ }
+if (savedTheme !== 'light' && savedTheme !== 'dark') savedTheme = null;
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const nextLabel = theme === 'dark' ? '切换到浅色模式' : '切换到深色模式';
+  themeButton.setAttribute('aria-label', nextLabel);
+  themeButton.title = nextLabel;
+  themeButton.querySelector('.theme-icon').textContent = theme === 'dark' ? '☼' : '☾';
+  document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#101014' : '#faf9fc';
+}
+applyTheme(savedTheme || (systemTheme.matches ? 'light' : 'dark'));
+themeButton.hidden = false;
+themeButton.addEventListener('click', () => {
+  savedTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(savedTheme);
+  try { localStorage.setItem('mochi-site-theme', savedTheme); } catch (_) { /* 不影响本次切换。 */ }
+});
+systemTheme.addEventListener('change', (event) => {
+  if (!savedTheme) applyTheme(event.matches ? 'light' : 'dark');
+});
 // 截图交互归网站页面所有；加载失败时保留当前截图，所有预览素材复用仓库文档。
 const gallery = document.querySelector('[data-gallery]');
 const image = document.querySelector('#gallery-image');

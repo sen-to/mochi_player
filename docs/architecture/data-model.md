@@ -22,7 +22,7 @@
 
 `MediaCardVO` 是批量查询后的展示投影，`MediaDetailVO` 是详情快照。转换由各自 Mapper 完成，VO 只保存字段；不把表记录或请求状态塞进 VO。
 
-数据库版本为 schema 2。[兼容测试](../../test/core/data/database/schema_v2_compatibility_test.dart) 从 schema 快照建库，验证结构、JSON、枚举、凭据和观看状态。模型术语见 [编码指南](../guides/code-organization.md#模型术语与数据访问层)。
+数据库版本为 schema 1。[兼容测试](../../test/core/data/database/schema_compatibility_test.dart) 从 schema 快照建库，验证结构、JSON、枚举、凭据和观看状态。模型术语见 [编码指南](../guides/code-organization.md#模型术语与数据访问层)。
 
 ## 表概览
 
@@ -37,7 +37,7 @@
 
 六表分别表达配置来源、实际文件、电影、剧、季、集。元数据与实际文件分开，使同一标题可对应多个来源和文件版本；演员 / 类型暂不拆表，因为当前只用于展示，不提供按演员关联查询。
 
-## 字段字典（schema 2）
+## 字段字典（schema 1）
 
 下表列出全部持久化字段，SQL 列名与 Dart 属性名分别标注。`NULL` 为“否”表示 `NOT NULL`；`PK` 为主键，`FK` 为外键。组合约束以表后的完整定义为准，不将其中某个字段误标为单列唯一。
 
@@ -373,16 +373,16 @@ SQL 完成列表搜索、排序、收藏去重和每标题续播目标选择，�
 
 [sqlite_setup.dart](../../lib/core/data/database/sqlite_setup.dart) 启用 WAL、5 秒 busy timeout 并注册 `library_normalize`；首次切换 WAL 锁竞争限时重试。首次建表在 `BEGIN IMMEDIATE` 写锁内复查 `user_version` 并原子提交。生产共享连接仍保留这些并发安全措施。
 
-项目尚无 Release，当前 `schemaVersion = 2`；打开版本 1 的 SQLite 开发库时，在写锁内原子删除六张旧表并按新结构重建，不搬运数据，媒体源、元数据、进度和收藏全部重置，需要重新配置与扫描。SharedPreferences 设置和图片缓存不在这次重建范围内。版本复查可防止并发打开重复重建；其他版本不自动清空，拒绝未知版本转换。
+当前 `schemaVersion = 1`，首次创建时在写锁内复查版本，防止并发打开重复建表。未知版本不自动清空，拒绝转换。
 
-生成代码与 [schema 快照](../../drift_schemas/) 入库；版本 1 快照保留为历史基线。修改表定义执行：
+生成代码与[当前 schema 快照](../../drift_schemas/drift_schema.json)入库；数据库内部版本为 1。修改表定义时先更新版本和迁移策略，再执行：
 
 ```bash
 fvm dart run build_runner build
-fvm dart run drift_dev schema dump lib/core/data/database/app_database.dart drift_schemas/
+fvm dart run drift_dev schema dump lib/core/data/database/app_database.dart drift_schemas/drift_schema.json
 ```
 
-SQLite schema 变化需提升版本，并提供数据迁移策略及回归测试。
+生成兼容测试辅助代码时，drift 要求输入文件名带版本号：将快照复制到临时目录并命名为 `drift_schema_v1.json`，再执行 `fvm dart run drift_dev schema generate <临时目录> test/generated/schema/`。后续版本使用对应版本号。SQLite schema 变化需提升版本，并提供数据迁移策略及回归测试。
 
 媒体源用户名 / 密码当前是 SQLite 普通文本，尚未接入系统凭据存储。语言偏好由共享 `AppLocaleProvider` 保存为 SharedPreferences 的 `app_language`（`system / zh / en`）。主题和播放器设置由各自服务保存。
 
@@ -391,5 +391,3 @@ SQLite schema 变化需提升版本，并提供数据迁移策略及回归测试
 - 无引用元数据回收及凭据存储；引用约束已实施。
 - 大库搜索、扩展 LIMIT 与索引的实测容量基线。
 - TMDB 请求失败后的退避与重试策略；请求失败和搜索未命中已经区分，失败保留已有关系。
-
-数据层验证范围及平台验收结果见 [测试指南](../guides/testing.md)。

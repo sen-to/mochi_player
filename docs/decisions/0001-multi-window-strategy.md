@@ -14,7 +14,7 @@
 
 2026-10-12～13，macOS 原型基于提交 `b314ad53146b1bde55b60197a35183fb530aac0a` 的 [官方 multiple_windows 示例](https://github.com/flutter/flutter/tree/b314ad53146b1bde55b60197a35183fb530aac0a/examples/multiple_windows)，使用单个 FlutterEngine、同一 isolate 和独立视图 ID。Debug / Release 验证了双窗口、共享偏好、窗口操作、关闭重开及 RGB AVI 播放；人工反馈确认中文输入、复制粘贴、播放期间主窗口响应和整体退出。
 
-原型未覆盖 Windows、SQLite、真实编码 / HDR、长期运行及无障碍。视图集合包含隐式视图 0，计数需区分引擎视图与可见窗口；实验中出现过 frame-time clamping 日志。原型源码与临时日志未入库，当前可执行验证入口见 [原生冒烟](../guides/testing.md#原生冒烟)。
+原型未覆盖 Windows、SQLite、真实编码 / HDR、长期运行及无障碍。视图集合包含隐式视图 0，计数需区分引擎视图与可见窗口；实验中出现过 frame-time clamping 日志。原型源码与临时日志未入库。
 
 当时 stable `3.47.7`（`abaf9c523780a608bd46686fd5e53740a07077f8`）未开放同一实验窗口能力，因此选择固定开发通道提交。依据为 [官方实验公告](https://flutter.dev/blog/desktop-windowing-apis) 与 SDK 的 [功能定义](https://github.com/flutter/flutter/blob/d3b14c876900e553bc736ca19295fc09e3853e8e/packages/flutter_tools/lib/src/features.dart)；升级时按实际 SDK 重新核对。
 
@@ -59,7 +59,7 @@ mini 复用播放器窗口与播放会话，延续字幕、切集及现有控制
 
 ## 相关文档
 
-[当前状态](../status.md)、[运行时所有权](../architecture/overview.md#运行时一个引擎两个视图一个共享数据库连接)、[播放生命周期](../architecture/playback.md#生命周期与退出)、[macOS 适配](../guides/build-macos.md)、[Windows 适配](../guides/build-windows.md)、[测试证据](../guides/testing.md#验证基线)。
+[运行时所有权](../architecture/overview.md#运行时一个引擎两个视图一个共享数据库连接)、[播放生命周期](../architecture/playback.md#生命周期与退出)、[macOS 适配](../guides/build-macos.md)、[Windows 适配](../guides/build-windows.md)。
 
 ## Revisit trigger（重估触发条件）
 

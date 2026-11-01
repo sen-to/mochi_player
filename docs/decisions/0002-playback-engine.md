@@ -58,9 +58,7 @@
 
 ## 相关文档
 
-- [实施状态](../status.md)：完成度与待办。
 - [引擎门面与后端实现](../architecture/playback.md)：当前代码机制。
-- [测试与验收](../guides/testing.md)：验证证据与操作清单；逐轮记录见 [验证历史](../history/validation-2026-10.md)。
 
 ## Alternatives（备选与否决理由）
 

@@ -23,7 +23,7 @@ Windows 可执行文件通过 `windows/runner/Runner.rc` 嵌入 `resources/app_i
 
 固定 SDK `5ba8961b51` 的 `HostWindow::InitializeFlutterView` 未保存创建参数 `box_constraints`，使 `WM_GETMINMAXINFO` 使用无限制约束。`DesktopWindowService` 创建官方控制器后再次调用 `setConstraints`，让 `HostWindow::SetConstraints` 保存原生约束，不修改 SDK。尺寸值与 mini 恢复规则统一见 [窗口模式](../architecture/playback.md#窗口模式)。
 
-升级 SDK 后核对初始化缺陷是否已修复，再决定移除重复设置；执行 [尺寸冒烟](testing.md#原生窗口尺寸) 检查原生约束、视图隔离、mini 切换与关闭重开。
+升级 SDK 后核对初始化缺陷是否已修复，再决定移除重复设置；运行 `fvm flutter run -d windows -t tool/smoke/window_constraints_smoke.dart` 检查原生约束、视图隔离、mini 切换与关闭重开。
 
 ### 临时关闭 Windows 无障碍语义树
 
@@ -45,10 +45,8 @@ Windows 窗口缩放期间出现 `AccessibilityBridge::CreateRemoveReparentedNod
 
 ## CI 与验收
 
-CI 按 `.fvmrc` 检出 SDK 并下载预编译引擎，执行项目检查、测试与 Windows Release 构建，产物保留 14 天。检查步骤和静态分析规则见 [测试指南](testing.md#ci-与后续验证)。
-
-构建与验收结果见 [验证基线](testing.md#验证基线)，待办见 [实施状态](../status.md)，历史故障见 [验证历史](../history/validation-2026-10.md)。
+CI 按 `.fvmrc` 检出 SDK 并下载预编译引擎，执行项目检查、测试与 Windows Release 构建，产物保留 14 天。
 
 ## 构建前检查
 
-首次检出或修改 ARB 后，先执行 [统一准备与检查步骤](testing.md#推荐运行顺序)，再运行 Windows 构建命令。生成目录不提交，配置与语言边界见 [本地化](../architecture/localization.md)。
+首次检出或修改 ARB 后，先执行 [README 检查步骤](../../README.md)，再运行 Windows 构建命令。生成目录不提交，配置与语言边界见 [本地化](../architecture/localization.md)。

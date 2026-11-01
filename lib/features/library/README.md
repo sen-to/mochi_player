@@ -56,4 +56,4 @@ metadata/application/metadata_matcher.dart        ID 与标题匹配用例
 - 独立 SQL 搜索和续播参考实现只位于 `test/support`。测试按实际职责放在 `test/features/library`，不新增旧路径导出或兼容别名。
 
 完整规则见 [编码指南](../../../docs/guides/code-organization.md)
-，命令与证据见 [测试指南](../../../docs/guides/testing.md)。
+，检查命令见 [README 检查步骤](../../../README.md)。

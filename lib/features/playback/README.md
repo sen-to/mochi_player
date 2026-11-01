@@ -26,4 +26,4 @@
 测试与实现镜像放在 `test/features/playback/`；字幕行为和异步竞争在 `ui/controllers/player_subtitle_controller_test.dart`
 ，引擎 / 会话接线在同目录的 `playback_engine_boundary_test.dart`
 。完整所有权及平台限制见 [播放架构](../../../docs/architecture/playback.md)
-，命令见 [测试指南](../../../docs/guides/testing.md)。
+，命令见 [README 检查步骤](../../../README.md)。

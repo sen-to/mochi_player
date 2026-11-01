@@ -18,14 +18,8 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-# Ignore this machine-specific workspace setting; shared launch/tasks can still be committed.
-.vscode/settings.json
-# Local TRAE/VS Code run configuration.
-.vscode/launch.json
+# VS Code local configuration
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/

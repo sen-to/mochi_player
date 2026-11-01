@@ -139,23 +139,16 @@ void main() {
     }
   });
 
-  test('v1 development reset is atomic and safe for concurrent openers', () async {
-    final dir = await Directory.systemTemp.createTemp('mochi-schema-reset-');
+  test('initial schema creation is safe for concurrent openers', () async {
+    final dir = await Directory.systemTemp.createTemp('mochi-schema-create-');
     final path = File('${dir.path}/library.sqlite');
-    final legacy = sqlite.sqlite3.open(path.path);
-    for (final name in ['media_files', 'movies', 't_v_shows', 'seasons', 'episodes', 'storage_sources']) {
-      legacy.execute('CREATE TABLE $name (legacy_value TEXT)');
-      legacy.execute("INSERT INTO $name VALUES ('old development data')");
-    }
-    legacy.execute('PRAGMA user_version = 1');
-    legacy.close();
     AppDatabase open() => AppDatabase(NativeDatabase.createInBackground(path, setup: configureSqlite));
     final first = open();
     final second = open();
     try {
       await Future.wait([first.init(), second.init()]);
       expect(await first.getStorageSources(), isEmpty);
-      expect((await first.customSelect('PRAGMA user_version').getSingle()).read<int>('user_version'), 2);
+      expect((await first.customSelect('PRAGMA user_version').getSingle()).read<int>('user_version'), 1);
       await first.saveStorageSource(source('nas'));
       await first.saveScannedFiles([file('/new')]);
       expect(await second.getMediaFile('nas', '/new'), isNotNull);

@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#101013">
+    <meta name="theme-color" content="#101014">
     <meta name="google-site-verification" content="HNel-hWiVUy2oDTr5h7wlV2DJ09YJxSljHu_DO7vrCA">
-    <meta name="description" content="Mochi Player 是一款面向 macOS 与 Windows 的媒体库播放器，支持本地、WebDAV 与 SMB 媒体源，通过 TMDB 整理电影与剧集，让整理、挑选和观看影片更舒服。">
-    <meta property="og:title" content="Mochi Player · 你的收藏，你的影院。">
-    <meta property="og:description" content="连接本地与网络存储，让整理、挑选和观看影片更舒服。探索 macOS 与 Windows 媒体库播放器 Mochi Player。">
+    <meta name="description" content="Mochi Player 是一款面向 macOS 与 Windows 的媒体库播放器，支持本地、WebDAV 与 SMB 媒体源，通过 TMDB 整理电影与剧集，发现今晚想看的那一部。">
+    <meta property="og:title" content="Mochi Player · 收藏那么多，今晚看哪部？">
+    <meta property="og:description" content="连接本地与网络存储，整理电影与剧集，发现今晚想看的那一部。探索 macOS 与 Windows 媒体库播放器 Mochi Player。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://sen-to.github.io/mochi_player/">
     <title>Mochi Player｜macOS 与 Windows 媒体库播放器</title>
@@ -29,82 +29,52 @@
           Player
         </span>
       </a>
-      <nav aria-label="主导航">
-        <a href="#experience">
-          体验
-        </a>
-        <a href="#sources">
-          媒体源
-        </a>
-        <a href="#start">
-          开始使用
-        </a>
+      <nav class="header-actions" aria-label="主导航">
+        <a class="github-link" href="https://github.com/sen-to/mochi_player">GitHub <span aria-hidden="true">↗</span></a>
+        <button class="theme-toggle" type="button" aria-label="切换到浅色模式" title="切换到浅色模式" hidden><span class="theme-icon" aria-hidden="true">☼</span></button>
+        <a class="button nav-download" href="#download">下载</a>
       </nav>
-      <a class="github-link" href="https://github.com/sen-to/mochi_player">
-        GitHub
-        <span aria-hidden="true">
-          ↗
-        </span>
-      </a>
     </header>
     <main id="main">
-      <section class="hero wrap">
-        <p class="eyebrow">
-          <span class="status-dot">
-          </span>
-          为你的私人影片库而生
-        </p>
-        <h1><span class="hero-line">你的收藏<span class="hero-punctuation">，</span></span><span class="hero-line accent">你的影院<span class="hero-punctuation">。</span></span></h1>
-        <p class="hero-description">
-          连接本地与网络存储，
-          <br>
-          让整理、挑选和观看影片更舒服。
-        </p>
-        <div class="actions">
-          <a class="button primary" href="#download">
-            <span aria-hidden="true">
-              ↓
-            </span>
-            获取 Mochi Player
-          </a>
-          <a class="button secondary" href="#experience">
-            先看一看
-            <span aria-hidden="true">
-              ↘
-            </span>
-          </a>
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Mochi Player · 开源媒体库播放器</p>
+          <h1 id="hero-title" aria-label="收藏那么多，今晚看哪部？"><span class="hero-line">收藏那么多，</span><span class="hero-line accent">今晚看哪部？</span></h1>
+          <p class="hero-description">
+            <span>把本地、NAS 和支持 WebDAV 的网盘里的电影、剧集整理成海报墙。</span>
+            <span>每日推荐帮你挑一部，播放进度帮你接着看。</span>
+          </p>
+          <div class="actions">
+            <a class="button primary" href="#download">
+              <span aria-hidden="true">
+                ↓
+              </span>
+              下载 Mochi Player
+            </a>
+          </div>
+          <ul class="hero-meta" aria-label="产品特点">
+            <li>macOS &amp; Windows</li>
+            <li>免费开源</li>
+          </ul>
         </div>
-        <ul class="hero-meta" aria-label="产品特点">
-          <li>macOS &amp; Windows</li>
-          <li>本地与网络影片</li>
-          <li>开源</li>
-        </ul>
         <figure class="hero-preview">
+          <div class="preview-label" aria-hidden="true"><span>YOUR COLLECTION. YOUR CINEMA.</span><span>为每一次打开，找到好故事</span></div>
           <img src="./assets/screenshots/home.webp" width="2400" height="1600" alt="Mochi Player 首页，展示影片推荐、继续观看与最近添加的收藏" fetchpriority="high">
-          <figcaption>
-            <span class="status-dot">
-            </span>
-            YOUR COLLECTION. YOUR CINEMA.
-          </figcaption>
+          <figcaption>首页 · 每日推荐与继续观看</figcaption>
         </figure>
       </section>
       <section id="experience" class="section wrap">
         <div class="section-heading">
           <div>
             <p class="eyebrow">
-              01 / THE EXPERIENCE
+              01 / 浏览你的媒体库
             </p>
             <h2>
-              不止打开文件。
+              少翻文件夹，
               <br>
-              重新遇见你的收藏。
+              多看一部好电影。
             </h2>
           </div>
-          <p>
-            从今晚看什么，到上次看到哪。
-            <br>
-            Mochi 让每一步都自然一点。
-          </p>
         </div>
         <div class="gallery" data-gallery>
           <div class="gallery-tabs" aria-label="选择界面预览" hidden>
@@ -125,7 +95,7 @@
             </button>
           </div>
           <figure>
-            <img id="gallery-image" src="./assets/screenshots/movies.webp" width="2400" height="1600" alt="电影库的海报墙界面" loading="lazy">
+            <div class="gallery-stage"><img id="gallery-image" src="./assets/screenshots/movies.webp" width="2400" height="1600" alt="电影库的海报墙界面" loading="lazy"></div>
             <figcaption id="gallery-caption" aria-live="polite">
               让文件夹里的片名，变成一眼就想点开的海报墙。
             </figcaption>
@@ -133,33 +103,27 @@
         </div>
         <div class="feature-row">
           <article>
-            <span class="feature-number">
-              01
-            </span>
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 8h4M3 16h4M17 8h4M17 16h4"/></svg>
             <h3>
-              收藏，也有了封面
+              片名之外，还有故事
             </h3>
             <p>
-              通过 TMDB 补全海报、简介、评分与演职员信息。电影与剧集，各归其位。
+              自动补全海报、简介、评分与演职员信息。电影与剧集，各归其位。
             </p>
           </article>
           <article>
-            <span class="feature-number">
-              02
-            </span>
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-6-4Z"/><path d="m10 8 4 3-4 3Z"/></svg>
             <h3>
-              接着上次的故事
+              没看完的，不用重找
             </h3>
             <p>
               记住播放进度，轻松继续观看。多个文件版本，也能从详情中选择。
             </p>
           </article>
           <article>
-            <span class="feature-number">
-              03
-            </span>
+            <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M6 12h4M14 12h4M6 16h2M12 16h6"/></svg>
             <h3>
-              用舒服的方式观看
+              选好字幕，专心看电影
             </h3>
             <p>
               独立播放窗口、置顶小窗、音轨与字幕选择，还有 0.5×–2× 播放速度。
@@ -171,17 +135,17 @@
         <div class="wrap sources-layout">
           <div>
             <p class="eyebrow">
-              02 / CONNECT YOUR COLLECTION
+              02 / 连接媒体源
             </p>
             <h2>
-              影片在哪里，
+              影片放在哪，
               <br>
-              影院就在哪里。
+              就从哪里开始。
             </h2>
             <p class="section-description">
               本机硬盘、网络存储，或你熟悉的 WebDAV 服务。
               <br>
-              连接已有收藏，开始整理自己的影片库。
+              连接已有收藏，整理媒体库时影片仍保留在原来的位置。
             </p>
             <a class="text-link" href="https://github.com/sen-to/mochi_player#-开始使用">
               查看媒体源配置
@@ -193,7 +157,7 @@
           <div class="source-list">
             <article>
               <span class="source-symbol" aria-hidden="true">
-                ▤
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3Z"/></svg>
               </span>
               <div>
                 <h3>
@@ -203,13 +167,10 @@
                   本机磁盘与系统已挂载的目录。
                 </p>
               </div>
-              <span class="source-tag">
-                LOCAL
-              </span>
             </article>
             <article>
               <span class="source-symbol" aria-hidden="true">
-                ☁
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a5 5 0 1 1 .5-10A6 6 0 0 1 19 10a4 4 0 0 1-1 8H7Z"/></svg>
               </span>
               <div>
                 <h3>
@@ -219,13 +180,10 @@
                   标准 WebDAV，包括 OpenList / AList。
                 </p>
               </div>
-              <span class="source-tag">
-                WEBDAV
-              </span>
             </article>
             <article>
               <span class="source-symbol" aria-hidden="true">
-                ⌘
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="7" rx="2"/><rect x="4" y="14" width="16" height="7" rx="2"/><path d="M8 6.5h.01M8 17.5h.01M12 7h4M12 18h4"/></svg>
               </span>
               <div>
                 <h3>
@@ -235,29 +193,37 @@
                   浏览、扫描与转发播放；真实 NAS 兼容性待验收。
                 </p>
               </div>
-              <span class="source-tag">
-                SMB
-              </span>
             </article>
           </div>
         </div>
+      </section>
+      <section class="watch-section wrap" aria-labelledby="watch-title">
+        <div class="watch-copy">
+          <p class="eyebrow">03 / 把时间留给电影</p>
+          <h2 id="watch-title">灯暗下来，<br>故事开始了。</h2>
+          <p class="section-description">独立播放窗口，让画面占据主角。<br>音轨、字幕与播放速度，都在顺手的位置。</p>
+          <p class="watch-note">支持置顶小窗 · 0.5×–2× 倍速 · 记忆播放进度</p>
+        </div>
+        <figure>
+          <img src="./assets/screenshots/playback.webp" width="2560" height="1440" alt="Mochi 独立播放窗口，底部提供播放、音轨和字幕控制" loading="lazy">
+        </figure>
       </section>
       <section id="start" class="section wrap">
         <div class="section-heading">
           <div>
             <p class="eyebrow">
-              03 / MAKE YOURSELF AT HOME
+              04 / 从这里开始
             </p>
             <h2>
-              你的第一场放映，
+              三步，
               <br>
-              从这里开始。
+              开始看电影。
             </h2>
           </div>
           <p>
-            准备好收藏。
+            准备 TMDB API Key，连接媒体源。
             <br>
-            剩下的，交给 Mochi 慢慢整理。
+            扫描完成，就能浏览与播放。
           </p>
         </div>
         <ol class="steps">
@@ -300,17 +266,18 @@
         <div class="download-heading">
           <img src="./assets/mochi_app_icon.svg" alt="" width="64" height="64" loading="lazy">
           <p class="eyebrow">
-            LET THE MOVIE BEGIN
+            开发预览 · macOS &amp; Windows
           </p>
           <h2>
-            今晚，选一部喜欢的。
+            今晚，真的看一部。
           </h2>
           <p>
-            获取 Mochi Player 开发预览，给你的收藏一个新家。
+            下载 Mochi Player 开发预览，开始整理你已有的影片。
           </p>
         </div>
         <div class="download-options">
           <article>
+            <svg class="platform-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
             <h3>
               macOS
             </h3>
@@ -330,6 +297,7 @@
             </small>
           </article>
           <article>
+            <svg class="platform-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h7v7H3ZM14 4h7v7h-7ZM3 15h7v7H3ZM14 15h7v7h-7Z"/></svg>
             <h3>
               Windows
             </h3>
@@ -344,8 +312,6 @@
             </a>
             <small>
               产物：mochi-player-windows-x64
-              <br>
-              原生交互仍待验收。
             </small>
           </article>
         </div>
@@ -357,7 +323,7 @@
       </section>
       <section class="faq wrap">
         <p class="eyebrow">
-          A FEW MORE THINGS
+          关于 MOCHI
         </p>
         <h2>
           你可能还想知道
@@ -414,25 +380,25 @@
           </span>
         </a>
         <p>
-          你的收藏，你的影院。
+          收藏那么多，今晚看哪部？
         </p>
       </div>
-      <div class="footer-links">
-        <a href="https://github.com/sen-to/mochi_player">
-          源代码 ↗
-        </a>
-        <a href="https://github.com/sen-to/mochi_player/blob/master/LICENSE">
-          GPL-3.0-or-later
-        </a>
-        <a href="https://github.com/sen-to/mochi_player/blob/master/TRADEMARKS.md">
-          品牌政策
-        </a>
+      <div class="footer-resources">
+        <div class="footer-links">
+          <a href="https://github.com/sen-to/mochi_player">
+            源代码 ↗
+          </a>
+          <a href="https://github.com/sen-to/mochi_player/blob/master/LICENSE">
+            GPL-3.0-or-later
+          </a>
+          <a href="https://github.com/sen-to/mochi_player/blob/master/TRADEMARKS.md">
+            品牌政策
+          </a>
+        </div>
+        <p class="credits">
+          影片元数据由 <a href="https://www.themoviedb.org/">TMDB</a> 提供。
+        </p>
       </div>
-      <p class="credits">
-        影片元数据由 <a href="https://www.themoviedb.org/">TMDB</a> 提供。
-        <br>
-        页面中的影片图像来自应用界面截图，仅用于展示产品体验。
-      </p>
     </footer>
   </body>
 </html>

@@ -1,6 +1,6 @@
 # 本地化
 
-本文说明当前语言状态、文案生成与展示边界。采用官方 gen-l10n 的理由与语言范围见 [ADR 0004](../decisions/0004-i18n-l10n.md)，完成度见 [实施状态](../status.md)。
+本文说明当前语言状态、文案生成与展示边界。采用官方 gen-l10n 的理由与语言范围见 [ADR 0004](../decisions/0004-i18n-l10n.md)。
 
 ## 代码入口
 
@@ -38,4 +38,4 @@
 
 配置以 `l10n.yaml` 和 `pubspec.yaml` 为准：SDK 的 flutter_localizations、`flutter.generate: true`、英文模板、`lib/l10n/generated/` 输出、`nullable-getter: false`。
 
-ARB、配置与调用代码入库，生成目录不入库。首次检出或修改 ARB 后，先完整性检查与生成，再执行静态检查、测试及构建；完整命令统一见 [测试指南](../guides/testing.md#推荐运行顺序)。模板回退可能掩盖缺译，因此生成成功不能代替资源检查。
+ARB、配置与调用代码入库，生成目录不入库。首次检出或修改 ARB 后，先完整性检查与生成，再执行静态检查、测试及构建；完整命令统一见 [README 检查步骤](../../README.md)。模板回退可能掩盖缺译，因此生成成功不能代替资源检查。

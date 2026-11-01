@@ -123,7 +123,7 @@ TMDB Key 由用户自行申请和管理，请不要将自己的 Key 提交到仓
 
 ## 🛠️ 从源码运行
 
-项目通过 FVM 固定 Flutter main 的特定提交（见 [`.fvmrc`](.fvmrc)），启用官方实验单引擎多视图 API。SDK 由 FVM 下载，不需要自行编译引擎；项目开关也适用于 Release。平台验证范围见 [测试指南](docs/guides/testing.md#验证基线)，选型依据见 [ADR 0001](docs/decisions/0001-multi-window-strategy.md)。
+项目通过 FVM 固定 Flutter main 的特定提交（见 [`.fvmrc`](.fvmrc)），启用官方实验单引擎多视图 API。SDK 由 FVM 下载，不需要自行编译引擎；项目开关也适用于 Release。选型依据见 [ADR 0001](docs/decisions/0001-multi-window-strategy.md)。
 
 构建前置条件：
 
@@ -170,9 +170,20 @@ fvm flutter run -d windows
 
 平台构建与排障分别见 [macOS 指南](docs/guides/build-macos.md) 和 [Windows 指南](docs/guides/build-windows.md)。macOS 当前使用 CocoaPods；SPM 设置与迁移条件集中在平台指南中维护。
 
-开始编码先读 [代码组织与新增功能](docs/guides/code-organization.md)，提交前执行 [统一检查步骤](docs/guides/testing.md#推荐运行顺序)。数据库生成与迁移操作见 [数据模型](docs/architecture/data-model.md#连接schema-与凭据)，文案规则见 [本地化](docs/architecture/localization.md)。
+开始编码先读 [代码组织与新增功能](docs/guides/code-organization.md)，提交前执行以下检查：
 
-项目尚未正式发布：旧 SQLite schema 1 开发库升级会重建，媒体源、元数据、进度和收藏重置，需要重新配置与扫描。普通构建不需要重新生成 drift 代码。
+```bash
+fvm flutter pub get
+fvm dart run tool/check_l10n.dart
+fvm dart run tool/check_architecture.dart
+fvm flutter gen-l10n
+fvm flutter analyze --no-fatal-infos
+fvm flutter test
+```
+
+数据库生成与迁移操作见 [数据模型](docs/architecture/data-model.md#连接schema-与凭据)，文案规则见 [本地化](docs/architecture/localization.md)。
+
+普通构建不需要重新生成 drift 代码。
 
 ## 🗂️ 项目结构
 
@@ -213,11 +224,11 @@ windows/ macos/ 各平台 runner
 
 ## 🤝 参与贡献
 
-项目展示网站源码位于 [`site/`](site/)，本地预览与 GitHub Pages 发布方式见[项目网站指南](docs/guides/project-website.md)。
+项目展示网站源码位于 [`site/`](site/)，运行 `python3 tool/build_site.py` 组装后，可用 `python3 -m http.server 8765 --bind 127.0.0.1 --directory build/site` 本地预览；网站变更推送到 `master` 后由 GitHub Actions 发布。
 
 欢迎通过 Issue 反馈问题、提出功能建议，或提交 Pull Request。提交前请确保格式化、静态检查和测试均通过。
 
-架构说明、平台构建与测试指南、技术决策记录见[开发者文档](docs/README.md)。
+架构说明、平台构建指南和技术决策记录见[开发者文档](docs/README.md)。
 
 ## 🙏 致谢
 

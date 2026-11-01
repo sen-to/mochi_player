@@ -27,7 +27,7 @@ macOS 目标开启了 App Sandbox，权限在 [DebugProfile.entitlements](../../
 | `allow-jit` | ✅ | — | Flutter 调试所需 |
 | `network.server` | ✅ | ✅ | SMB 本地 HTTP 回源监听回环端口 |
 
-SMB 回源需要 Debug / Release 均有 `network.server`，服务仍只监听回环地址并检查会话令牌。权限效果与播放证据见 [测试指南](testing.md#验证基线)。
+SMB 回源需要 Debug / Release 均有 `network.server`，服务仍只监听回环地址并检查会话令牌。
 
 ## 窗口外观
 
@@ -43,7 +43,7 @@ SMB 回源需要 Debug / Release 均有 `network.server`，服务仍只监听回
 
 窗口尺寸、mini 按钮显隐与状态恢复统一见 [窗口模式](../architecture/playback.md#窗口模式)。只维护 `contentMinSize`，不另设 `minSize`；[AppKit 文档](https://developer.apple.com/documentation/appkit/nswindow/contentminsize) 说明前者在用户缩放时生效且优先于后者。
 
-原生约束执行 [尺寸冒烟](testing.md#原生窗口尺寸)，再手工拖动窗口边缘；播放冒烟不能替代该项验收，专项结果见 [验证基线](testing.md#验证基线)。窗口交互仍需使用真实视频检查。
+原生约束运行 `fvm flutter run -d macos -t tool/smoke/window_constraints_smoke.dart`，再手工拖动窗口边缘；播放冒烟不能替代该项验收，窗口交互仍需使用真实视频检查。
 
 项目使用固定 main SDK 与项目级 `enable-windowing`，不要改用全局配置。
 
@@ -63,8 +63,6 @@ SMB 回源需要 Debug / Release 均有 `network.server`，服务仍只监听回
 - `objc_ownership` / `CVPixelBufferRef`：来自插件 Swift 视频纹理接口生成的 Objective-C 头文件，属于插件接口与编译器桥接问题。上游 README 也记录了同类警告。本项目保留提示，不修改生成头文件或改变像素缓冲区的所有权语义。[上游说明](https://github.com/media-kit/media-kit#notes)
 - `Using the Impeller rendering backend`：正常渲染后端信息，不是构建警告。
 
-补丁构建记录见 [验证历史](../history/validation-2026-10.md)。
-
 ## 构建命令
 
 ```bash
@@ -74,7 +72,7 @@ fvm flutter build macos --release   # 发布构建
 
 ## 构建前检查
 
-首次检出或修改 ARB 后，先执行 [统一准备与检查步骤](testing.md#推荐运行顺序)，再运行上述构建命令。生成目录不提交，配置与语言边界见 [本地化](../architecture/localization.md)。
+首次检出或修改 ARB 后，先执行 [README 检查步骤](../../README.md)，再运行上述构建命令。生成目录不提交，配置与语言边界见 [本地化](../architecture/localization.md)。
 
 ## macOS CI
 
@@ -82,4 +80,4 @@ fvm flutter build macos --release   # 发布构建
 
 CI 使用临时签名，以 ditto 归档应用并保留执行权限与框架符号链接。产物 `mochi-player-macos` 保留 14 天，下载后解压其中的 `mochi-player-macos.zip`。
 
-CI 产物供构建验证，正式发布仍需签名、公证及原生交互验收。云端结果与门禁设置见 [测试指南](testing.md#ci-与后续验证)。
+CI 产物供构建验证，正式发布仍需签名、公证及原生交互验收。

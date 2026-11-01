@@ -20,7 +20,7 @@
 
 ## 数据兼容性
 
-仅更换 Dart 行类型和边界转换，不修改六表的物理结构。保留 schema 2；用此前导出的 schema 2 创建旧库，再以新数据库实现重开，验证结构、JSON、枚举、凭据和观看状态。已有版本 1 开发库策略不在本次变更中扩大。
+仅更换 Dart 行类型和边界转换，不修改六表的物理结构。该调整没有改变物理结构；当前结构以 schema 1 作为基线，并通过快照测试验证结构、JSON、枚举、凭据和观看状态。
 
 Drift 支持通过数据类命名生成独立行类型；SQL 表使用 `AS` 指定生成记录名称，而 `WITH` 用于既有 Dart 类型。依据：[表定义](https://drift.simonbinder.eu/dart_api/tables/)、[SQL 表与生成类型](https://drift.simonbinder.eu/sql_api/drift_files/)（核对日期 2026-10-27）。
 

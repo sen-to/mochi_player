@@ -18,7 +18,7 @@
 
 ## 直链方案的历史实测依据
 
-2026-10-11 的人工实测反馈记录：所用项目捆绑播放器不能打开 SMB 文件，也不能完成 seek，因此选择本地 HTTP 回源方案。回源的当前完成度与验证范围分别见 [实施状态](../status.md) 和 [测试指南](../guides/testing.md)。
+2026-10-11 的人工实测反馈记录：所用项目捆绑播放器不能打开 SMB 文件，也不能完成 seek，因此选择本地 HTTP 回源方案。
 
 该结论来自人工反馈，记录未附操作系统、服务端版本、样片与日志，不能据此推断所有 libmpv 构建均不支持 SMB。后续更换播放依赖或捆绑产物时，重新记录版本及打开 / seek 验证结果。
 
@@ -53,9 +53,7 @@
 
 ## 相关文档
 
-- [实施状态](../status.md)：完成度与待验收项。
 - [SMB HTTP 回源](../architecture/playback.md#smb-http-回源)、[目标资源所有权](../architecture/playback.md#播放目标资源所有权)：协议、取消与关闭机制。
-- [测试指南](../guides/testing.md)：协议回归、原生冒烟与 NAS 清单；逐轮结果见 [验证历史](../history/validation-2026-10.md)。
 - [macOS 权限](../guides/build-macos.md#沙箱与权限)：回环监听所需的沙箱配置。
 
 ## Alternatives（备选与否决理由）

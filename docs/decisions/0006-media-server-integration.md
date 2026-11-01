@@ -4,7 +4,7 @@
 - **Date**: 2026-10-08
 - **Related**: [多窗口](0001-multi-window-strategy.md)、[播放引擎](0002-playback-engine.md)、[持久化](0003-persistence-migration.md)、[SMB](0005-smb-playback-path.md)
 
-本文是已接受的方向与实施计划，尚未实现；接口名称为规划，不能作为现有 API 使用。完成度见 [实施状态](../status.md)。
+本文是已接受的方向与实施计划，尚未实现；接口名称为规划，不能作为现有 API 使用。
 
 ## Context（背景与约束）
 

@@ -1,5 +1,5 @@
-// 【旧库兼容测试】验证独立 DO 与 Mapper 可以原样打开既有第二版数据库。
-// 基线由历史 schema 快照生成，检查物理结构、JSON、枚举及用户状态均保持。
+// 【数据库兼容测试】验证独立 DO 与 Mapper 可以原样打开当前版本的数据库。
+// 基线由 schema 快照生成，检查物理结构、JSON、枚举及用户状态均保持。
 
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,9 +10,9 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import '../../../generated/schema/schema.dart';
 
 void main() {
-  test('existing schema 2 opens without recreation and retains metadata and playback state', () async {
+  test('existing schema 1 opens without recreation and retains metadata and playback state', () async {
     final verifier = SchemaVerifier(GeneratedHelper(), setup: configureSqlite);
-    final schema = await verifier.schemaAt(2);
+    final schema = await verifier.schemaAt(1);
     final raw = schema.rawDatabase;
     raw.execute('INSERT INTO storage_sources VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
       'nas',
@@ -56,7 +56,7 @@ void main() {
     final service = database;
     addTearDown(service.close);
     await service.init();
-    await verifier.migrateAndValidate(database, 2);
+    await verifier.migrateAndValidate(database, 1);
     await database.validateDatabaseSchema(setup: configureSqlite);
     final file = (await service.getMediaFile('nas', '/movie.mkv'))!;
     expect(file.position, 40000);
@@ -69,6 +69,6 @@ void main() {
     expect((await service.getStorageSource('nas'))!.password, 'secret');
     await service.updateProgress(file, 60000);
     expect((await service.getMediaFile('nas', '/movie.mkv'))!.position, 60000);
-    expect(raw.select('PRAGMA user_version').single['user_version'], 2);
+    expect(raw.select('PRAGMA user_version').single['user_version'], 1);
   });
 }
