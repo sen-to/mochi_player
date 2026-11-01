@@ -53,7 +53,9 @@ SDK 旧 Material/Cupertino 导入的 info 弃用提示暂不导致失败，错�
 
 ### 项目网站专项
 
-2026-11-01，网站与 README 的 slogan 和产品介绍同步后，静态组装、JavaScript 语法与差异格式检查通过；检查站内资源与锚点、唯一 canonical、`og:url` 及 XML 站点地图首页地址一致。浏览器检查新标题在 390px / 1440px 视口的布局，无页面横向溢出。Search Console 所有权验证与提交尚未执行，未确认搜索引擎收录。本次仅修改网站与文档，未重跑 Flutter 回归。
+2026-11-01，验证标记随提交 `104496b` 发布后，Search Console 显示 HTML 标记所有权验证成功；首页请求编入索引已被接受并加入优先抓取队列，索引检查仍显示尚未收录。站点地图已提交，但首次处理与复查均显示“无法抓取”；使用 Googlebot User-Agent 的本机 HTTP 检查返回 200、`application/xml`，XML 解析及首页地址检查通过，域名根目录 `robots.txt` 返回 404。本机请求不等同于 Google 抓取证据，后续状态见[网站指南](project-website.md#搜索引擎)。
+
+2026-11-01，网站与 README 的 slogan 和产品介绍同步后，静态组装、JavaScript 语法与差异格式检查通过；检查站内资源与锚点、唯一 canonical、`og:url` 及 XML 站点地图首页地址一致。浏览器检查新标题在 390px / 1440px 视口的布局，无页面横向溢出。当次只检查页面配置；Search Console 后续验证见上方。本次仅修改网站与文档，未重跑 Flutter 回归。
 
 2026-11-01，本地 `python3 tool/build_site.py`、`node --check site/main.js` 与 `git diff --check` 通过；生成页面的 25 个链接 / 资源引用已检查本地目标与锚点，五张可切换截图均存在。浏览器验证截图切换与 FAQ 展开，390px / 1440px 视口无页面横向溢出，桌面图片加载成功。外部下载链接未逐一访问。GitHub Pages [首次部署](https://github.com/sen-to/mochi_player/actions/runs/41262628836)成功，对应提交 `a05d2fc`；线上主页、样式、脚本、图标与六张截图均返回 HTTP 200。网站维护与发布见[项目网站指南](project-website.md)。本次没有修改 Flutter 代码，未重跑应用回归。
 

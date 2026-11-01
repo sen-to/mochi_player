@@ -43,6 +43,8 @@ git diff --check
 
 页面标题包含产品名称、支持平台与产品类型，description 描述实际能力；canonical 与 `og:url` 均指向 `https://sen-to.github.io/mochi_player/`。[`site/sitemap.xml`](../../site/sitemap.xml) 只列出首页，组装时复制到 `build/site/sitemap.xml`，不将页内锚点列成独立页面。更换网站域名时同步这三个绝对网址。
 
-发布后可在 Google Search Console 添加网址前缀资源 `https://sen-to.github.io/mochi_player/`，完成所有权验证后提交 `sitemap.xml` 并检查首页网址。所有权验证需使用站点管理者的 Google 账号；当前仅完成页面与站点地图配置，尚未提交 Search Console，也未确认搜索引擎收录。上述配置帮助搜索引擎理解网站，不保证收录或排名。
+2026-11-01，已在 Google Search Console 添加网址前缀资源 `https://sen-to.github.io/mochi_player/`，通过 HTML 标记完成所有权验证。首页的 `google-site-verification` 元标记需要长期保留，更换模板时不可移除。首页请求编入索引已被接受并加入优先抓取队列，目前尚未收录。
+
+`https://sen-to.github.io/mochi_player/sitemap.xml` 已提交，但 Search Console 首次处理与复查仍显示“无法抓取”。本机检查其 HTTP 响应为 200、XML 有效且首页地址正确；域名根目录的 `robots.txt` 返回 404。上述检查不能代表 Google 的抓取结果，后续在“站点地图”页面复查状态；若持续失败，再结合实际网址测试排查。不要将提交成功或加入抓取队列描述为已经收录，也无需反复请求同一首页。
 
 规范网址与站点地图依据 Google 的[规范网址说明](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)与[站点地图说明](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)（2026-11-01 核对）。

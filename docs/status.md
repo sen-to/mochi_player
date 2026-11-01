@@ -16,7 +16,7 @@
 | [SMB 播放](architecture/playback.md#smb-http-回源) | dart_smb2 随机读 + 回环 HTTP Range；会话资源释放与快速 seek 请求替换 | 问题报告所用的 NAS / MP4 重测；真实认证、重连、高码率及 Windows 运行 |
 | [媒体服务器计划](decisions/0006-media-server-integration.md) | Emby 优先方向已接受，尚未实现 | 账户、远端条目、播放协商与服务器进度上报 |
 | 发布 | 尚无正式 Release 版本 | 签名 / 公证、安装验收与正式分发；CI 产物不等于正式发布 |
-| [项目网站](guides/project-website.md) | 静态介绍页、真实界面截图切换、媒体源与开始使用说明、双平台 CI 下载入口；GitHub Pages 已启用并完成首次部署：[访问网站](https://sen-to.github.io/mochi_player/) | 后续功能与正式发布时同步网站文案 |
+| [项目网站](guides/project-website.md) | 静态介绍页、真实界面截图切换、媒体源与开始使用说明、双平台 CI 下载入口；GitHub Pages 已上线；Google Search Console 所有权验证通过，首页已请求编入索引：[访问网站](https://sen-to.github.io/mochi_player/) | 等待首页收录；站点地图已提交但显示无法抓取，需后续复查；功能与正式发布时同步网站文案 |
 
 ## 平台与工具链边界
 
