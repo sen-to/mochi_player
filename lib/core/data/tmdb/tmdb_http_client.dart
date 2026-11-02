@@ -10,7 +10,6 @@ import 'package:mochi_player/core/data/tmdb/http_proxy_parser.dart';
 import 'package:mochi_player/core/data/tmdb/tmdb_failure.dart';
 
 class TmdbHttpClient {
-  static const String _defaultApiKey = String.fromEnvironment('TMDB_API_KEY');
   static const String defaultApiBaseUrl = 'https://api.themoviedb.org/3';
   static const Duration _connectTimeout = Duration(seconds: 8);
   static const Duration _sendTimeout = Duration(seconds: 8);
@@ -28,7 +27,9 @@ class TmdbHttpClient {
 
   final Dio _dio;
   final Logger _logger;
-  String _apiKey = _defaultApiKey;
+  // 密钥只来自用户在设置页填写的值：不支持编译期内置，也不在清空时回退。
+  // 内置密钥会被编进安装包，且用户清空后仍能发请求，等于替构建者消耗额度。
+  String _apiKey = '';
   String _baseUrl = defaultApiBaseUrl;
   String _proxyUrl = '';
   bool _proxyEnabled = false;
@@ -36,8 +37,9 @@ class TmdbHttpClient {
   bool get isConfigured => _apiKey.trim().isNotEmpty;
 
   void configure({String? apiKey, String? apiBaseUrl, String? proxyUrl, bool? proxyEnabled}) {
+    // null 表示本次不修改，空串表示显式清空。
     final key = apiKey?.trim();
-    if (key != null) _apiKey = key.isEmpty ? _defaultApiKey : key;
+    if (key != null) _apiKey = key;
     final baseUrl = apiBaseUrl?.trim();
     if (baseUrl != null) {
       _baseUrl = baseUrl.isEmpty ? defaultApiBaseUrl : baseUrl.replaceFirst(RegExp(r'/+$'), '');
