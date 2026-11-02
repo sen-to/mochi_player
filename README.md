@@ -177,6 +177,7 @@ fvm flutter pub get
 fvm dart run tool/check_l10n.dart
 fvm dart run tool/check_architecture.dart
 fvm flutter gen-l10n
+fvm dart format lib test tool
 fvm flutter analyze --no-fatal-infos
 fvm flutter test
 ```
