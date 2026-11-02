@@ -41,4 +41,25 @@ void main() {
     expect(sanitized, contains('smb://%3Credacted%3E@nas.local'));
     expect(sanitized, isNot(contains('secret')));
   });
+
+  test('redacts basic authorization values that carry a scheme', () {
+    // WebDAV 播放使用 Basic，base64 值本身即账号密码。
+    final sanitized = PlaybackLogBuffer.sanitize(
+      'http-header-fields=Authorization: Basic dXNlcjpwYXNzd29yZA==,User-Agent: MochiPlayer/1.0.0',
+    );
+
+    expect(sanitized, isNot(contains('dXNlcjpwYXNzd29yZA')));
+    expect(sanitized, isNot(contains('Basic')));
+    expect(sanitized, contains('Authorization: <redacted>'));
+    expect(sanitized, contains('User-Agent: MochiPlayer/1.0.0'));
+  });
+
+  test('redacts authorization values without a scheme or with assignment syntax', () {
+    final sanitized = PlaybackLogBuffer.sanitize(
+      'Authorization=dXNlcjpwYXNz\nAuthorization: dXNlcjpwYXNz',
+    );
+
+    expect(sanitized, isNot(contains('dXNlcjpwYXNz')));
+    expect(sanitized, 'Authorization=<redacted>\nAuthorization: <redacted>');
+  });
 }
