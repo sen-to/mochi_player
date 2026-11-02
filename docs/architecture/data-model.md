@@ -1,14 +1,21 @@
 # 数据模型与持久化
 
-核对日期：2026-10-27。本文描述当前 schema 与读写语义；选型及迁移边界见 [ADR 0003](../decisions/0003-persistence-migration.md)，规则与算法见 [算法说明](algorithms.md)。
+核对日期：2026-11-02。本文描述当前 schema 与读写语义；选型及迁移边界见 [ADR 0003](../decisions/0003-persistence-migration.md)，规则与算法见 [算法说明](algorithms.md)。
 
 ## 存储分工
 
 | 数据 | 存放位置 | 所有权 |
 | --- | --- | --- |
-| 媒体文件、元数据、进度、收藏、媒体源 | drift + SQLite：应用文档目录的 `mochi_player.sqlite` | 应用共享数据库 |
+| 媒体文件、元数据、进度、收藏、媒体源 | drift + SQLite：应用支持目录的 `mochi_player.sqlite` | 应用共享数据库 |
 | 应用设置、主题、语言偏好 | SharedPreferences | 共享设置 / 主题 / 语言控制器 |
 | TMDB 图片 | flutter_cache_manager 文件缓存，30 天过期、上限 1200 条 | 图片缓存服务 |
+
+桌面端路径由平台插件解析，不硬编码用户目录：
+
+- macOS 沙盒构建的应用支持目录为 `~/Library/Containers/com.Sento.mochiPlayer/Data/Library/Application Support/com.Sento.mochiPlayer/`；Windows 为 `%APPDATA%/com.Sento/Mochi Player/`。
+- 普通设置（含 TMDB Key、代理、播放器选项）、主题与语言使用 SharedPreferences：macOS 由系统 UserDefaults 管理，Windows 为应用支持目录下的 `shared_preferences.json`。
+- 海报与背景图文件位于 `getTemporaryDirectory()/tmdbImageCache/`；缓存索引在应用支持目录中，macOS 为 `tmdbImageCache.db`，Windows 为 `tmdbImageCache.json`。缓存可重新下载；当前 macOS 插件将 `getTemporaryDirectory()` 映射到应用缓存目录（`NSCachesDirectory`），Windows 则使用系统临时目录。
+- 媒体源账号密码随来源记录存入主数据库；视频与外挂字幕保留在原来源位置，不复制到应用数据目录。
 
 [AppDatabase](../../lib/core/data/database/app_database.dart) 统一管理 Dart 表定义、[media_tables.drift](../../lib/core/data/database/media_tables.drift) 中的 SQL 表定义、连接与公共读写，`LibraryCatalogRepository` 提供读取投影。生产连接使用 `NativeDatabase.createInBackground`；主视图与播放器共用同一个后台 SQLite 连接，播放器关闭不关闭数据库，应用退出统一关闭。
 
@@ -372,6 +379,8 @@ SQL 完成列表搜索、排序、收藏去重和每标题续播目标选择，�
 ## 连接、schema 与凭据
 
 [sqlite_setup.dart](../../lib/core/data/database/sqlite_setup.dart) 启用 WAL、5 秒 busy timeout 并注册 `library_normalize`；首次切换 WAL 锁竞争限时重试。首次建表在 `BEGIN IMMEDIATE` 写锁内复查 `user_version` 并原子提交。生产共享连接仍保留这些并发安全措施。
+
+数据库通过 `getApplicationSupportDirectory()` 定位，主库与 `-wal`、`-shm` 辅助文件保存在同一应用支持目录，不作为用户文稿存储。项目尚未发布，不迁移或删除原应用文档目录中的开发数据库；切换路径后重新配置媒体源并扫描。
 
 当前 `schemaVersion = 1`，首次创建时在写锁内复查版本，防止并发打开重复建表。未知版本不自动清空，拒绝转换。
 

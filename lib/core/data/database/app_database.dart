@@ -189,7 +189,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   static Future<QueryExecutor> openConnection() async {
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await getApplicationSupportDirectory();
     return NativeDatabase.createInBackground(
       File(p.join(directory.path, 'mochi_player.sqlite')),
       setup: configureSqlite,
