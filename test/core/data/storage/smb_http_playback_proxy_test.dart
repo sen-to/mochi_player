@@ -123,25 +123,33 @@ void main() {
 
   test('replaces the oldest transfer instead of rejecting the newest seek', () async {
     await proxy.close();
-    final started = Completer<void>();
+    final started = List.generate(5, (_) => Completer<void>());
     final gate = Completer<void>();
     var reads = 0;
     reader = MemorySmbReader(
       Uint8List(10),
       beforeRead: () {
-        if (++reads == 4) started.complete();
+        if (reads < started.length) started[reads].complete();
+        reads++;
         return gate.future;
       },
     );
     proxy = await SmbHttpPlaybackProxy.start(reader);
     final oldest = request();
     final oldestClosed = expectLater(oldest, throwsA(isA<HttpException>()));
-    final pending = List.generate(3, (_) => request());
+    final pending = <Future<HttpClientResponse>>[];
     Future<HttpClientResponse>? newest;
     try {
-      await started.future;
+      // 先确认首个请求进入读取，再发出其余请求，保证被断开的确实是 oldest。
+      await started[0].future.timeout(const Duration(seconds: 5));
+      for (var i = 1; i < 4; i++) {
+        pending.add(request());
+      }
+      await started[3].future.timeout(const Duration(seconds: 5));
       newest = request(range: 'bytes=2-3');
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      // 新请求进入读取且旧连接已断开后才放行，不能用固定延时猜测服务端进度。
+      await started[4].future.timeout(const Duration(seconds: 5));
+      await oldestClosed.timeout(const Duration(seconds: 5));
     } finally {
       gate.complete();
       await oldestClosed;
