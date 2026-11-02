@@ -55,9 +55,7 @@ void main() {
   });
 
   test('redacts authorization values without a scheme or with assignment syntax', () {
-    final sanitized = PlaybackLogBuffer.sanitize(
-      'Authorization=dXNlcjpwYXNz\nAuthorization: dXNlcjpwYXNz',
-    );
+    final sanitized = PlaybackLogBuffer.sanitize('Authorization=dXNlcjpwYXNz\nAuthorization: dXNlcjpwYXNz');
 
     expect(sanitized, isNot(contains('dXNlcjpwYXNz')));
     expect(sanitized, 'Authorization=<redacted>\nAuthorization: <redacted>');
