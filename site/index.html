@@ -4,18 +4,100 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#101014">
+    <script>
+      // 首帧前确定主题，避免浅色系统用户先看到深色再翻转；存储不可用时退回系统偏好。
+      (function () {
+        var saved;
+        try { saved = localStorage.getItem('mochi-site-theme'); } catch (_) { /* 使用系统主题。 */ }
+        var theme = saved === 'light' || saved === 'dark'
+          ? saved
+          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.dataset.theme = theme;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.content = theme === 'dark' ? '#101014' : '#faf9fc';
+      })();
+    </script>
     <meta name="google-site-verification" content="HNel-hWiVUy2oDTr5h7wlV2DJ09YJxSljHu_DO7vrCA">
-    <meta name="description" content="Mochi Player 是一款面向 macOS 与 Windows 的媒体库播放器，支持本地、WebDAV 与 SMB 媒体源，通过 TMDB 整理电影与剧集，发现今晚想看的那一部。">
-    <meta property="og:title" content="Mochi Player · 收藏那么多，今晚看哪部？">
-    <meta property="og:description" content="连接本地与网络存储，整理电影与剧集，发现今晚想看的那一部。探索 macOS 与 Windows 媒体库播放器 Mochi Player。">
+    <title>Mochi Player｜macOS 与 Windows 开源媒体库播放器</title>
+    <meta name="description" content="Mochi Player 是支持 macOS 与 Windows 的开源媒体库播放器，连接本地目录、SMB 网络共享与 WebDAV，用 TMDB 生成电影与剧集海报墙，并记住播放进度。">
+    <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+    <meta name="author" content="sen-to">
+    <meta name="application-name" content="Mochi Player">
+    <meta property="og:site_name" content="Mochi Player">
+    <meta property="og:locale" content="zh_CN">
     <meta property="og:type" content="website">
+    <meta property="og:title" content="Mochi Player｜macOS 与 Windows 开源媒体库播放器">
+    <meta property="og:description" content="连接本地、SMB 与 WebDAV 媒体源，用 TMDB 整理电影与剧集海报墙，记住播放进度。">
     <meta property="og:url" content="https://sen-to.github.io/mochi_player/">
-    <title>Mochi Player｜macOS 与 Windows 媒体库播放器</title>
+    <meta property="og:image" content="https://sen-to.github.io/mochi_player/assets/og-card.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Mochi Player 应用图标与标语：收藏那么多，今晚看哪部？">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mochi Player｜macOS 与 Windows 开源媒体库播放器">
+    <meta name="twitter:description" content="连接本地、SMB 与 WebDAV 媒体源，用 TMDB 整理电影与剧集海报墙，记住播放进度。">
+    <meta name="twitter:image" content="https://sen-to.github.io/mochi_player/assets/og-card.png">
     <link rel="canonical" href="https://sen-to.github.io/mochi_player/">
-    <link rel="sitemap" type="application/xml" href="./sitemap.xml">
     <link rel="icon" type="image/svg+xml" href="./assets/mochi_app_icon.svg">
+    <link rel="alternate" type="text/plain" href="./llms.txt" title="Mochi Player 站点摘要（供 AI 检索）">
     <link rel="stylesheet" href="./styles.css">
     <script src="./main.js" defer></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://sen-to.github.io/mochi_player/#website",
+            "url": "https://sen-to.github.io/mochi_player/",
+            "name": "Mochi Player",
+            "alternateName": ["Mochi", "mochi_player"],
+            "inLanguage": "zh-CN",
+            "publisher": { "@id": "https://sen-to.github.io/mochi_player/#organization" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://sen-to.github.io/mochi_player/#organization",
+            "name": "Mochi Player",
+            "url": "https://sen-to.github.io/mochi_player/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://sen-to.github.io/mochi_player/assets/mochi_app_icon.svg"
+            },
+            "sameAs": ["https://github.com/sen-to/mochi_player"]
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://sen-to.github.io/mochi_player/#app",
+            "name": "Mochi Player",
+            "alternateName": ["Mochi", "mochi_player"],
+            "applicationCategory": "MultimediaApplication",
+            "applicationSubCategory": "媒体库播放器",
+            "operatingSystem": "macOS 12.0 及以上、Windows x64",
+            "url": "https://sen-to.github.io/mochi_player/",
+            "downloadUrl": "https://github.com/sen-to/mochi_player/actions",
+            "softwareVersion": "开发预览",
+            "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+            "isAccessibleForFree": true,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+            "description": "Mochi Player 是一款开源桌面媒体库播放器，支持 macOS 与 Windows，可连接本地目录、SMB 网络共享与 WebDAV 媒体源，通过 TMDB 生成电影与剧集海报墙，并记住播放进度。",
+            "disambiguatingDescription": "由 sen-to 独立开发的开源桌面媒体库播放器，仓库地址 github.com/sen-to/mochi_player，支持本地、SMB 与 WebDAV 媒体源。",
+            "featureList": [
+              "本地目录、SMB 网络共享与 WebDAV 媒体源",
+              "TMDB 元数据与电影剧集海报墙",
+              "播放进度记忆与继续观看",
+              "音轨与字幕选择、0.5×–2× 倍速",
+              "macOS 与 Windows 桌面端"
+            ],
+            "screenshot": "https://sen-to.github.io/mochi_player/assets/screenshots/home.webp",
+            "author": { "@type": "Person", "name": "sen-to", "url": "https://github.com/sen-to" },
+            "publisher": { "@id": "https://sen-to.github.io/mochi_player/#organization" },
+            "sameAs": ["https://github.com/sen-to/mochi_player"]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">

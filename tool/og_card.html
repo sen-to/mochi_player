@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- 社交分享卡片（1200×630）的源模板，产物为 assets/branding/og-card.png。
+     重新生成：用浏览器以 1200×630 视口截图本文件，例如
+     chrome --headless --window-size=1200,630 --screenshot=../assets/branding/og-card.png tool/og_card.html -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    position: relative;
+    overflow: hidden;
+    background: #101014;
+    color: #f4f2f8;
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 72px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .glow {
+    position: absolute;
+    inset: -220px -120px auto -120px;
+    height: 900px;
+    background: radial-gradient(ellipse at 30% 30%, #8a5de055, transparent 62%);
+  }
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(#ffffff0a 1px, transparent 1px), linear-gradient(90deg, #ffffff0a 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 78%);
+  }
+  .brand { position: relative; display: flex; align-items: center; gap: 20px; }
+  .brand img { width: 86px; height: 86px; border-radius: 20px; box-shadow: 0 18px 40px #0009; }
+  .brand-desc { font-size: 17px; color: #a5a1b1; letter-spacing: .4px; margin-top: 10px; }
+  .brand-name { font-size: 30px; font-weight: 650; letter-spacing: -.6px; }
+  .brand-name span { color: #a5a1b1; font-weight: 400; }
+  .copy { position: relative; margin-top: -6px; }
+  h1 { font-size: 76px; line-height: 1.16; font-weight: 650; letter-spacing: -3px; }
+  h1 em { font-style: normal; color: #c2aff5; display: block; }
+  .lead { margin-top: 24px; font-size: 21px; line-height: 1.7; color: #a5a1b1; max-width: 900px; }
+  footer { position: relative; display: flex; align-items: center; justify-content: space-between; font-size: 17px; color: #a5a1b1; padding-top: 26px; border-top: 1px solid #ffffff1a; }
+  footer b { color: #d4cfdf; font-weight: 500; }
+  .pill { display: inline-flex; align-items: center; gap: 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #c2aff5; box-shadow: 0 0 14px #c2aff5; }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="grid"></div>
+  <div class="brand">
+    <img src="../assets/branding/mochi_app_icon.svg" alt="">
+    <div>
+      <div class="brand-name">Mochi <span>Player</span></div>
+      <div class="brand-desc">开源媒体库播放器 · macOS 与 Windows</div>
+    </div>
+  </div>
+  <div class="copy">
+    <h1>收藏那么多，<em>今晚看哪部？</em></h1>
+    <p class="lead">连接本地、SMB 与 WebDAV，把影片整理成海报墙；记住播放进度，选好字幕，接着看。</p>
+  </div>
+  <footer>
+    <span class="pill"><span class="dot"></span><b>sen-to.github.io/mochi_player</b></span>
+    <span>免费开源 · GPL-3.0-or-later</span>
+  </footer>
+</body>
+</html>
