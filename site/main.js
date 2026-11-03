@@ -26,28 +26,12 @@ function applyTheme(theme) {
     if (icon) icon.textContent = theme === 'dark' ? '☼' : '☾';
 }
 
-// 切换时临时开启颜色过渡；常态下不给全局挂 transition，避免干扰 hover 与滚动动效。
-const themeReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-let themeTransitionTimer = 0;
-
-function switchTheme(theme) {
-    const root = document.documentElement;
-    if (!themeReduceMotion.matches) {
-        root.classList.add('theme-switching');
-        window.clearTimeout(themeTransitionTimer);
-        themeTransitionTimer = window.setTimeout(() => {
-            root.classList.remove('theme-switching');
-        }, 340);
-    }
-    applyTheme(theme);
-}
-
 applyTheme(currentTheme());
 if (themeButton) {
     themeButton.hidden = false;
     themeButton.addEventListener('click', () => {
         savedTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-        switchTheme(savedTheme);
+        applyTheme(savedTheme);
         try {
             localStorage.setItem('mochi-site-theme', savedTheme);
         } catch (_) { /* 不影响本次切换。 */
@@ -56,7 +40,7 @@ if (themeButton) {
 }
 // 早期 Safari 只有 addListener；缺失时仅失去跟随系统主题的能力，不影响其余交互。
 const followSystemTheme = (event) => {
-    if (!savedTheme) switchTheme(event.matches ? 'light' : 'dark');
+    if (!savedTheme) applyTheme(event.matches ? 'light' : 'dark');
 };
 if (systemTheme.addEventListener) systemTheme.addEventListener('change', followSystemTheme);
 else if (systemTheme.addListener) systemTheme.addListener(followSystemTheme);

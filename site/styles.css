@@ -1,4 +1,83 @@
 /* 项目官网的视觉与响应式布局；复用产品截图，主题由 main.js 管理。 */
+/* 主题色在根元素统一插值；后代继承同一帧的颜色，不重复启动文字过渡。 */
+@property --bg {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #101014;
+}
+
+@property --text {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #f4f2f8;
+}
+
+@property --muted {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #a5a1b1;
+}
+
+@property --accent {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #c2aff5;
+}
+
+@property --line {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #ffffff14;
+}
+
+@property --surface {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #18171e;
+}
+
+@property --surface-raised {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #24212e;
+}
+
+@property --soft-text {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #d4cfdf;
+}
+
+@property --link {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #d2c1fc;
+}
+
+@property --shadow {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #0008;
+}
+
+@property --glow {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #8a5de02b;
+}
+
+@property --button-bg {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #8860c4;
+}
+
+@property --button-text {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: #fff;
+}
+
 :root {
     color-scheme: dark;
     --bg: #101014;
@@ -12,8 +91,9 @@
     --link: #d2c1fc;
     --shadow: #0008;
     --glow: #8a5de02b;
-    --button-bg: #c6b3f5;
-    --button-text: #251b3a;
+    /* 主按钮保持白字紫底，避免主题切换时文字与底色同时反转、短暂失去对比。 */
+    --button-bg: #8860c4;
+    --button-text: #fff;
     --columns: minmax(0, 5fr) minmax(0, 7fr);
     --ease: cubic-bezier(.22, 1, .36, 1);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -204,7 +284,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
     border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
-    transition: background .2s, transform .2s, box-shadow .2s;
+    transition: transform .2s;
 }
 
 .button:hover {
@@ -233,16 +313,18 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
     background: var(--surface-raised);
 }
 
+/* 导航下载沿用主按钮配色，普通与悬停状态都保持文字对比。 */
 .nav-download {
     min-height: 36px;
     padding: 9px 15px;
     font-size: 12px;
-    background: var(--surface-raised);
-    color: var(--link);
+    background: var(--button-bg);
+    color: var(--button-text);
 }
 
 .nav-download:hover {
-    background: var(--surface);
+    background: var(--button-bg);
+    color: var(--button-text);
 }
 
 /* 首屏以中心标题与完整截图建立主次，光晕只属于截图背景。 */
@@ -460,7 +542,6 @@ h2 {
     color: var(--muted);
     font-size: 12px;
     cursor: pointer;
-    transition: color .2s;
 }
 
 .gallery-tabs button:hover {
@@ -745,7 +826,7 @@ h2 {
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: 14px;
-    transition: border-color .25s var(--ease), transform .25s var(--ease), box-shadow .25s var(--ease);
+    transition: transform .25s var(--ease);
 }
 
 .platform-icon {
@@ -1420,15 +1501,11 @@ h2 {
     }
 }
 
-/* 切换深浅色时临时挂上颜色过渡；:where 保持零特异性，已经有 transition 的元素保留自己的动画。 */
-:where(html.theme-switching) {
-    transition: background-color .32s var(--ease), color .32s var(--ease), border-color .32s var(--ease);
-}
-
-:where(html.theme-switching) :where(*, *::before, *::after) {
-    transition-property: color, background-color, border-color, box-shadow, opacity;
-    transition-duration: .32s;
-    transition-timing-function: var(--ease);
+/* 主题颜色使用起止柔和的独立曲线，避免入场曲线的快速起步和过长收尾。 */
+:root {
+    transition-property: --bg, --text, --muted, --accent, --line, --surface, --surface-raised, --soft-text, --link, --shadow, --glow, --button-bg, --button-text;
+    transition-duration: .3s;
+    transition-timing-function: cubic-bezier(.4, 0, .2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1436,7 +1513,7 @@ h2 {
         scroll-behavior: auto;
     }
 
-    *, *::before, *::after {
+    :root, *, *::before, *::after {
         transition: none !important;
         animation: none !important;
     }
