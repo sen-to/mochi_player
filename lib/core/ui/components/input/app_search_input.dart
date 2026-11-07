@@ -10,11 +10,12 @@ import 'package:mochi_player/l10n/l10n.dart';
 
 /// 基于 [AppInput] 组合搜索专用输入。
 class AppSearchInput extends StatefulWidget {
-  const AppSearchInput({super.key, this.placeholder, this.onChanged, this.focusNode});
+  const AppSearchInput({super.key, this.placeholder, this.onChanged, this.focusNode, this.clearOnEscape = false});
 
   final String? placeholder;
   final ValueChanged<String>? onChanged;
   final FocusNode? focusNode;
+  final bool clearOnEscape;
 
   @override
   State<AppSearchInput> createState() => _AppSearchInputState();
@@ -88,11 +89,17 @@ class _AppSearchInputState extends State<AppSearchInput> {
       return true;
     }
 
-    if (event.logicalKey == LogicalKeyboardKey.escape && _focusNode.hasFocus) {
-      _focusNode.unfocus();
+    if (event.logicalKey != LogicalKeyboardKey.escape) return false;
+    if (widget.clearOnEscape && _hasText) {
+      final value = _controller.value;
+      // 组合期间让输入法处理取消候选，保留搜索词与焦点。
+      if (_focusNode.hasFocus && value.isComposingRangeValid && !value.composing.isCollapsed) return false;
+      _clear();
       return true;
     }
-    return false;
+    if (!_focusNode.hasFocus) return false;
+    _focusNode.unfocus();
+    return true;
   }
 
   @override
@@ -121,14 +128,16 @@ class _AppSearchInputState extends State<AppSearchInput> {
     );
   }
 
+  void _clear() {
+    _controller.clear();
+    widget.onChanged?.call('');
+  }
+
   Widget _buildClearButton() {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () {
-          _controller.clear();
-          widget.onChanged?.call('');
-        },
+        onTap: _clear,
         child: Container(
           key: const ValueKey('clear_button'),
           width: 18,

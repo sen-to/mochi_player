@@ -11,14 +11,23 @@ class LibraryItemPosterCard extends StatelessWidget {
   final LibraryItem item;
   final MediaArtworkType artworkType;
   final VoidCallback? onTap;
+  final bool showMediaType;
 
-  const LibraryItemPosterCard({super.key, required this.item, this.artworkType = MediaArtworkType.poster, this.onTap});
+  const LibraryItemPosterCard({
+    super.key,
+    required this.item,
+    this.artworkType = MediaArtworkType.poster,
+    this.onTap,
+    this.showMediaType = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final subtitle = _subtitle(context, item);
+    final mediaType = item is TVShow ? context.l10n.series : context.l10n.movies;
     return MediaCard(
       title: item.title,
-      subtitle: _subtitle(context, item),
+      subtitle: showMediaType ? [mediaType, ?subtitle].join(' · ') : subtitle,
       imageUrl: artworkType == MediaArtworkType.backdrop ? item.backdropUrl : item.posterUrl,
       rating: item.rating,
       artworkType: artworkType,

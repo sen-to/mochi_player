@@ -1,4 +1,4 @@
-// 【媒体库界面】展示电影或剧集目录并连接搜索与分页。
+// 【媒体库界面】展示电影、剧集及收藏目录，并管理网格滚动与分页。
 // 通过媒体库 Provider 查询，界面不直接访问目录仓库。
 
 import 'package:flutter/material.dart';
@@ -17,9 +17,7 @@ enum LibraryCategory { movies, series, favorites }
 
 class LibraryPage extends StatefulWidget {
   final LibraryCategory category;
-  final String searchQuery;
-
-  const LibraryPage({super.key, required this.category, this.searchQuery = ''});
+  const LibraryPage({super.key, required this.category});
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
@@ -44,18 +42,18 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget build(BuildContext context) {
     return switch (widget.category) {
       LibraryCategory.movies => PagedLibraryQueryView<LibraryItem>(
-        queryKey: (widget.category, widget.searchQuery),
-        query: (r, limit) => r.watchTitles(kind: LibraryTitleKind.movie, query: widget.searchQuery, limit: limit),
+        queryKey: widget.category,
+        query: (r, limit) => r.watchTitles(kind: LibraryTitleKind.movie, limit: limit),
         builder: (context, items) => _buildMovieGrid(context, items),
       ),
       LibraryCategory.series => PagedLibraryQueryView<LibraryItem>(
-        queryKey: (widget.category, widget.searchQuery),
-        query: (r, limit) => r.watchTitles(kind: LibraryTitleKind.tvShow, query: widget.searchQuery, limit: limit),
+        queryKey: widget.category,
+        query: (r, limit) => r.watchTitles(kind: LibraryTitleKind.tvShow, limit: limit),
         builder: (context, items) => _buildTVShowGrid(context, items),
       ),
       LibraryCategory.favorites => PagedLibraryQueryView<MediaCardVO>(
-        queryKey: (widget.category, widget.searchQuery),
-        query: (r, limit) => r.watchFavorites(query: widget.searchQuery, limit: limit),
+        queryKey: widget.category,
+        query: (r, limit) => r.watchFavorites(limit: limit),
         builder: (context, items) => _buildFavoritesGrid(context, items),
       ),
     };
@@ -63,7 +61,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildMovieGrid(BuildContext context, List<LibraryItem> items) {
     if (items.isEmpty) {
-      return _buildEmptyState(context.l10n.movies, hasQuery: _hasSearchQuery);
+      return _buildEmptyState(context.l10n.movies);
     }
 
     return _buildGridView(
@@ -76,7 +74,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildTVShowGrid(BuildContext context, List<LibraryItem> items) {
     if (items.isEmpty) {
-      return _buildEmptyState(context.l10n.series, hasQuery: _hasSearchQuery);
+      return _buildEmptyState(context.l10n.series);
     }
 
     return _buildGridView(
@@ -89,7 +87,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Widget _buildFavoritesGrid(BuildContext context, List<MediaCardVO> items) {
     if (items.isEmpty) {
-      return _buildEmptyState(context.l10n.favorites, hasQuery: _hasSearchQuery);
+      return _buildEmptyState(context.l10n.favorites);
     }
 
     return _buildGridView(
@@ -123,13 +121,11 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  bool get _hasSearchQuery => widget.searchQuery.trim().isNotEmpty;
-
-  Widget _buildEmptyState(String category, {required bool hasQuery}) {
+  Widget _buildEmptyState(String category) {
     return AppResult(
       status: AppResultStatus.empty,
-      title: hasQuery ? context.l10n.noMatchingCategory(category) : context.l10n.noCategoryFound(category),
-      subtitle: hasQuery ? context.l10n.tryOtherKeywords : context.l10n.scanToDiscover,
+      title: context.l10n.noCategoryFound(category),
+      subtitle: context.l10n.scanToDiscover,
     );
   }
 }

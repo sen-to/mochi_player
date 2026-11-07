@@ -12,15 +12,11 @@ import 'package:mochi_player/features/library/catalog/application/media_card_vo.
 import 'package:mochi_player/features/library/catalog/ui/library_section_page.dart';
 import 'package:mochi_player/features/library/ui/widgets/continue_watching_card.dart';
 import 'package:mochi_player/features/library/ui/widgets/library_item_poster_card.dart';
-import 'package:mochi_player/features/library/ui/widgets/library_query_view.dart';
-import 'package:mochi_player/features/library/ui/widgets/media_poster_grid.dart';
 import 'package:mochi_player/l10n/l10n.dart';
 import 'package:provider/provider.dart';
 
 class HomeContent extends StatefulWidget {
-  final String searchQuery;
-
-  const HomeContent({super.key, this.searchQuery = ''});
+  const HomeContent({super.key});
 
   @override
   State<HomeContent> createState() => _HomeContentState();
@@ -46,10 +42,6 @@ class _HomeContentState extends State<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.searchQuery.trim().isNotEmpty) {
-      return _buildSearchResults(context);
-    }
-
     final trendingState = context.select<TrendingMediaProvider, _TrendingContentSnapshot>(
       (provider) => _TrendingContentSnapshot(hasContent: provider.hasContent, isConfigured: provider.isConfigured),
     );
@@ -147,29 +139,6 @@ class _HomeContentState extends State<HomeContent> {
             // 底部留白
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    return PagedLibraryQueryView<LibraryItem>(
-      queryKey: widget.searchQuery,
-      query: (repository, limit) => repository.watchTitles(query: widget.searchQuery, limit: limit),
-      builder: (context, items) {
-        if (items.isEmpty) {
-          return AppResult(
-            status: AppResultStatus.empty,
-            title: context.l10n.noMatchingMedia,
-            subtitle: context.l10n.tryOtherKeywords,
-          );
-        }
-
-        return MediaPosterGrid<LibraryItem>(
-          items: items,
-          itemBuilder: (context, item) => LibraryItemPosterCard(item: item),
-          storageKey: 'home-search-results',
-          topPadding: AppHeader.height + AppSpacing.xxl,
         );
       },
     );
