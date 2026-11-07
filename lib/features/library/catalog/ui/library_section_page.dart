@@ -111,7 +111,7 @@ class _SectionPageContent extends StatelessWidget {
         final isBackdrop = section == LibrarySection.continueWatching;
         final contentWidth = constraints.maxWidth - 80;
         final crossAxisCount = isBackdrop
-            ? (contentWidth / 280).floor().clamp(2, 8).toInt()
+            ? (contentWidth / 260).floor().clamp(2, 8).toInt()
             : _libraryPosterColumnCount(contentWidth);
 
         return GridView.builder(

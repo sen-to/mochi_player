@@ -2,6 +2,7 @@
 // 候选由媒体库入口提供；组件持有轮播计时器，悬停、聚焦和隐藏时暂停，销毁时取消。
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
@@ -119,6 +120,7 @@ class _HomeHeroSectionState extends State<HomeHeroSection> {
                         key: ValueKey((widget.items[_activeIndex].runtimeType, widget.items[_activeIndex].tmdbId)),
                         item: widget.items[_activeIndex],
                         compact: compact,
+                        width: constraints.maxWidth,
                         minHeight: minHeight,
                       ),
                     ),
@@ -170,38 +172,61 @@ class _HomeHeroSectionState extends State<HomeHeroSection> {
 }
 
 class _HeroSlide extends StatelessWidget {
-  const _HeroSlide({super.key, required this.item, required this.compact, required this.minHeight});
+  const _HeroSlide({
+    super.key,
+    required this.item,
+    required this.compact,
+    required this.width,
+    required this.minHeight,
+  });
 
   static const _verticalInset = 24.0;
+  static const _contentMaxWidth = 420.0;
 
   final LibraryItem item;
   final bool compact;
+  final double width;
   final double minHeight;
 
   @override
   Widget build(BuildContext context) {
-    final surface = Theme.of(context).scaffoldBackgroundColor;
+    final theme = Theme.of(context);
+    final surface = theme.scaffoldBackgroundColor;
+    final isLight = theme.brightness == Brightness.light;
+    final titleColor = isLight ? AppColors.textPrimary(context) : Colors.white;
+    final overviewColor = isLight ? titleColor.withAlpha(220) : const Color(0xBFFFFFFF);
+    final appearance = isLight ? AppAppearance.standard : AppAppearance.overlay;
+    // 文字列末端的遮罩仍能衬托纯黑剧照上的简介，列外快速淡出。
+    final contentEdge = math.min(_contentMaxWidth + AppSpacing.page, math.max(0.0, width - AppSpacing.page));
+    final fadeEnd = contentEdge + 112;
+    final clearSurface = surface.withAlpha(0);
     final overview = item.overview?.trim();
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight),
       child: Stack(
         children: [
-          Positioned.fill(child: _backdrop()),
-          // 左侧遮罩向下逐渐展宽；底部遮罩将横幅接入首页背景。
+          Positioned.fill(child: _backdrop(isLight ? surface : const Color(0xFF242426))),
+          // 浅色从页面底色过渡到剧照，深色遮罩随高度向右展宽。
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withAlpha(240),
-                    Colors.black.withAlpha(215),
-                    Colors.black.withAlpha(85),
-                    Colors.transparent,
-                    Colors.transparent,
-                  ],
-                  stops: const [0, 0.2, 0.43, 0.65, 1],
-                  transform: const _HeroMaskTransform(),
-                ),
+                gradient: isLight
+                    ? LinearGradient(
+                        end: Alignment(2 * fadeEnd / math.max(1.0, width) - 1, 0),
+                        colors: [surface.withAlpha(220), surface.withAlpha(155), surface.withAlpha(60), clearSurface],
+                        stops: [0, contentEdge / fadeEnd, (contentEdge + 56) / fadeEnd, 1],
+                      )
+                    : LinearGradient(
+                        colors: [
+                          Colors.black.withAlpha(240),
+                          Colors.black.withAlpha(215),
+                          Colors.black.withAlpha(85),
+                          Colors.transparent,
+                          Colors.transparent,
+                        ],
+                        stops: const [0, 0.2, 0.43, 0.65, 1],
+                        transform: const _HeroMaskTransform(),
+                      ),
               ),
             ),
           ),
@@ -211,8 +236,10 @@ class _HeroSlide extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.transparent, surface],
-                  stops: const [0, 0.62, 1],
+                  colors: isLight
+                      ? [clearSurface, clearSurface, surface.withAlpha(35), surface.withAlpha(150), surface]
+                      : [Colors.transparent, Colors.transparent, surface],
+                  stops: isLight ? const [0, 0.72, 0.84, 0.94, 1] : const [0, 0.62, 1],
                 ),
               ),
             ),
@@ -223,7 +250,7 @@ class _HeroSlide extends StatelessWidget {
               alignment: Alignment.centerLeft,
               heightFactor: 1,
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 420, minHeight: minHeight - 2 * _verticalInset),
+                constraints: BoxConstraints(maxWidth: _contentMaxWidth, minHeight: minHeight - 2 * _verticalInset),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,7 +268,7 @@ class _HeroSlide extends StatelessWidget {
                             fontFamily: 'SourceHanSerif',
                             fontSize: compact ? 28 : 32,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: titleColor,
                             height: 1.15,
                           ),
                         ),
@@ -253,8 +280,7 @@ class _HeroSlide extends StatelessWidget {
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               if (item.rating > 0) MediaRatingTag(rating: item.rating),
-                              if (item.releaseYear != null)
-                                AppTag(text: '${item.releaseYear}', appearance: AppAppearance.overlay),
+                              if (item.releaseYear != null) AppTag(text: '${item.releaseYear}', appearance: appearance),
                               ...item.genres
                                   .take(3)
                                   .map(
@@ -262,7 +288,7 @@ class _HeroSlide extends StatelessWidget {
                                       constraints: BoxConstraints(maxWidth: constraints.maxWidth),
                                       child: FittedBox(
                                         fit: BoxFit.scaleDown,
-                                        child: AppTag(text: genre, appearance: AppAppearance.overlay),
+                                        child: AppTag(text: genre, appearance: appearance),
                                       ),
                                     ),
                                   ),
@@ -275,7 +301,7 @@ class _HeroSlide extends StatelessWidget {
                             overview,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14, color: Color(0xBFFFFFFF), height: 1.5),
+                            style: TextStyle(fontSize: 14, color: overviewColor, height: 1.5),
                           ),
                         ],
                       ],
@@ -297,7 +323,7 @@ class _HeroSlide extends StatelessWidget {
                             icon: Icons.info_outline_rounded,
                             label: context.l10n.details,
                             variant: AppButtonVariant.secondary,
-                            appearance: AppAppearance.overlay,
+                            appearance: appearance,
                             size: AppButtonSize.regular,
                           ),
                         ],
@@ -313,17 +339,17 @@ class _HeroSlide extends StatelessWidget {
     );
   }
 
-  Widget _backdrop() {
+  Widget _backdrop(Color fallbackColor) {
     final backdrop = item.backdropUrl?.trim();
     final poster = item.posterUrl?.trim();
     final url = backdrop != null && backdrop.isNotEmpty ? backdrop : poster;
-    if (url == null || url.isEmpty) return const ColoredBox(color: Color(0xFF242426));
+    if (url == null || url.isEmpty) return ColoredBox(color: fallbackColor);
     return MediaNetworkImage(
       imageUrl: url,
       fit: BoxFit.cover,
       alignment: Alignment.topRight,
-      placeholder: (_, _) => const ColoredBox(color: Color(0xFF242426)),
-      errorWidget: (_, _, _) => const ColoredBox(color: Color(0xFF242426)),
+      placeholder: (_, _) => ColoredBox(color: fallbackColor),
+      errorWidget: (_, _, _) => ColoredBox(color: fallbackColor),
     );
   }
 }
