@@ -10,6 +10,7 @@ import 'package:mochi_player/core/domain/media/library_activity.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/application/media_library_provider.dart';
 import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
+import 'package:mochi_player/features/library/catalog/domain/library_title_filter.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/catalog/domain/library_recommendation_candidate.dart';
 import 'package:mochi_player/features/library/sync/application/library_sync_service.dart';
@@ -216,6 +217,8 @@ class _Repository implements LibraryCatalogRepository {
     LibraryTitleKind? kind,
     String query = '',
     bool recent = false,
+    LibraryTitleFilter filter = const LibraryTitleFilter(),
+    LibraryTitleSort? sort,
     int limit = 100,
   }) => titles.stream;
 

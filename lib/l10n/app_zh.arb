@@ -279,5 +279,18 @@
   "tmdbRateLimited": "TMDB 请求已限流，请稍后重试。",
   "tmdbTimeout": "TMDB 请求超时，请检查网络或代理后重试。",
   "tmdbNetworkFailed": "无法连接 TMDB，请检查网络、代理或证书。",
-  "tmdbResponseFailed": "TMDB 服务不可用或响应异常，请稍后重试。"
+  "tmdbResponseFailed": "TMDB 服务不可用或响应异常，请稍后重试。",
+  "catalogFilter": "筛选",
+  "catalogMovieCount": "共 {count} 部电影",
+  "catalogSeriesCount": "共 {count} 部剧集",
+  "catalogFilterMovies": "筛选电影",
+  "catalogFilterSeries": "筛选剧集",
+  "catalogReset": "重置",
+  "catalogGenres": "类型",
+  "catalogMoreGenres": "更多类型",
+  "catalogReleaseYear": "上映年份",
+  "catalogAnyYear": "全部年份",
+  "catalogRating": "评分",
+  "catalogTitle": "片名",
+  "catalogNoMatches": "没有符合筛选条件的影片"
 }

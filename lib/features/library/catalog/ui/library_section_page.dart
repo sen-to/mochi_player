@@ -1,5 +1,5 @@
-// 【媒体库界面】展示收藏、续播或最近添加等完整分区。
-// 查询状态由通用查询组件与 Provider 协作管理。
+// 【首页分区界面】展示「查看全部」打开的独立列表，并提供返回首页的导航。
+// 页面持有列表滚动控制器，查询状态由通用查询组件与媒体库 Provider 管理。
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

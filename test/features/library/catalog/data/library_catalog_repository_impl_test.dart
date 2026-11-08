@@ -11,6 +11,7 @@ import 'package:mochi_player/core/data/database/sqlite_setup.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
 import 'package:mochi_player/features/library/catalog/data/library_catalog_repository_impl.dart';
+import 'package:mochi_player/features/library/catalog/domain/library_title_filter.dart';
 import 'package:mochi_player/features/library/sync/data/library_sync_repository_impl.dart';
 import 'package:mochi_player/features/playback/data/playback_media_repository_impl.dart';
 
@@ -55,6 +56,42 @@ void main() {
     repository = LibraryCatalogRepositoryImpl(database: db);
   });
   tearDown(() => db.close());
+
+  test('目录按标题筛选和排序后分页，数量覆盖全库且类型与年代选项保持完整', () async {
+    await saveMediaFixture(db, [
+      file('/a', movieId: '1', status: WatchStatus.watching),
+      file('/a-completed', movieId: '1', status: WatchStatus.completed),
+      file('/b', movieId: '2', status: WatchStatus.completed),
+      file('/c', movieId: '3'),
+      file('/untagged', movieId: '4'),
+      file('/s1', showId: '1', season: 1, episode: 1, status: WatchStatus.completed),
+      file('/s1-copy', showId: '1', season: 1, episode: 1),
+      file('/s2', showId: '1', season: 1, episode: 2),
+    ]);
+    await db.saveMovieMetadata(const Movie(tmdbId: '1', title: 'A', genres: ['剧情'], releaseYear: 2000, rating: 7));
+    await db.saveMovieMetadata(
+      const Movie(tmdbId: '2', title: 'B', genres: ['剧情', '喜剧'], releaseYear: 2009, rating: 8),
+    );
+    await db.saveMovieMetadata(const Movie(tmdbId: '3', title: 'C', genres: ['动作'], releaseYear: 2010, rating: 9));
+    await db.saveMovieMetadata(const Movie(tmdbId: '4', title: 'Untagged', releaseYear: 2005));
+
+    const filter = LibraryTitleFilter(genres: {'剧情', '喜剧'}, decade: 2000);
+    const movies = LibraryTitleKind.movie;
+    final results = await repository
+        .watchTitles(kind: movies, filter: filter, sort: LibraryTitleSort.rating, limit: 1)
+        .first;
+    expect(results.single.tmdbId, '2');
+    final summary = await repository.watchTitleCatalogSummary(movies, filter).first;
+    expect(summary.count, 2);
+    expect(summary.genres, unorderedEquals(['剧情', '喜剧', '动作']));
+    expect(summary.decades, [2010, 2000]);
+    const allGenres = LibraryTitleFilter(genres: {'剧情', '喜剧', '动作'});
+    expect((await repository.watchTitles(kind: movies, filter: allGenres).first).length, 3);
+    expect((await repository.watchTitleCatalogSummary(movies, allGenres).first).count, 3);
+    expect((await repository.watchTitles(kind: movies).first).length, 4);
+    const singleGenre = LibraryTitleFilter(genres: {'剧情'});
+    expect((await repository.watchTitles(kind: movies, filter: singleGenre).first).length, 2);
+  });
 
   test('identical movie and show provider IDs stay separate in versions and favorites', () async {
     const movie = Movie(tmdbId: '123', title: 'Movie');

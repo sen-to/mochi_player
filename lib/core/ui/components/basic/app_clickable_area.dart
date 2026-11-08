@@ -15,6 +15,8 @@ class AppClickableArea extends StatefulWidget {
   final Color? borderColor;
   final double? width;
   final double? height;
+  final Duration hoverDuration;
+  final Curve hoverCurve;
 
   const AppClickableArea({
     super.key,
@@ -27,6 +29,8 @@ class AppClickableArea extends StatefulWidget {
     this.borderColor,
     this.width,
     this.height,
+    this.hoverDuration = const Duration(milliseconds: 140),
+    this.hoverCurve = Curves.easeOutCubic,
   });
 
   @override
@@ -76,8 +80,8 @@ class _AppClickableAreaState extends State<AppClickableArea> {
             child: TweenAnimationBuilder<double>(
               // 动画只响应鼠标进入、离开和键盘焦点；外部选中状态变化立即生效。
               tween: Tween(end: enabled && (_hovering || _focused) ? 1 : 0),
-              duration: const Duration(milliseconds: 140),
-              curve: Curves.easeOutCubic,
+              duration: widget.hoverDuration,
+              curve: widget.hoverCurve,
               builder: (context, hoverProgress, child) => Container(
                 width: widget.width,
                 height: widget.height,

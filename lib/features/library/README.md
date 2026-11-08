@@ -35,6 +35,11 @@ metadata/application/metadata_matcher.dart        ID 与标题匹配用例
 | TMDB 结果与错误                    | [TMDB 数据适配](metadata/data/tmdb_metadata_source.dart)            | [获取契约](metadata/application/metadata_source.dart)；共享 JSON Mapper 只留在 core/data                                                                                         |
 | 元数据与关联的原子导入             | [元数据数据库适配](metadata/data/metadata_repository_impl.dart)     | [持久化契约](metadata/application/metadata_repository.dart)；DO 与业务模型通过 core/data/database/mappers 转换                                                                   |
 
+## 目录页面与首页分区
+
+[LibraryPage](catalog/ui/library_page.dart) 是侧边栏电影、剧集和收藏的根页面。电影和剧集在这里共用目录工具栏。
+[LibrarySectionPage](catalog/ui/library_section_page.dart) 是首页「查看全部」打开的独立分区页面，带返回入口，承载继续观看和最近添加等列表。
+
 ## 首页推荐
 
 入口为 [LibraryRecommendationService](catalog/application/library_recommendation_service.dart)，通过现有目录仓库的

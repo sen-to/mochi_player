@@ -1293,5 +1293,32 @@
   "tmdbRateLimited": "TMDB request limit reached. Try again later.",
   "tmdbTimeout": "TMDB request timed out. Check the network or proxy and try again.",
   "tmdbNetworkFailed": "Could not connect to TMDB. Check the network, proxy or certificate.",
-  "tmdbResponseFailed": "TMDB returned an unavailable or invalid response. Try again later."
+  "tmdbResponseFailed": "TMDB returned an unavailable or invalid response. Try again later.",
+  "catalogFilter": "Filters",
+  "catalogMovieCount": "{count, plural, one {# movie} other {# movies}}",
+  "@catalogMovieCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogSeriesCount": "{count, plural, one {# series} other {# series}}",
+  "@catalogSeriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "catalogFilterMovies": "Filter movies",
+  "catalogFilterSeries": "Filter series",
+  "catalogReset": "Reset",
+  "catalogGenres": "Genres",
+  "catalogMoreGenres": "More genres",
+  "catalogReleaseYear": "Release year",
+  "catalogAnyYear": "Any year",
+  "catalogRating": "Rating",
+  "catalogTitle": "Title",
+  "catalogNoMatches": "No titles match the filters"
 }

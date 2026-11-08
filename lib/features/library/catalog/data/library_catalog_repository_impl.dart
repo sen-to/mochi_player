@@ -1,6 +1,8 @@
 // 【数据访问】用 SQL 完成目录筛选、排序、分页及卡片元数据批量投影。
 // 分页展示查询与全库推荐输入通过订阅发布，不处理弹窗或页面状态。
 
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:mochi_player/core/data/database/app_database.dart';
 import 'package:mochi_player/core/data/database/mappers/episode_mapper.dart';
@@ -15,6 +17,8 @@ import 'package:mochi_player/features/library/catalog/application/media_card_map
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/catalog/data/library_recommendation_mapper.dart';
 import 'package:mochi_player/features/library/catalog/domain/library_recommendation_candidate.dart';
+
+import 'package:mochi_player/features/library/catalog/domain/library_title_filter.dart';
 
 /// SQL 负责可用性、聚合与分页；推荐输入覆盖全库，普通展示只读取当前页。
 class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
@@ -39,11 +43,11 @@ class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
       .map((row) => row.read<int>('total'));
 
   static const _titles = '''
-    SELECT 'movie' AS kind, m.tmdb_id AS key, m.title, m.original_title,
+    SELECT 'movie' AS kind, m.tmdb_id AS key, m.title, m.original_title, m.genres, m.release_year, m.rating,
       (SELECT MIN(added_at) FROM media_files f WHERE f.movie_tmdb_id=m.tmdb_id) AS added_at
     FROM movies m WHERE EXISTS (SELECT 1 FROM media_files f WHERE f.media_type='movie' AND f.movie_tmdb_id=m.tmdb_id)
     UNION ALL
-    SELECT 'show', m.tmdb_id, m.title, m.original_title,
+    SELECT 'show', m.tmdb_id, m.title, m.original_title, m.genres, m.release_year, m.rating,
       (SELECT MIN(added_at) FROM media_files f WHERE f.tv_show_tmdb_id=m.tmdb_id)
     FROM t_v_shows m WHERE EXISTS (SELECT 1 FROM media_files f WHERE f.media_type='episode' AND f.tv_show_tmdb_id=m.tmdb_id)
   ''';
@@ -54,34 +58,84 @@ class LibraryCatalogRepositoryImpl implements LibraryCatalogRepository {
     LibraryTitleKind? kind,
     String query = '',
     bool recent = false,
+    LibraryTitleFilter filter = const LibraryTitleFilter(),
+    LibraryTitleSort? sort,
     int limit = 100,
   }) {
     final normalized = normalizeLibrarySearchText(query);
-    final sql = '''WITH titles AS ($_titles), ranked AS (
+    final variables = <Variable>[Variable(normalized), Variable(_titleKind(kind)), Variable(limit)];
+    final filterSql = _titleFilterSql(filter, variables);
+    final order = switch (sort) {
+      LibraryTitleSort.latestAdded => 'added_at DESC,',
+      LibraryTitleSort.releaseYear => 'release_year DESC,',
+      LibraryTitleSort.rating => 'rating DESC,',
+      LibraryTitleSort.title => 'library_normalize(title),',
+      null => recent ? 'added_at DESC,' : '',
+    };
+    final sql =
+        '''WITH titles AS ($_titles), ranked AS (
       SELECT *, MAX(
         CASE WHEN library_normalize(title)=?1 THEN 120 WHEN instr(library_normalize(title),?1)=1 THEN 100
           WHEN instr(library_normalize(title),?1)>0 THEN 80 ELSE 0 END,
         CASE WHEN library_normalize(original_title)=?1 THEN 110 WHEN instr(library_normalize(original_title),?1)=1 THEN 90
           WHEN instr(library_normalize(original_title),?1)>0 THEN 70 ELSE 0 END) AS score
       FROM titles)
-      SELECT * FROM ranked WHERE (?1='' OR score>0) AND (?2='' OR kind=?2)
-      ORDER BY ${recent ? 'added_at DESC,' : ''} ${normalized.isEmpty ? '' : 'score DESC,'} kind,key LIMIT ?3''';
+      SELECT * FROM ranked catalog WHERE (?1='' OR score>0) AND (?2='' OR kind=?2) $filterSql
+      ORDER BY $order ${normalized.isEmpty ? '' : 'score DESC,'} kind,key LIMIT ?3''';
     return _database
-        .customSelect(
-          sql,
-          variables: [
-            Variable(normalized),
-            Variable(switch (kind) {
-              LibraryTitleKind.movie => 'movie',
-              LibraryTitleKind.tvShow => 'show',
-              null => '',
-            }),
-            Variable(limit),
-          ],
-          readsFrom: {_database.mediaFiles, _database.movies, _database.tVShows},
-        )
+        .customSelect(sql, variables: variables, readsFrom: {_database.mediaFiles, _database.movies, _database.tVShows})
         .watch()
         .asyncMap(_readTitles);
+  }
+
+  @override
+  Stream<LibraryTitleCatalogSummary> watchTitleCatalogSummary(LibraryTitleKind kind, LibraryTitleFilter filter) {
+    final variables = <Variable>[Variable(_titleKind(kind))];
+    final filterSql = _titleFilterSql(filter, variables);
+    return _database
+        .customSelect(
+          '''WITH titles AS ($_titles), category AS (SELECT * FROM titles WHERE kind=?1)
+      SELECT (SELECT COUNT(*) FROM category catalog WHERE 1=1 $filterSql) AS count,
+        (SELECT json_group_array(DISTINCT g.value) FROM category, json_each(${_genreArray('category.genres')}) g
+          WHERE g.type='text' AND trim(g.value)<>'') AS genres,
+        (SELECT json_group_array(DISTINCT (release_year/10)*10) FROM category WHERE release_year>0) AS decades''',
+          variables: variables,
+          readsFrom: {_database.mediaFiles, _database.movies, _database.tVShows},
+        )
+        .watchSingle()
+        .map(
+          (row) => (
+            count: row.read<int>('count'),
+            genres: (jsonDecode(row.read<String>('genres')) as List).cast<String>()..sort(),
+            decades: (jsonDecode(row.read<String>('decades')) as List).cast<int>()..sort((a, b) => b.compareTo(a)),
+          ),
+        );
+  }
+
+  static String _titleKind(LibraryTitleKind? kind) => switch (kind) {
+    LibraryTitleKind.movie => 'movie',
+    LibraryTitleKind.tvShow => 'show',
+    null => '',
+  };
+
+  static String _genreArray(String column) => "CASE WHEN json_valid($column) THEN $column ELSE '[]' END";
+
+  static String _titleFilterSql(LibraryTitleFilter filter, List<Variable> variables) {
+    String bind<T extends Object>(T value) {
+      variables.add(Variable<T>(value));
+      return '?${variables.length}';
+    }
+
+    final sql = StringBuffer();
+    if (filter.genres.isNotEmpty) {
+      final genres = bind(jsonEncode(filter.genres.toList()));
+      sql.write(""" AND EXISTS (SELECT 1 FROM json_each(${_genreArray('catalog.genres')}) g
+        WHERE g.type='text' AND g.value IN (SELECT value FROM json_each($genres)))""");
+    }
+    if (filter.decade case final decade?) {
+      sql.write(' AND release_year BETWEEN ${bind(decade)} AND ${bind(decade + 9)}');
+    }
+    return sql.toString();
   }
 
   Future<List<LibraryItem>> _readTitles(List<QueryRow> rows) async {

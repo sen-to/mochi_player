@@ -22,22 +22,28 @@ enum AppDropdownMenuAlignment { start, end }
 class AppDropdown<T> extends StatelessWidget {
   const AppDropdown({
     super.key,
-    required this.trigger,
+    this.trigger,
+    this.triggerBuilder,
     required this.options,
     this.onSelected,
     this.selectedValue,
     this.tooltip,
     this.menuWidth = 160,
     this.menuAlignment = AppDropdownMenuAlignment.start,
-  });
+    this.controller,
+  }) : assert((trigger == null) != (triggerBuilder == null));
 
-  final Widget trigger;
+  final Widget? trigger;
+
+  /// 自定义触发控件，菜单不可用时回调参数为 null。
+  final Widget Function(BuildContext context, VoidCallback? toggle)? triggerBuilder;
   final List<AppDropdownOption<T>> options;
   final ValueChanged<T>? onSelected;
   final T? selectedValue;
   final String? tooltip;
   final double menuWidth;
   final AppDropdownMenuAlignment menuAlignment;
+  final MenuController? controller;
 
   bool get _enabled => onSelected != null && options.isNotEmpty;
 
@@ -47,6 +53,7 @@ class AppDropdown<T> extends StatelessWidget {
         ? Colors.black.withAlpha(112)
         : Colors.black.withAlpha(28);
     return MenuAnchor(
+      controller: controller,
       consumeOutsideTap: true,
       useRootOverlay: true,
       clipBehavior: Clip.none,
@@ -80,10 +87,8 @@ class AppDropdown<T> extends StatelessWidget {
           ),
       ],
       builder: (context, controller, child) {
-        final button = MenuTriggerArea(
-          onPressed: _enabled ? () => controller.isOpen ? controller.close() : controller.open() : null,
-          child: trigger,
-        );
+        final toggle = _enabled ? () => controller.isOpen ? controller.close() : controller.open() : null;
+        final button = triggerBuilder?.call(context, toggle) ?? MenuTriggerArea(onPressed: toggle, child: trigger!);
         final resolvedTooltip = tooltip;
         if (resolvedTooltip == null || resolvedTooltip.isEmpty) return button;
         return Tooltip(message: resolvedTooltip, excludeFromSemantics: true, child: button);
@@ -113,6 +118,8 @@ class _DropdownOptionRow<T> extends StatelessWidget {
           Expanded(
             child: Text(
               option.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: foreground,
                 fontSize: 13,

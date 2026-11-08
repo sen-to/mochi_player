@@ -5,8 +5,13 @@ import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/catalog/domain/library_recommendation_candidate.dart';
 
+import 'package:mochi_player/features/library/catalog/domain/library_title_filter.dart';
+
 /// 逻辑标题类型；剧集标题不同于物理文件的 episode 类型。
 enum LibraryTitleKind { movie, tvShow }
+
+/// 当前条件的结果总数及整个分类的可选类型、年份区间。
+typedef LibraryTitleCatalogSummary = ({int count, List<String> genres, List<int> decades});
 
 /// 读取和修改本地媒体库，不访问网络或接管共享数据库的生命周期。
 /// 查询失败由 Future 或 Stream 的错误报告，不用空集合代替读取失败；
@@ -21,13 +26,19 @@ abstract interface class LibraryCatalogRepository {
   /// 订阅存在关联文件的电影 / 剧集标题，每个标题返回一次。
   /// kind 为电影或剧集标题；null 表示全部类型。
   /// query 匹配规范化后的标题 / 原标题；recent 优先按标题最早关联文件的添加时间倒序，
-  /// 然后按搜索相关性及稳定的类型、标题 ID 排序；limit 限制结果前缀长度。
+  /// 显式 sort 优先，其后按相关性和稳定的类型、标题 ID 排序；limit 限制结果前缀长度。
+  /// 多个类型标签匹配任意一项，年份与类型条件求交集；空类型条件包含无标签标题。
   Stream<List<LibraryItem>> watchTitles({
     LibraryTitleKind? kind,
     String query = '',
     bool recent = false,
+    LibraryTitleFilter filter = const LibraryTitleFilter(),
+    LibraryTitleSort? sort,
     int limit = 100,
   });
+
+  /// 订阅当前条件命中的总数，以及此分类所有可选类型和年代。
+  Stream<LibraryTitleCatalogSummary> watchTitleCatalogSummary(LibraryTitleKind kind, LibraryTitleFilter filter);
 
   /// 订阅整个本地目录的推荐输入；只返回有关联电影 / 单集文件且有元数据的标题。
   /// 按类型及 TMDB ID 去重，多版本收藏取任一、已开始 / 看完取任一文件，

@@ -8,6 +8,7 @@ import 'package:mochi_player/core/domain/app_failure.dart';
 import 'package:mochi_player/core/domain/media/library_activity.dart';
 import 'package:mochi_player/core/domain/media/models.dart';
 import 'package:mochi_player/features/library/catalog/application/library_catalog_repository.dart';
+import 'package:mochi_player/features/library/catalog/domain/library_title_filter.dart';
 import 'package:mochi_player/features/library/catalog/application/library_recommendation_service.dart';
 import 'package:mochi_player/features/library/catalog/application/media_card_vo.dart';
 import 'package:mochi_player/features/library/sync/application/library_sync_service.dart';
@@ -150,8 +151,13 @@ class MediaLibraryProvider extends ChangeNotifier {
     LibraryTitleKind? kind,
     String query = '',
     bool recent = false,
+    LibraryTitleFilter filter = const LibraryTitleFilter(),
+    LibraryTitleSort? sort,
     int limit = 100,
-  }) => _repository.watchTitles(kind: kind, query: query, recent: recent, limit: limit);
+  }) => _repository.watchTitles(kind: kind, query: query, recent: recent, filter: filter, sort: sort, limit: limit);
+
+  Stream<LibraryTitleCatalogSummary> watchTitleCatalogSummary(LibraryTitleKind kind, LibraryTitleFilter filter) =>
+      _repository.watchTitleCatalogSummary(kind, filter);
 
   Stream<LibraryItem?> watchDetail(LibraryItem item) => _repository.watchDetail(item);
 
