@@ -39,13 +39,15 @@ Windows 窗口缩放期间出现 `AccessibilityBridge::CreateRemoveReparentedNod
 
 [main.cpp](../../windows/runner/main.cpp) 创建单个 `FlutterEngine`，注册一次插件；窗口由 Dart 官方 API 创建。
 
-原生扩展通过 `FlutterDesktopPluginRegistrarGetViewById` 定位 HWND：位置与拖动操作指定窗口；普通置顶调用 `SetWindowPos` 的 `HWND_TOPMOST / HWND_NOTOPMOST`；IFileOpenDialog 使用所属视图的父窗口，目录 / 字幕选择取消返回空值。多显示器 / DPI 的尺寸与定位需单独验收。
+原生扩展通过 `FlutterDesktopPluginRegistrarGetViewById` 定位 HWND：位置与拖动操作指定窗口；普通置顶调用 `SetWindowPos` 的 `HWND_TOPMOST / HWND_NOTOPMOST`；IFileOpenDialog 使用所属视图的父窗口，目录 / 字幕选择取消返回空值。多显示器 / DPI 的尺寸与定位已完成人工验收。
 
 读取窗口样式、获取 / 转换窗口尺寸、调整边框和设置尺寸 / 置顶均检查 Win32 调用结果；失败通过 `window_operation_failed` 返回操作名称与系统错误码。窗口查找与 DPI 结果也检查有效性。
 
 ## CI 与验收
 
 CI 按 `.fvmrc` 检出 SDK 并下载预编译引擎，执行项目检查、测试与 Windows Release 构建，产物保留 14 天。
+
+2026-11-11 完成 Windows 人工验收：原生输入与窗口操作、窗口关闭、多显示器 / DPI、真实样片播放与 SMB 转发播放。
 
 ## 构建前检查
 

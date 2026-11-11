@@ -80,4 +80,6 @@ fvm flutter build macos --release   # 发布构建
 
 CI 使用临时签名，以 ditto 归档应用并保留执行权限与框架符号链接。产物 `mochi-player-macos` 保留 14 天，下载后解压其中的 `mochi-player-macos.zip`。
 
-CI 产物供构建验证，正式发布仍需签名、公证及原生交互验收。
+CI 产物供构建验证，正式发布仍需签名与公证。
+
+2026-11-11 完成 macOS 人工验收：窗口交互（拖动、缩放、全屏、mini 播放器）、文件对话框、真实样片播放与进度记忆。
