@@ -2,10 +2,10 @@
 // 候选项和动作由调用方定义，菜单负责浮层交互。
 
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/ui/components/overlay/app_menu_surface.dart';
 import 'package:mochi_player/core/ui/components/overlay/internal/menu_parts.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_icons.dart';
-import 'package:mochi_player/core/ui/theme/app_radii.dart';
 
 class AppDropdownOption<T> {
   const AppDropdownOption({required this.value, required this.label, this.icon});
@@ -33,6 +33,9 @@ class AppDropdown<T> extends StatelessWidget {
     this.controller,
   }) : assert((trigger == null) != (triggerBuilder == null));
 
+  /// 下拉触发控件的圆角；与弹出面板共用同一值，两者必须视觉一致。
+  static const BorderRadius triggerRadius = AppMenuSurface.radius;
+
   final Widget? trigger;
 
   /// 自定义触发控件，菜单不可用时回调参数为 null。
@@ -49,31 +52,19 @@ class AppDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadowColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.black.withAlpha(112)
-        : Colors.black.withAlpha(28);
     return MenuAnchor(
       controller: controller,
       consumeOutsideTap: true,
       useRootOverlay: true,
       clipBehavior: Clip.none,
       alignmentOffset: Offset(menuAlignment == AppDropdownMenuAlignment.end ? -menuWidth : 0, 6),
-      style: MenuStyle(
+      style: AppMenuSurface.style(context).copyWith(
         // MenuAnchor 的 bottomEnd 从触发控件尾端开始排列菜单；回移一个菜单宽度，使两者尾端真正对齐，并向前端展开。
         alignment: menuAlignment == AppDropdownMenuAlignment.start
             ? AlignmentDirectional.bottomStart
             : AlignmentDirectional.bottomEnd,
-        backgroundColor: WidgetStatePropertyAll(AppColors.menuSurface(context)),
-        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-        shadowColor: WidgetStatePropertyAll(shadowColor),
-        elevation: const WidgetStatePropertyAll(8),
         // 菜单宽度与触发控件保持一致，避免桌面紧凑密度缩小固定宽度菜单。
         visualDensity: VisualDensity.standard,
-        padding: const WidgetStatePropertyAll(EdgeInsets.all(6)),
-        side: WidgetStatePropertyAll(BorderSide(color: AppColors.separator(context))),
-        shape: const WidgetStatePropertyAll(
-          RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(AppRadii.control))),
-        ),
       ),
       menuChildren: [
         for (final option in options)

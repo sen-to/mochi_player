@@ -23,6 +23,7 @@ export 'components/layout/app_horizontal_scroller.dart';
 export 'components/navigation/app_header.dart';
 export 'components/navigation/app_tabs.dart';
 export 'components/overlay/app_dropdown.dart';
+export 'components/overlay/app_menu_surface.dart';
 export 'formatters/media_file_labels.dart';
 export 'theme/app_colors.dart';
 export 'theme/app_control_metrics.dart';

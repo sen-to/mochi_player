@@ -6,7 +6,6 @@ import 'package:mochi_player/core/ui/components/overlay/app_dropdown.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_control_metrics.dart';
 import 'package:mochi_player/core/ui/theme/app_icons.dart';
-import 'package:mochi_player/core/ui/theme/app_radii.dart';
 import 'package:mochi_player/core/ui/theme/app_spacing.dart';
 import 'package:mochi_player/core/ui/theme/app_typography.dart';
 import 'package:mochi_player/l10n/l10n.dart';
@@ -47,7 +46,7 @@ class AppSelect<T> extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: AppColors.controlSurface(context),
-                  borderRadius: BorderRadius.circular(AppRadii.control),
+                  borderRadius: AppDropdown.triggerRadius,
                   border: Border.all(color: AppColors.separator(context)),
                 ),
                 child: Padding(

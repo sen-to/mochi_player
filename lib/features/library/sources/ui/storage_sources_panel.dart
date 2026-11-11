@@ -105,7 +105,7 @@ class _StorageSourcesPanelState extends State<StorageSourcesPanel> {
           padding: const EdgeInsets.only(left: AppSpacing.sm, right: AppSpacing.xs),
           decoration: BoxDecoration(
             color: AppColors.controlSurface(context),
-            borderRadius: BorderRadius.circular(AppRadii.control),
+            borderRadius: AppDropdown.triggerRadius,
             border: Border.all(color: AppColors.separator(context)),
           ),
           child: Row(

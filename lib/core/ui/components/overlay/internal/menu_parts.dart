@@ -2,6 +2,7 @@
 // 供应用菜单组合使用，不承载具体业务动作。
 
 import 'package:flutter/material.dart';
+import 'package:mochi_player/core/ui/components/overlay/app_menu_surface.dart';
 import 'package:mochi_player/core/ui/theme/app_colors.dart';
 import 'package:mochi_player/core/ui/theme/app_control_metrics.dart';
 import 'package:mochi_player/core/ui/theme/app_radii.dart';
@@ -14,9 +15,6 @@ class MenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadowColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.black.withAlpha(112)
-        : Colors.black.withAlpha(28);
     return DefaultTextStyle(
       style: TextStyle(
         color: AppColors.textPrimary(context),
@@ -27,12 +25,12 @@ class MenuPanel extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.menuSurface(context),
-          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderRadius: AppMenuSurface.radius,
           border: Border.all(color: AppColors.separator(context)),
-          boxShadow: [BoxShadow(color: shadowColor, blurRadius: 18, offset: const Offset(0, 8))],
+          boxShadow: [AppMenuSurface.boxShadow(context)],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(_menuPanelPadding),
+          padding: const EdgeInsets.all(AppMenuSurface.padding),
           child: Column(mainAxisSize: MainAxisSize.min, children: children),
         ),
       ),
@@ -130,4 +128,3 @@ class _MenuTriggerAreaState extends State<MenuTriggerArea> {
 }
 
 const double _menuItemHeight = 36;
-const double _menuPanelPadding = 6;

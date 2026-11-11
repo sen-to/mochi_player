@@ -81,17 +81,10 @@ class _LibraryCatalogToolbarState extends State<LibraryCatalogToolbar> {
               consumeOutsideTap: true,
               alignmentOffset: const Offset(-360, 6),
               reservedPadding: const EdgeInsets.all(16),
-              style: MenuStyle(
-                alignment: AlignmentDirectional.bottomEnd,
-                backgroundColor: WidgetStatePropertyAll(AppColors.menuSurface(context)),
-                surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-                side: WidgetStatePropertyAll(BorderSide(color: _controlBorder(context))),
-                elevation: const WidgetStatePropertyAll(6),
-                shape: const WidgetStatePropertyAll(
-                  RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(AppRadii.card))),
-                ),
-                padding: const WidgetStatePropertyAll(EdgeInsets.zero),
-              ),
+              style: AppMenuSurface.style(
+                context,
+                padding: EdgeInsets.zero,
+              ).copyWith(alignment: AlignmentDirectional.bottomEnd),
               menuChildren: [
                 Focus(
                   autofocus: true,
@@ -161,7 +154,7 @@ class _CatalogControl extends StatelessWidget {
       hoverDuration: AppControlMetrics.stateAnimationDuration,
       height: 26,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      borderRadius: BorderRadius.circular(AppRadii.small),
+      borderRadius: AppDropdown.triggerRadius,
       backgroundColor: plain
           ? Colors.transparent
           : selected

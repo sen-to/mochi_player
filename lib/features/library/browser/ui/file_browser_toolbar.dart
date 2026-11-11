@@ -255,7 +255,7 @@ class _ToolbarGroup extends StatelessWidget {
       height: _toolbarHeight,
       decoration: BoxDecoration(
         color: AppColors.controlSurface(context),
-        borderRadius: BorderRadius.circular(AppRadii.surface),
+        borderRadius: AppDropdown.triggerRadius,
         border: Border.all(color: AppColors.separator(context)),
       ),
       clipBehavior: Clip.antiAlias,
