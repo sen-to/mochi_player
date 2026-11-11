@@ -15,7 +15,11 @@ fvm flutter build windows --release
 
 ## 应用图标
 
-Windows 可执行文件通过 `windows/runner/Runner.rc` 嵌入 `resources/app_icon.ico`，官方窗口宿主也读取此图标资源。该 ICO 复用 macOS 已提交的 Mochi 品牌 PNG，包含 16、32、64、128、256 像素版本。更新品牌图片后，在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tool/generate_windows_icon.ps1`，提交生成的 ICO，再重新构建 Windows 应用。已有快捷方式或任务栏固定项可能保留旧图标缓存，需重新创建或取消固定后重新固定。
+Windows 可执行文件通过 `windows/runner/Runner.rc` 嵌入 `resources/app_icon.ico`，官方窗口宿主也读取此图标资源。ICO 由 `windows/runner/resources/app_icon_<size>.png` 打包而成，包含 16、32、48、64、128、256 像素版本。
+
+这些 PNG 必须是**透明底**：圆角以外 `alpha = 0`。macOS AppIcon 资产按 Apple HIG 保持满幅不透明，四角为白色，直接打包会在任务栏、标题栏和资源管理器中显示一圈白角；Windows 因此单独保存一份透明底导出，与品牌 SVG（`rect width="1024" height="1024" rx="224"`）的圆角范围一致。不要改回读取 macOS 资产。
+
+更新品牌图片后：从 SVG 重新导出透明底 PNG 覆盖 `windows/runner/resources/app_icon_<size>.png`，在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tool/generate_windows_icon.ps1`，提交 PNG 与生成的 ICO，再重新构建。已有快捷方式或任务栏固定项可能保留旧图标缓存，需重新创建或取消固定后重新固定。
 
 ## 官方窗口宿主
 

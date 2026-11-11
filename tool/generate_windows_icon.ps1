@@ -1,10 +1,14 @@
 $ErrorActionPreference = 'Stop'
 
-# Reuse the committed branding renders; no image library or SDK is required.
+# 把已提交的 Windows 图标 PNG 打包成 ICO；不需要图像库或 SDK。
+#
+# 源图必须是透明底：圆角以外 alpha = 0。macOS AppIcon 资产按 Apple HIG 保持
+# 满幅不透明，四角是白色，直接拿来打包会让任务栏与窗口图标显示一圈白角。
+# 因此 Windows 单独保存一份透明底导出，不要改回读取 macOS 资产。
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$sourceDirectory = Join-Path $projectRoot 'macos/Runner/Assets.xcassets/AppIcon.appiconset'
-$destination = Join-Path $projectRoot 'windows/runner/resources/app_icon.ico'
-$sizes = @(16, 32, 64, 128, 256)
+$sourceDirectory = Join-Path $projectRoot 'windows/runner/resources'
+$destination = Join-Path $sourceDirectory 'app_icon.ico'
+$sizes = @(16, 32, 48, 64, 128, 256)
 $images = @($sizes | ForEach-Object {
     ,([System.IO.File]::ReadAllBytes((Join-Path $sourceDirectory "app_icon_$_.png")))
 })
